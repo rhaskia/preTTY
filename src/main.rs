@@ -1,5 +1,6 @@
-use portable_pty::{CommandBuilder, PtySize, native_pty_system, PtySystem};
 use anyhow::Error;
+use portable_pty::{native_pty_system, CommandBuilder, PtySize, PtySystem};
+use std::io::{self, Read, Write};
 
 fn main() -> anyhow::Result<()> {
     // Use the native pty implementation for the system
@@ -21,23 +22,30 @@ fn main() -> anyhow::Result<()> {
     // Spawn a shell into the pty
     let cmd = CommandBuilder::new("bash");
     let child = pair.slave.spawn_command(cmd)?;
-    
+
     println!("Spawned shell");
 
     // Read and parse output from the pty with reader
     let mut reader = pair.master.try_clone_reader()?;
-
+    let mut writer = pair.master.take_writer()?;
     println!("writing data");
 
     // Send data to the pty by writing to the master
-    writeln!(pair.master.take_writer()?, "ls\r\n")?;
+    writeln!(writer, "echo hi\r\n")?;
 
     println!("reading");
 
-    let mut output = [0; 10];
+    // let mut output = [0; 10];
+    // reader.read(&mut output);
+    let mut b = reader.bytes();
+
     loop {
-        reader.read(&mut output);
-        println!("{:?}", String::from_utf8(output.to_vec()));
+        // let c = std::io::stdin().bytes().next();
+        // if let Some(c_ok) = c {
+        //     write!(writer, "{}", c_ok? as char)?;
+        // }
+        print!("{}", b.next().unwrap()? as char);
+        io::stdout().flush();
     }
 
     Ok(())
