@@ -1,7 +1,6 @@
-use anyhow::Error;
 use eframe::egui;
 use egui::*;
-use portable_pty::{native_pty_system, CommandBuilder, PtySize, PtySystem};
+use portable_pty::{native_pty_system, CommandBuilder, PtySize};
 use std::{
     io::{Read, Write},
     sync::mpsc::{Receiver, Sender},
@@ -9,18 +8,16 @@ use std::{
 use egui::{Event, Key};
 
 use std::{
-    io::{prelude::*, BufReader, BufWriter},
     sync::mpsc::channel,
     thread,
-    time::Instant,
 };
 
 fn main() -> anyhow::Result<()> {
     // Send data to the pty by writing to the master
-    let pty_system = native_pty_system();
+    let mut pty_system = native_pty_system();
 
     // Create a new pty
-    let mut pair = pty_system.openpty(PtySize {
+    let pair = pty_system.openpty(PtySize {
         rows: 24,
         cols: 80,
         // Not all systems support pixel_width, pixel_height,
@@ -45,10 +42,6 @@ fn main() -> anyhow::Result<()> {
     thread::spawn(move || {
         read_and_send_chars(reader, tx);
     });
-
-    let mut text = String::new();
-
-    // // Receive text from the other thread
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 320.0]),
