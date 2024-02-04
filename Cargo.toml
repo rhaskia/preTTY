@@ -7,4 +7,9 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.79"
+console = "0.15.8"
+eframe = "0.25.0"
+egui = "0.25.0"
+egui_winit_platform = "0.20.0"
 portable-pty = "0.8.1"
+winit = "0.29.10"
