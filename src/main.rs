@@ -12,6 +12,8 @@ use std::{
     thread,
 };
 
+mod input;
+
 fn main() -> anyhow::Result<()> {
     // Send data to the pty by writing to the master
     let mut pty_system = native_pty_system();
@@ -98,7 +100,7 @@ impl Content {
     }
 
     fn handle_key(&mut self, key: &Key, modifiers: &Modifiers) {
-        write!(self.writer, "{}", key.symbol_or_name());
+        self.writer.write(&input::key_to_str(key));
         // TODO: modifiers
     }
 }
