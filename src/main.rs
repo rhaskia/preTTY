@@ -1,5 +1,8 @@
+#![feature(if_let_guard)]
+
 use input::key_event_to_str;
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use termwiz::escape::Action;
 use std::{
     io::{Read, Write},
     sync::mpsc::{Receiver, Sender},
@@ -13,14 +16,15 @@ mod render;
 
 use render::TextRenderer;
 
-fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<char>) {
+fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
     let mut buffer = [0u8; 1]; // Buffer to hold a single character
+    let mut parser = termwiz::escape::parser::Parser::new();
 
     loop {
         match reader.read(&mut buffer) {
             Ok(_) => {
-                let char = buffer[0] as char;
-                tx.send(char).unwrap();
+                let char = buffer[0];
+                parser.parse(&buffer, |t| { tx.send(t); });
             }
             Err(err) => {
                 eprintln!("Error reading from Read object: {}", err);
@@ -95,16 +99,20 @@ fn main() -> anyhow::Result<()> {
     let target_framerate = Duration::from_secs_f64(1.0 / 60.0);
     let mut delta_time = Instant::now();
 
+    let callback = |a: termwiz::escape::Action| {
+        println!("{:?}", a);
+    };
+
+
     event_loop
         .run(move |event, elwt| {
+            loop {
+                match rx.try_recv() {
+                    Ok(c) if let Action::Print(s) = c => text_renderer.push_text(s.to_string()),
+                    _=> break,
+                }
+            }
 
-                        loop {
-                            match rx.try_recv() {
-                                Ok(c) => text_renderer.push_text(c.to_string()),
-                                Err(_) => break,
-                            }
-                        }
-            
             match event {
                 Event::LoopExiting => println!("Exiting!"),
                 Event::NewEvents(_) => {
@@ -121,6 +129,9 @@ fn main() -> anyhow::Result<()> {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::Resized(new_size) => {
                         text_renderer.resize_view(new_size);
+                        // pair.master.resize(PtySize { rows:
+                        //     , cols: (), pixel_width: (), pixel_height: () })
+
                         // TODO: resize pty
                         // You can also do this!
                         // brush.update_matrix(wgpu_text::ortho(config.width, config.height), &queue);
@@ -137,19 +148,6 @@ fn main() -> anyhow::Result<()> {
                     } => {
                         writer.write_all(key_event_to_str(logical_key).as_bytes());
                     }
-                    // WindowEvent::MouseWheel {
-                    //     delta: MouseScrollDelta::LineDelta(_, y),
-                    //     ..
-                    // } => {
-                    //     // increase/decrease font size
-                    //     let mut size = font_size;
-                    //     if y > 0.0 {
-                    //         size += (size / 4.0).max(2.0)
-                    //     } else {
-                    //         size *= 4.0 / 5.0
-                    //     };
-                    //     font_size = (size.max(3.0).min(25000.0) * 2.0).round() / 2.0;
-                    // }
                     WindowEvent::RedrawRequested => {
                         text_renderer.render();
                     }

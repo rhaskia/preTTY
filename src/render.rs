@@ -16,6 +16,7 @@ pub struct TextRenderer<'a> {
     section: OwnedSection,
     config: SurfaceConfiguration,
     font_size: f32,
+    text: String,
 }
 
 impl TextRenderer<'_> {
@@ -49,12 +50,14 @@ impl TextRenderer<'_> {
             config,
             brush,
             section,
+            text: String::new(),
         }
     }
 
     pub fn push_text(&mut self, s: String) {
+        self.text.push_str(&s);
         self.section.text.push(
-            OwnedText::new(s)
+            OwnedText::new(s.clone())
                 .with_scale(self.font_size)
                 .with_color([1.0, 1.0, 1.0, 1.0]),
         );

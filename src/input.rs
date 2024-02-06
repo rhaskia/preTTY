@@ -1,4 +1,5 @@
 use winit::keyboard::{Key, NamedKey};
+use termwiz::escape::parser::Parser;
 
 pub fn key_event_to_str(key: Key) -> String {
     match key {
@@ -8,6 +9,7 @@ pub fn key_event_to_str(key: Key) -> String {
             NamedKey::Backspace => String::from("\u{8}"),
             NamedKey::Enter => String::from("\r\n"),
             NamedKey::Space => String::from(" "),
+            NamedKey::Tab => String::from("\t"),
 
             _ => String::new(),
         },
@@ -16,3 +18,4 @@ pub fn key_event_to_str(key: Key) -> String {
         _ => String::new(),
     }
 }
+
