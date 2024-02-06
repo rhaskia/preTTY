@@ -2,6 +2,7 @@
 - [ ] Line Breaks
 - [ ] Fancy Boxes
     - [ ] Shadows
+- [ ] Rendering glyph in code for background drawing etc
 
 # Processing
 - [ ] ANSI Codes
@@ -9,6 +10,7 @@
     - [ ] box drawing characters
     - [ ] Brackets
 - [ ] Lines
+
 
 # Input
 - [ ] Time between clicks held down
