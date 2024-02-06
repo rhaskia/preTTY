@@ -101,10 +101,6 @@ fn main() -> anyhow::Result<()> {
     let target_framerate = Duration::from_secs_f64(1.0 / 60.0);
     let mut delta_time = Instant::now();
 
-    let callback = |a: termwiz::escape::Action| {
-        println!("{:?}", a);
-    };
-
     event_loop
         .run(move |event, elwt| {
             loop {
