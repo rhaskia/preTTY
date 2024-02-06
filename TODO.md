@@ -16,3 +16,6 @@
 - [ ] Translate non keys into strings
 - [ ] Escape certain characters
 - [ ] Modifiers [ ALT: , CTRL: ^, SHIFT: uppercase ]
+
+# Clean
+clean files

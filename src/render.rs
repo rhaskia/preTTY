@@ -1,12 +1,15 @@
 use glyph_brush::{
     ab_glyph::FontRef, BuiltInLineBreaker, Layout, OwnedSection, Section, VerticalAlign, OwnedText,
 };
+use termwiz::color::{SrgbaTuple, ColorSpec};
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
 use wgpu_text::{TextBrush, BrushBuilder};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use crate::utils::WgpuUtils;
 use std::sync::Arc;
+
+use crate::palette::Palette;
 
 pub struct TextRenderer<'a> {
     brush: TextBrush<FontRef<'a>>,
@@ -17,6 +20,7 @@ pub struct TextRenderer<'a> {
     config: SurfaceConfiguration,
     font_size: f32,
     text: String,
+    pub color: [f32; 4],
 }
 
 impl TextRenderer<'_> {
@@ -51,6 +55,7 @@ impl TextRenderer<'_> {
             brush,
             section,
             text: String::new(),
+            color: [1.0, 1.0, 1.0, 1.0]
         }
     }
 
@@ -59,7 +64,7 @@ impl TextRenderer<'_> {
         self.section.text.push(
             OwnedText::new(s.clone())
                 .with_scale(self.font_size)
-                .with_color([1.0, 1.0, 1.0, 1.0]),
+                .with_color(self.color.clone()),
         );
     }
 
@@ -133,5 +138,19 @@ impl TextRenderer<'_> {
 
         self.queue.submit([encoder.finish()]);
         frame.present();
+    }
+}
+
+pub trait WGPUColor {
+    fn to_vec(&self) -> [f32; 4];
+}
+
+impl WGPUColor for ColorSpec {
+    fn to_vec(&self) -> [f32; 4] {
+       match self {
+           ColorSpec::TrueColor(c) => { [c.0, c.1, c.2, c.3] }
+           ColorSpec::Default => { [1.0; 4] }
+           ColorSpec::PaletteIndex(i) => { Palette::default().colors[*i as usize] }
+       } 
     }
 }

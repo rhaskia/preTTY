@@ -1,18 +1,22 @@
 #![feature(if_let_guard)]
 
+// crate imports
+mod input;
+mod render;
+mod utils;
+mod palette;
+
 use input::key_event_to_str;
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
-use termwiz::escape::Action;
 use std::{
     io::{Read, Write},
     sync::mpsc::{Receiver, Sender},
 };
+use termwiz::escape::{Action, ControlCode, CSI};
+use termwiz::escape::csi::Sgr;
+use crate::render::WGPUColor;
 
 use std::{sync::mpsc::channel, thread};
-
-// crate imports
-mod input;
-mod render;
 
 use render::TextRenderer;
 
@@ -24,7 +28,9 @@ fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
         match reader.read(&mut buffer) {
             Ok(_) => {
                 let char = buffer[0];
-                parser.parse(&buffer, |t| { tx.send(t); });
+                parser.parse(&buffer, |t| {
+                    tx.send(t);
+                });
             }
             Err(err) => {
                 eprintln!("Error reading from Read object: {}", err);
@@ -35,12 +41,8 @@ fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
 }
 
 use std::sync::Arc;
-use std::time::{Duration, Instant, SystemTime};
-mod utils;
-use utils::WgpuUtils;
-use wgpu_text::glyph_brush::{BuiltInLineBreaker, Layout, OwnedText, Section, Text, VerticalAlign};
-use wgpu_text::BrushBuilder;
-use winit::event::{Event, KeyEvent, MouseScrollDelta};
+use std::time::{Duration, Instant};
+use winit::event::{Event, KeyEvent};
 use winit::event_loop::{self, ControlFlow};
 use winit::{
     event::{ElementState, WindowEvent},
@@ -103,13 +105,28 @@ fn main() -> anyhow::Result<()> {
         println!("{:?}", a);
     };
 
-
     event_loop
         .run(move |event, elwt| {
             loop {
                 match rx.try_recv() {
-                    Ok(c) if let Action::Print(s) = c => text_renderer.push_text(s.to_string()),
-                    _=> break,
+                    Ok(action) => match action {
+                        Action::Print(s) => text_renderer.push_text(s.to_string()),
+                        Action::PrintString(s) => text_renderer.push_text(s),
+                        Action::Control(control) => match control {
+                            ControlCode::LineFeed => text_renderer.push_text("\n".to_string()),
+                            ControlCode::CarriageReturn => text_renderer.push_text("\r".to_string()),
+                            _ => { println!("{:?}", control); }
+                        },
+                        Action::CSI(csi) => match csi {
+                            CSI::Sgr(sgr) => match sgr {
+                                Sgr::Foreground(f) => text_renderer.color = f.to_vec(),
+                                _ => {},
+                            }
+                            _ => {},
+                        }
+                        _ => { println!("{:?}", action); },
+                    },
+                    _ => break,
                 }
             }
 
