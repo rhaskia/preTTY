@@ -1,20 +1,55 @@
-use eframe::egui;
-use egui::*;
+use input::key_event_to_str;
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
 use std::{
     io::{Read, Write},
     sync::mpsc::{Receiver, Sender},
 };
-use egui::{Event, Key};
 
-use std::{
-    sync::mpsc::channel,
-    thread,
+use std::{sync::mpsc::channel, thread};
+
+// crate imports
+mod input;
+mod render;
+
+use render::TextRenderer;
+
+fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<char>) {
+    let mut buffer = [0u8; 1]; // Buffer to hold a single character
+
+    loop {
+        match reader.read(&mut buffer) {
+            Ok(_) => {
+                let char = buffer[0] as char;
+                tx.send(char).unwrap();
+            }
+            Err(err) => {
+                eprintln!("Error reading from Read object: {}", err);
+                break;
+            }
+        }
+    }
+}
+
+use std::sync::Arc;
+use std::time::{Duration, Instant, SystemTime};
+mod utils;
+use utils::WgpuUtils;
+use wgpu_text::glyph_brush::{BuiltInLineBreaker, Layout, OwnedText, Section, Text, VerticalAlign};
+use wgpu_text::BrushBuilder;
+use winit::event::{Event, KeyEvent, MouseScrollDelta};
+use winit::event_loop::{self, ControlFlow};
+use winit::{
+    event::{ElementState, WindowEvent},
+    window::WindowBuilder,
 };
 
-mod input;
-
+// TODO text layout of characters like 'š, ć, ž, đ' doesn't work correctly.
 fn main() -> anyhow::Result<()> {
+    if std::env::var("RUST_LOG").is_err() {
+        std::env::set_var("RUST_LOG", "error");
+    }
+    env_logger::init();
+
     // Send data to the pty by writing to the master
     let mut pty_system = native_pty_system();
 
@@ -45,88 +80,85 @@ fn main() -> anyhow::Result<()> {
         read_and_send_chars(reader, tx);
     });
 
-    let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 320.0]),
-        ..Default::default()
-    };
+    let event_loop = event_loop::EventLoop::new().unwrap();
+    let window = WindowBuilder::new()
+        .with_title("wgpu-text: 'simple' example")
+        .build(&event_loop)
+        .unwrap();
+    let window = Arc::new(window);
 
-    eframe::run_native(
-        "term",
-        options,
-        Box::new(|cc| Box::new(Content::new(writer, rx))),
-    )
-    .unwrap();
+    let mut text_renderer = TextRenderer::new(window.clone());
+
+    // All wgpu-text related below:
+
+    // change '60.0' if you want different FPS cap
+    let target_framerate = Duration::from_secs_f64(1.0 / 60.0);
+    let mut delta_time = Instant::now();
+
+    event_loop
+        .run(move |event, elwt| {
+
+                        loop {
+                            match rx.try_recv() {
+                                Ok(c) => text_renderer.push_text(c.to_string()),
+                                Err(_) => break,
+                            }
+                        }
+            
+            match event {
+                Event::LoopExiting => println!("Exiting!"),
+                Event::NewEvents(_) => {
+                    if target_framerate <= delta_time.elapsed() {
+                        window.request_redraw();
+                        delta_time = Instant::now();
+                    } else {
+                        elwt.set_control_flow(ControlFlow::WaitUntil(
+                            Instant::now().checked_sub(delta_time.elapsed()).unwrap()
+                                + target_framerate,
+                        ));
+                    }
+                }
+                Event::WindowEvent { event, .. } => match event {
+                    WindowEvent::Resized(new_size) => {
+                        text_renderer.resize_view(new_size);
+                        // TODO: resize pty
+                        // You can also do this!
+                        // brush.update_matrix(wgpu_text::ortho(config.width, config.height), &queue);
+                    }
+                    WindowEvent::CloseRequested => elwt.exit(),
+                    WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key,
+                                state: ElementState::Pressed,
+                                ..
+                            },
+                        ..
+                    } => {
+                        writer.write_all(key_event_to_str(logical_key).as_bytes());
+                    }
+                    // WindowEvent::MouseWheel {
+                    //     delta: MouseScrollDelta::LineDelta(_, y),
+                    //     ..
+                    // } => {
+                    //     // increase/decrease font size
+                    //     let mut size = font_size;
+                    //     if y > 0.0 {
+                    //         size += (size / 4.0).max(2.0)
+                    //     } else {
+                    //         size *= 4.0 / 5.0
+                    //     };
+                    //     font_size = (size.max(3.0).min(25000.0) * 2.0).round() / 2.0;
+                    // }
+                    WindowEvent::RedrawRequested => {
+                        text_renderer.render();
+                    }
+                    _ => (),
+                },
+                _ => (),
+            }
+        })
+        .unwrap();
 
     Ok(())
-}
-
-fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<char>) {
-    let mut buffer = [0u8; 1]; // Buffer to hold a single character
-
-    loop {
-        match reader.read(&mut buffer) {
-            Ok(_) => {
-                let char = buffer[0] as char;
-                tx.send(char).unwrap();
-            }
-            Err(err) => {
-                eprintln!("Error reading from Read object: {}", err);
-                break;
-            }
-        }
-    }
-}
-
-struct Content {
-    text: String,
-    writer: Box<dyn Write + Send>,
-    rx: Receiver<char>,
-}
-
-impl Content {
-    fn new(writer: Box<dyn Write + Send>, rx: Receiver<char>) -> Content {
-        Content {
-            text: String::new(),
-            writer,
-            rx,
-        }
-    }
-
-    fn handle_inputs(&mut self, events: Vec<Event>) {
-        events.iter().for_each(|e| match e {
-            Event::Key { key, modifiers, .. } => self.handle_key(&key, &modifiers),
-            _ => {},
-        });
-    }
-
-    fn handle_key(&mut self, key: &Key, modifiers: &Modifiers) {
-        self.writer.write(&input::key_to_str(key));
-        // TODO: modifiers
-    }
-}
-
-impl eframe::App for Content {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            //ui.heading("Press/Hold/Release example. Press A to test.");
-
-            ScrollArea::vertical()
-                .auto_shrink(false)
-                .stick_to_bottom(true)
-                .show(ui, |ui| {
-                    ui.label(&self.text);
-                });
-
-            loop {
-                match self.rx.try_recv() {
-                    Ok(c) => self.text.push(c),
-                    Err(_) => break,
-                }
-            }
-
-            let events = ui.input(|c| c.events.clone());
-            println!("{:?}", events);
-            self.handle_inputs(events);
-        });
-    }
 }
