@@ -1,21 +1,37 @@
-use winit::keyboard::{Key, NamedKey};
 use termwiz::escape::parser::Parser;
+use winit::keyboard::{Key, NamedKey};
+use winit::event::KeyEvent;
 
-pub fn key_event_to_str(key: Key) -> String {
-    match key {
-        Key::Named(k) => match k {
-            NamedKey::Escape => String::from("\u{1b}"),
-            NamedKey::Delete => String::from("\u{7f}"),
-            NamedKey::Backspace => String::from("\u{8}"),
-            NamedKey::Enter => String::from("\r\n"),
-            NamedKey::Space => String::from(" "),
-            NamedKey::Tab => String::from("\t"),
-
-            _ => String::new(),
-        },
-        Key::Character(char) => char.to_string(),
-
-        _ => String::new(),
-    }
+pub struct InputManager {
+    pub alt: bool,
+    pub control: bool,
 }
 
+impl InputManager {
+    pub fn new() -> InputManager {
+        InputManager {
+            alt: false,
+            control: true,
+        }
+    }
+
+    // TODO: option string
+    pub fn key_to_str(&mut self, key: KeyEvent) -> String {
+        match key.logical_key {
+            Key::Named(k) => match k {
+                NamedKey::Escape => String::from("\u{1b}"),
+                NamedKey::Delete => String::from("\u{7f}"),
+                NamedKey::Backspace => String::from("\u{8}"),
+                NamedKey::Enter => String::from("\r\n"),
+                NamedKey::Space => String::from(" "),
+                NamedKey::Tab => String::from("\t"),
+                //NamedKey::Control => ,
+
+                _ => String::new(),
+            },
+            Key::Character(char) => char.to_string(),
+
+            _ => String::new(),
+        }
+    }
+}

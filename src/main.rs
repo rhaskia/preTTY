@@ -2,19 +2,20 @@
 
 // crate imports
 mod input;
+mod palette;
 mod render;
 mod utils;
-mod palette;
 
-use input::key_event_to_str;
+use input::InputManager;
+
+use crate::render::WGPUColor;
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
 use std::{
     io::{Read, Write},
     sync::mpsc::{Receiver, Sender},
 };
-use termwiz::escape::{Action, ControlCode, CSI};
 use termwiz::escape::csi::Sgr;
-use crate::render::WGPUColor;
+use termwiz::escape::{Action, ControlCode, CSI};
 
 use std::{sync::mpsc::channel, thread};
 
@@ -42,11 +43,14 @@ fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use winit::event::{Event, KeyEvent};
 use winit::event_loop::{self, ControlFlow};
 use winit::{
     event::{ElementState, WindowEvent},
     window::WindowBuilder,
+};
+use winit::{
+    event::{Event, KeyEvent},
+    keyboard::{KeyCode, ModifiersKeyState},
 };
 
 // TODO text layout of characters like 'š, ć, ž, đ' doesn't work correctly.
@@ -63,6 +67,7 @@ fn main() -> anyhow::Result<()> {
     let pair = pty_system.openpty(PtySize {
         rows: 24,
         cols: 80,
+        // TODO: set this to an actual size
         // Not all systems support pixel_width, pixel_height,
         // but it is good practice to set it to something
         // that matches the size of the selected font.  That
@@ -94,16 +99,13 @@ fn main() -> anyhow::Result<()> {
     let window = Arc::new(window);
 
     let mut text_renderer = TextRenderer::new(window.clone());
+    let mut input_manager = InputManager::new();
 
     // All wgpu-text related below:
 
     // change '60.0' if you want different FPS cap
     let target_framerate = Duration::from_secs_f64(1.0 / 60.0);
     let mut delta_time = Instant::now();
-
-    let callback = |a: termwiz::escape::Action| {
-        println!("{:?}", a);
-    };
 
     event_loop
         .run(move |event, elwt| {
@@ -114,17 +116,23 @@ fn main() -> anyhow::Result<()> {
                         Action::PrintString(s) => text_renderer.push_text(s),
                         Action::Control(control) => match control {
                             ControlCode::LineFeed => text_renderer.push_text("\n".to_string()),
-                            ControlCode::CarriageReturn => text_renderer.push_text("\r".to_string()),
-                            _ => { println!("{:?}", control); }
+                            ControlCode::CarriageReturn => {
+                                text_renderer.push_text("\r".to_string())
+                            }
+                            _ => {
+                                println!("{:?}", control);
+                            }
                         },
                         Action::CSI(csi) => match csi {
                             CSI::Sgr(sgr) => match sgr {
                                 Sgr::Foreground(f) => text_renderer.color = f.to_vec(),
-                                _ => {},
-                            }
-                            _ => {},
+                                _ => {}
+                            },
+                            _ => {}
+                        },
+                        _ => {
+                            println!("{:?}", action);
                         }
-                        _ => { println!("{:?}", action); },
                     },
                     _ => break,
                 }
@@ -154,16 +162,10 @@ fn main() -> anyhow::Result<()> {
                         // brush.update_matrix(wgpu_text::ortho(config.width, config.height), &queue);
                     }
                     WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key,
-                                state: ElementState::Pressed,
-                                ..
-                            },
-                        ..
-                    } => {
-                        writer.write_all(key_event_to_str(logical_key).as_bytes());
+                    WindowEvent::KeyboardInput { event, .. } => {
+                        println!("{:?}", event);
+
+                        writer.write_all(input_manager.key_to_str(event).as_bytes());
                     }
                     WindowEvent::RedrawRequested => {
                         text_renderer.render();
