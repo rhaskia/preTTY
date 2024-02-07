@@ -9,14 +9,11 @@ mod terminal;
 mod utils;
 
 use app::App;
-use terminal::Terminal;
+
 use input::InputManager;
 
-use crate::render::WGPUColor;
-use std::{
-    io::{Read, Write},
-    sync::mpsc::{Receiver, Sender},
-};
+
+
 
 use render::TextRenderer;
 
@@ -24,12 +21,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use winit::event_loop::{self, ControlFlow};
 use winit::{
-    event::{ElementState, WindowEvent},
+    event::{WindowEvent},
     window::WindowBuilder,
 };
 use winit::{
-    event::{Event, KeyEvent},
-    keyboard::{KeyCode, ModifiersKeyState},
+    event::{Event},
 };
 
 // TODO text layout of characters like 'š, ć, ž, đ' doesn't work correctly.
@@ -49,7 +45,7 @@ fn main() -> anyhow::Result<()> {
     let mut app = App::setup(window.clone());
 
     let mut text_renderer = TextRenderer::new(window.clone());
-    let mut input_manager = InputManager::new();
+    let _input_manager = InputManager::new();
 
     // All wgpu-text related below:
 

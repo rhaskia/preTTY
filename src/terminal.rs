@@ -16,7 +16,7 @@ pub struct Terminal {
 impl Terminal {
     pub fn setup() -> anyhow::Result<Terminal> {
         // Send data to the pty by writing to the master
-        let mut pty_system = native_pty_system();
+        let pty_system = native_pty_system();
 
         // Create a new pty
         let pair = pty_system.openpty(PtySize {
@@ -34,16 +34,16 @@ impl Terminal {
 
         // Spawn a shell into the pty
         let cmd = CommandBuilder::new("bash");
-        let mut child = pair.slave.spawn_command(cmd)?;
+        let _child = pair.slave.spawn_command(cmd)?;
 
 
         // Read and parse output from the pty with reader
-        let mut reader = pair.master.try_clone_reader()?;
-        let mut writer = pair.master.take_writer()?;
+        let reader = pair.master.try_clone_reader()?;
+        let writer = pair.master.take_writer()?;
 
         let (tx, rx) = channel();
 
-        let mut reader_thread = thread::spawn(move || {
+        let reader_thread = thread::spawn(move || {
             read_and_send_chars(reader, tx);
         });
 
@@ -62,7 +62,7 @@ fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
     loop {
         match reader.read(&mut buffer) {
             Ok(_) => {
-                let char = buffer[0];
+                let _char = buffer[0];
                 parser.parse(&buffer, |t| {
                     tx.send(t);
                 });

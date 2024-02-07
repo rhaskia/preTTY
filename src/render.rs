@@ -1,7 +1,7 @@
 use glyph_brush::{
     ab_glyph::FontRef, BuiltInLineBreaker, Layout, OwnedSection, Section, VerticalAlign, OwnedText,
 };
-use termwiz::color::{SrgbaTuple, ColorSpec};
+use termwiz::color::{ColorSpec};
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
 use wgpu_text::{TextBrush, BrushBuilder};
 use winit::{dpi::PhysicalSize, window::Window};
@@ -25,18 +25,18 @@ pub struct TextRenderer<'a> {
 
 impl TextRenderer<'_> {
     pub fn new(window: Arc<Window>) -> TextRenderer<'static> {
-        let (device, queue, surface, mut config) = WgpuUtils::init(window);
+        let (device, queue, surface, config) = WgpuUtils::init(window);
 
         let font: &[u8] = include_bytes!("../fonts/JetBrainsMono-Regular.ttf");
-        let mut brush = BrushBuilder::using_font_bytes(font).unwrap().build(
+        let brush = BrushBuilder::using_font_bytes(font).unwrap().build(
             &device,
             config.width,
             config.height,
             config.format,
         );
 
-        let mut font_size = 14.;
-        let mut section = Section::default()
+        let font_size = 14.;
+        let section = Section::default()
             .with_bounds((config.width as f32, config.height as f32))
             .with_layout(
                 Layout::default()
