@@ -1,6 +1,6 @@
 use termwiz::escape::parser::Parser;
+use winit::event::{ElementState, KeyEvent};
 use winit::keyboard::{Key, NamedKey};
-use winit::event::KeyEvent;
 
 pub struct InputManager {
     pub alt: bool,
@@ -19,13 +19,27 @@ impl InputManager {
     pub fn key_to_str(&mut self, key: KeyEvent) -> String {
         match key.logical_key {
             Key::Named(k) => match k {
+                NamedKey::Control => self.alt = key.state.is_pressed(),
+                _ => {}
+            },
+            _ => {}
+        }
+
+        if key.state.is_pressed() { return String::new(); }
+
+        match key.logical_key {
+            Key::Named(k) => match k {
                 NamedKey::Escape => String::from("\u{1b}"),
                 NamedKey::Delete => String::from("\u{7f}"),
                 NamedKey::Backspace => String::from("\u{8}"),
                 NamedKey::Enter => String::from("\r\n"),
                 NamedKey::Space => String::from(" "),
                 NamedKey::Tab => String::from("\t"),
-                //NamedKey::Control => ,
+
+                NamedKey::ArrowRight => String::from("\x1b[C"),
+                NamedKey::ArrowLeft => String::from("\x1b[D"),
+                NamedKey::ArrowUp => String::from("\x1b[A"),
+                NamedKey::ArrowDown => String::from("\x1b[B"),
 
                 _ => String::new(),
             },
