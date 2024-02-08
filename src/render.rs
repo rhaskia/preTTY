@@ -1,9 +1,9 @@
 use glyph_brush::{
-    ab_glyph::FontRef, BuiltInLineBreaker, Layout, OwnedSection, Section, VerticalAlign, OwnedText,
+    ab_glyph::{Font, FontRef, VariableFont}, BuiltInLineBreaker, Layout, OwnedSection, OwnedText, Section, VerticalAlign,
 };
-use termwiz::color::{ColorSpec};
+use termwiz::color::ColorSpec;
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
-use wgpu_text::{TextBrush, BrushBuilder};
+use wgpu_text::{BrushBuilder, TextBrush};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use crate::utils::WgpuUtils;
@@ -55,7 +55,7 @@ impl TextRenderer<'_> {
             brush,
             section,
             text: String::new(),
-            color: [1.0, 1.0, 1.0, 1.0]
+            color: [1.0, 1.0, 1.0, 1.0],
         }
     }
 
@@ -68,7 +68,7 @@ impl TextRenderer<'_> {
         );
     }
 
-    pub fn resize_view(&mut self, new_size: PhysicalSize<u32>) {
+    pub fn resize_view(&mut self, new_size: PhysicalSize<u32>) -> (u32, u32) {
         self.config.width = new_size.width.max(1);
         self.config.height = new_size.height.max(1);
         self.surface.configure(&self.device, &self.config);
@@ -80,6 +80,17 @@ impl TextRenderer<'_> {
             self.config.height as f32,
             &self.queue,
         );
+
+        (self.config.width, self.config.height)
+    }
+
+    pub fn glyph_size(&mut self) {
+        let glyph = self.brush.glyphs_iter(&self.section).next();
+        match glyph {
+            Some(g) => {println!("{:?}", g)},
+            None => {}
+        }
+        println!("{:?}", self.brush.fonts()[0].pt_to_px_scale(14.0));
     }
 
     pub fn render(&mut self) {
@@ -147,10 +158,10 @@ pub trait WGPUColor {
 
 impl WGPUColor for ColorSpec {
     fn to_vec(&self) -> [f32; 4] {
-       match self {
-           ColorSpec::TrueColor(c) => { [c.0, c.1, c.2, c.3] }
-           ColorSpec::Default => { [1.0; 4] }
-           ColorSpec::PaletteIndex(i) => { Palette::default().colors[*i as usize] }
-       } 
+        match self {
+            ColorSpec::TrueColor(c) => [c.0, c.1, c.2, c.3],
+            ColorSpec::Default => [1.0; 4],
+            ColorSpec::PaletteIndex(i) => Palette::default().colors[*i as usize],
+        }
     }
 }

@@ -9,24 +9,14 @@ mod terminal;
 mod utils;
 
 use app::App;
-
 use input::InputManager;
-
-
-
-
 use render::TextRenderer;
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use winit::event::Event;
 use winit::event_loop::{self, ControlFlow};
-use winit::{
-    event::{WindowEvent},
-    window::WindowBuilder,
-};
-use winit::{
-    event::{Event},
-};
+use winit::{event::WindowEvent, window::WindowBuilder};
 
 // TODO text layout of characters like 'š, ć, ž, đ' doesn't work correctly.
 fn main() -> anyhow::Result<()> {
@@ -42,12 +32,8 @@ fn main() -> anyhow::Result<()> {
         .unwrap();
     let window = Arc::new(window);
 
+    // All setup is contained within this class
     let mut app = App::setup(window.clone());
-
-    let mut text_renderer = TextRenderer::new(window.clone());
-    let _input_manager = InputManager::new();
-
-    // All wgpu-text related below:
 
     // change '60.0' if you want different FPS cap
     let target_framerate = Duration::from_secs_f64(1.0 / 60.0);
@@ -71,18 +57,10 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
                 Event::WindowEvent { event, .. } => match event {
-                    WindowEvent::Resized(new_size) => {
-                        text_renderer.resize_view(new_size);
-                        // pair.master.resize(PtySize { rows:
-                        //     , cols: (), pixel_width: (), pixel_height: () })
-
-                        // TODO: resize pty
-                        // You can also do this!
-                        // brush.update_matrix(wgpu_text::ortho(config.width, config.height), &queue);
-                    }
+                    WindowEvent::Resized(new_size) => app.resize_view(new_size),
                     WindowEvent::CloseRequested => elwt.exit(),
                     WindowEvent::KeyboardInput { event, .. } => app.handle_input(event),
-                    WindowEvent::RedrawRequested => text_renderer.render(),
+                    WindowEvent::RedrawRequested => app.render(),
 
                     _ => (),
                 },

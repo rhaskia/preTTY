@@ -1,13 +1,11 @@
 use std::sync::Arc;
-
-
 use winit::{event::KeyEvent, window::Window};
 
 use termwiz::escape::csi::Sgr;
 use termwiz::escape::{Action, ControlCode, CSI};
 
-use crate::{render::TextRenderer, input::InputManager, terminal::Terminal};
 use crate::render::WGPUColor;
+use crate::{input::InputManager, render::TextRenderer, terminal::Terminal};
 
 pub struct App<'a> {
     renderer: TextRenderer<'a>,
@@ -24,6 +22,16 @@ impl App<'_> {
         }
     }
 
+    pub fn resize_view(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        let view_size = self.renderer.resize_view(new_size);
+        let glyph_size = self.renderer.glyph_size();
+        // TODO: resize terminal
+    }
+
+    pub fn render(&mut self) {
+        self.renderer.render();
+    }
+
     pub fn update(&mut self) {
         loop {
             match self.terminal.rx.try_recv() {
@@ -33,27 +41,27 @@ impl App<'_> {
                     Action::Control(control) => match control {
                         ControlCode::LineFeed => self.renderer.push_text("\n".to_string()),
                         ControlCode::CarriageReturn => self.renderer.push_text("\r".to_string()),
-                        _ => {
-                            println!("{:?}", control);
-                        }
+                        _ => println!("{:?}", control),
                     },
                     Action::CSI(csi) => match csi {
                         CSI::Sgr(sgr) => match sgr {
                             Sgr::Foreground(f) => self.renderer.color = f.to_vec(),
-                            _ => {}
+                            _ => println!("{:?}", sgr),
                         },
-                        _ => {}
+                        _ => println!("{:?}", csi),
                     },
                     _ => {
                         println!("{:?}", action);
                     }
                 },
-                _ => break,
+                _ => return,
             }
         }
     }
 
     pub fn handle_input(&mut self, key: KeyEvent) {
-        self.terminal.writer.write_all(self.input.key_to_str(key).as_bytes());
+        self.terminal
+            .writer
+            .write_all(self.input.key_to_str(key).as_bytes());
     }
 }
