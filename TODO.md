@@ -3,6 +3,8 @@
 - [ ] Fancy Boxes
     - [ ] Shadows
 - [ ] Rendering glyph in code for background drawing etc
+- [ ] font units per em
+- [ ] pt to px scale
 
 # Processing
 - [ ] ANSI Codes

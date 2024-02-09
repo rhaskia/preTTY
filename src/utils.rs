@@ -1,3 +1,5 @@
+// Taken from wgpu text example
+
 use std::sync::Arc;
 
 use pollster::block_on;
@@ -51,6 +53,3 @@ impl WgpuUtils {
         (device, queue, surface, config)
     }
 }
-
-#[allow(dead_code)]
-fn main() {}

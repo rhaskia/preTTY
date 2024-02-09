@@ -23,9 +23,9 @@ impl App<'_> {
     }
 
     pub fn resize_view(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        let view_size = self.renderer.resize_view(new_size);
+        self.renderer.resize_view(new_size);
         let glyph_size = self.renderer.glyph_size();
-        // TODO: resize terminal
+        self.terminal.resize(new_size, glyph_size);
     }
 
     pub fn render(&mut self) {
@@ -46,13 +46,12 @@ impl App<'_> {
                     Action::CSI(csi) => match csi {
                         CSI::Sgr(sgr) => match sgr {
                             Sgr::Foreground(f) => self.renderer.color = f.to_vec(),
+                            Sgr::Reset => self.renderer.color = [1.0; 4],
                             _ => println!("{:?}", sgr),
                         },
                         _ => println!("{:?}", csi),
                     },
-                    _ => {
-                        println!("{:?}", action);
-                    }
+                    _ => println!("{:?}", action),
                 },
                 _ => return,
             }

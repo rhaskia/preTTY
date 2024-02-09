@@ -1,5 +1,5 @@
 use glyph_brush::{
-    ab_glyph::{Font, FontRef, VariableFont}, BuiltInLineBreaker, Layout, OwnedSection, OwnedText, Section, VerticalAlign,
+    ab_glyph::{Font, FontRef, PxScale, VariableFont}, BuiltInLineBreaker, Layout, OwnedSection, OwnedText, Section, VerticalAlign,
 };
 use termwiz::color::ColorSpec;
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
@@ -68,7 +68,8 @@ impl TextRenderer<'_> {
         );
     }
 
-    pub fn resize_view(&mut self, new_size: PhysicalSize<u32>) -> (u32, u32) {
+    /// Resizes the screen renderer, text box, and text renderer
+    pub fn resize_view(&mut self, new_size: PhysicalSize<u32>) {
         self.config.width = new_size.width.max(1);
         self.config.height = new_size.height.max(1);
         self.surface.configure(&self.device, &self.config);
@@ -80,17 +81,17 @@ impl TextRenderer<'_> {
             self.config.height as f32,
             &self.queue,
         );
-
-        (self.config.width, self.config.height)
     }
 
-    pub fn glyph_size(&mut self) {
-        let glyph = self.brush.glyphs_iter(&self.section).next();
-        match glyph {
-            Some(g) => {println!("{:?}", g)},
-            None => {}
-        }
-        println!("{:?}", self.brush.fonts()[0].pt_to_px_scale(14.0));
+    pub fn glyph_size(&mut self) -> (f32, f32) {
+        let font = &self.brush.fonts()[0];
+        let glyph_rect = font.glyph_bounds(&font.glyph_id('M').with_scale(14.));
+
+        (glyph_rect.width(), glyph_rect.height())
+        // match glyph {
+        //     Some(g) => g.glyph.scale,
+        //     None => panic!("No glyphs"),
+        // }
     }
 
     pub fn render(&mut self) {

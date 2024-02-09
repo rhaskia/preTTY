@@ -1,19 +1,45 @@
-use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use glyph_brush::ab_glyph::PxScale;
+use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::io::{Read, Write};
+use std::sync::mpsc::Sender;
 use std::{
     sync::mpsc::{channel, Receiver},
     thread::{self, JoinHandle},
 };
 use termwiz::escape::Action;
-use std::sync::mpsc::Sender;
+use winit::dpi::PhysicalSize;
 
 pub struct Terminal {
     reader_thread: JoinHandle<()>,
+    pty_system: Box<dyn PtySystem + Send>,
+    pair: PtyPair,
+    child: Box<dyn Child + Sync + Send>,
+
     pub writer: Box<dyn Write + Send>,
     pub rx: Receiver<Action>,
+
+    pub rows: u16,
+    pub cols: u16,
 }
 
 impl Terminal {
+    // Resizes how big the terminal thinks it is
+    // mostly useful for rendering tui applications
+    pub fn resize(&mut self, size: PhysicalSize<u32>, glyph_size: (f32, f32)) {
+        let screen_width = size.width.max(1);
+        let screen_height = size.height.max(1);
+
+        self.rows = screen_width as u16 / (glyph_size.0.round() as u16);
+        self.cols = screen_height as u16 / (glyph_size.1.round() as u16);
+
+        self.pair.master.resize(PtySize {
+            rows: self.rows,
+            cols: self.cols,
+            pixel_width: glyph_size.0.round() as u16,
+            pixel_height: glyph_size.1.round() as u16,
+        });
+    }
+
     pub fn setup() -> anyhow::Result<Terminal> {
         // Send data to the pty by writing to the master
         let pty_system = native_pty_system();
@@ -34,8 +60,7 @@ impl Terminal {
 
         // Spawn a shell into the pty
         let cmd = CommandBuilder::new("bash");
-        let _child = pair.slave.spawn_command(cmd)?;
-
+        let child = pair.slave.spawn_command(cmd)?;
 
         // Read and parse output from the pty with reader
         let reader = pair.master.try_clone_reader()?;
@@ -47,14 +72,25 @@ impl Terminal {
             read_and_send_chars(reader, tx);
         });
 
+        // Pretty much everything needs to be kept in the struct,
+        // else drop gets called on the terminal, causing the
+        // program to hang on windows
         Ok(Terminal {
             reader_thread,
             writer,
             rx,
+            pty_system,
+            pair,
+            child,
+            rows: 24,
+            cols: 24,
         })
     }
 }
 
+// thread to read from terminal output
+// really need to rename to match the fact that it
+// no longer sends chars, but Actions
 fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
     let mut buffer = [0u8; 1]; // Buffer to hold a single character
     let mut parser = termwiz::escape::parser::Parser::new();
@@ -62,7 +98,6 @@ fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
     loop {
         match reader.read(&mut buffer) {
             Ok(_) => {
-                let _char = buffer[0];
                 parser.parse(&buffer, |t| {
                     tx.send(t);
                 });
