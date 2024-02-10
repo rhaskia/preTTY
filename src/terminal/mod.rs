@@ -1,12 +1,14 @@
 use portable_pty::PtySize;
+use termwiz::escape::csi::Cursor;
 use winit::dpi::PhysicalSize;
 
 mod pty;
+mod cursor;
 pub mod screen;
 use pty::PseudoTerminal;
-use screen::{AltScreen, Screen, TerminalRenderer};
+use screen::{Screen, TerminalRenderer};
 
-use self::screen::{Cell, CellAttributes};
+use self::{cursor::TerminalCursor, screen::{Cell, CellAttributes}};
 
 // windows build hangs if these fields aren't stored
 pub struct Terminal {
@@ -16,6 +18,7 @@ pub struct Terminal {
     pub renderer: TerminalRenderer,
     pub state: TerminalState,
     pub pty: PseudoTerminal,
+    pub cursor: TerminalCursor,
 }
 
 impl Terminal {
@@ -40,20 +43,39 @@ impl Terminal {
 
     pub fn get_cells(&self) -> Vec<Cell> {
         if self.state.alt_screen {
-            self.renderer.alt_screen.screen.concat()
+            self.renderer.alt_screen.cells.clone()
         } else {
             self.renderer.screen.cells.clone()
         }
     }
 
-    pub fn print(&mut self, text: char) {
-        if self.state.alt_screen {
-            // Draw to alt screen
-        } else {
-            self.renderer.screen.push(Cell::new(text, self.renderer.attr.clone()))
+    pub fn handle_cursor(&mut self, cursor: Cursor) {
+        use Cursor::*;
+        match cursor {
+            Left(amount) => self.cursor.shift_left(amount),
+            Down(amount) | NextLine(amount) => self.cursor.shift_down(amount),
+            Right(amount) => self.cursor.shift_right(amount),
+            Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
+            Position { line, col } => self.cursor.set(line.as_zero_based(), col.as_zero_based()),
+            CursorStyle(style) => self.cursor.set_style(style),
+            _ => println!("{:?}", cursor)
         }
     }
 
+    pub fn backspace(&mut self) {
+        self.renderer.get_screen(self.state.alt_screen).cells.pop();
+        // TODO pop at cursor position
+    }
+
+    pub fn print(&mut self, text: char) {
+        let attr = self.renderer.attr.clone();
+
+        self.renderer
+            .get_screen(self.state.alt_screen)
+            .push(Cell::new(text, attr))
+    }
+
+    // I don't believe this ever happens
     pub fn print_str(&mut self, text: String) {
         println!("String {}", text);
     }
@@ -63,8 +85,9 @@ impl Terminal {
             pty: PseudoTerminal::setup()?,
             rows: 0,
             cols: 0,
-            renderer: TerminalRenderer::new((0, 0)),
+            renderer: TerminalRenderer::new(),
             state: TerminalState::new(),
+            cursor: TerminalCursor::new(),
         })
     }
 }

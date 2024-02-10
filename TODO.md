@@ -3,8 +3,6 @@
 - [ ] Fancy Boxes
     - [ ] Shadows
 - [ ] Rendering glyph in code for background drawing etc
-- [ ] font units per em
-- [ ] pt to px scale
 - [ ] Switch to better ui?
 
 # Processing
@@ -15,9 +13,12 @@
 - [ ] Lines
 
 # Terminal
-Alt Screen
-Erase Line
-Cursor setting
+- [ ] Erase Line
+- [ ] Cursor setting
+- [ ] Scrolling
+- [ ] Printing at Cursor
+- [ ] Deleting at Cursor
+- [ ] Moving cursor on print 
 
 # Input
 - [ ] Time between clicks held down
@@ -25,6 +26,7 @@ Cursor setting
 - [ ] Translate non keys into strings
 - [ ] Escape certain characters
 - [ ] Modifiers [ ALT: , CTRL: ^, SHIFT: uppercase ]
+- [ ] Ctrl C kill 
 
 # Clean
 clean files

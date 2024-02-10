@@ -1,23 +1,35 @@
-use termwiz::{cell::{Blink, Intensity, Underline}, color::ColorSpec, escape::csi::Sgr};
+use termwiz::{
+    cell::{Blink, Intensity, Underline},
+    color::ColorSpec,
+    escape::csi::Sgr,
+};
 
 pub struct TerminalRenderer {
     pub screen: Screen,
-    pub alt_screen: AltScreen,
+    pub alt_screen: Screen,
 
     pub attr: CellAttributes,
 }
 
 impl TerminalRenderer {
-    pub fn new(size: (u32, u32)) -> TerminalRenderer {
+    pub fn new() -> TerminalRenderer {
         TerminalRenderer {
             screen: Screen::new(),
-            alt_screen: AltScreen::new(size),
+            alt_screen: Screen::new(),
             attr: CellAttributes::default(),
         }
     }
 
     pub fn reset_attr(&mut self) {
         self.attr = CellAttributes::default();
+    }
+
+    pub fn get_screen(&mut self, alt: bool) -> &mut Screen {
+        if alt {
+            &mut self.alt_screen
+        } else {
+            &mut self.screen
+        }
     }
 
     pub fn handle_sgr(&mut self, sgr: Sgr) {
@@ -89,26 +101,4 @@ impl Screen {
     pub fn new() -> Screen {
         Screen { cells: Vec::new() }
     }
-}
-
-pub struct AltScreen {
-    pub screen: Vec<Vec<Cell>>,
-}
-
-impl AltScreen {
-    pub fn new(size: (u32, u32)) -> AltScreen {
-        AltScreen {
-            screen: create_empty_screen(size),
-        }
-    }
-}
-
-fn create_empty_screen(size: (u32, u32)) -> Vec<Vec<Cell>> {
-    (0..size.1)
-        .map(|_| {
-            (0..size.0)
-                .map(|_| Cell::new(' ', CellAttributes::default()))
-                .collect()
-        })
-        .collect()
 }

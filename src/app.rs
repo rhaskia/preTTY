@@ -1,9 +1,12 @@
 use std::sync::Arc;
 use winit::{event::KeyEvent, window::Window};
 
-use termwiz::escape::csi::{DecPrivateMode, Mode::{SetDecPrivateMode, ResetDecPrivateMode}};
-use termwiz::escape::{Action, ControlCode, CSI};
 use crate::{input::InputManager, renderer::TextRenderer, terminal::Terminal};
+use termwiz::escape::csi::{
+    DecPrivateMode,
+    Mode::{ResetDecPrivateMode, SetDecPrivateMode},
+};
+use termwiz::escape::{Action, ControlCode, CSI};
 
 pub struct App<'a> {
     renderer: TextRenderer<'a>,
@@ -39,6 +42,7 @@ impl App<'_> {
                     Action::Control(control) => match control {
                         ControlCode::LineFeed => self.terminal.print('\n'),
                         ControlCode::CarriageReturn => self.terminal.print('\r'),
+                        ControlCode::Backspace => self.terminal.backspace(),
                         _ => println!("ControlCode({:?})", control),
                     },
                     Action::CSI(csi) => match csi {
@@ -46,8 +50,9 @@ impl App<'_> {
                         CSI::Mode(mode) => match mode {
                             SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
                             ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
-                        _ => println!("Mode({:?})", mode),
+                            _ => println!("Mode({:?})", mode),
                         },
+                        CSI::Cursor(cursor) => self.terminal.handle_cursor(cursor),
                         _ => println!("CSI({:?})", csi),
                     },
                     _ => println!("{:?}", action),
