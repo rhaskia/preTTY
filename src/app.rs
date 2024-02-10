@@ -1,11 +1,9 @@
 use std::sync::Arc;
 use winit::{event::KeyEvent, window::Window};
 
-use termwiz::escape::csi::Sgr;
+use termwiz::escape::csi::{DecPrivateMode, Mode::{SetDecPrivateMode, ResetDecPrivateMode}};
 use termwiz::escape::{Action, ControlCode, CSI};
-
-use crate::render::WGPUColor;
-use crate::{input::InputManager, render::TextRenderer, terminal::Terminal};
+use crate::{input::InputManager, renderer::TextRenderer, terminal::Terminal};
 
 pub struct App<'a> {
     renderer: TextRenderer<'a>,
@@ -34,32 +32,51 @@ impl App<'_> {
 
     pub fn update(&mut self) {
         loop {
-            match self.terminal.rx.try_recv() {
+            match self.terminal.pty.rx.try_recv() {
                 Ok(action) => match action {
-                    Action::Print(s) => self.renderer.push_text(s.to_string()),
-                    Action::PrintString(s) => self.renderer.push_text(s),
+                    Action::Print(s) => self.terminal.print(s),
+                    Action::PrintString(s) => self.terminal.print_str(s),
                     Action::Control(control) => match control {
-                        ControlCode::LineFeed => self.renderer.push_text("\n".to_string()),
-                        ControlCode::CarriageReturn => self.renderer.push_text("\r".to_string()),
-                        _ => println!("{:?}", control),
+                        ControlCode::LineFeed => self.terminal.print('\n'),
+                        ControlCode::CarriageReturn => self.terminal.print('\r'),
+                        _ => println!("ControlCode({:?})", control),
                     },
                     Action::CSI(csi) => match csi {
-                        CSI::Sgr(sgr) => match sgr {
-                            Sgr::Foreground(f) => self.renderer.color = f.to_vec(),
-                            Sgr::Reset => self.renderer.color = [1.0; 4],
-                            _ => println!("{:?}", sgr),
+                        CSI::Sgr(sgr) => self.terminal.renderer.handle_sgr(sgr),
+                        CSI::Mode(mode) => match mode {
+                            SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
+                            ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
+                        _ => println!("Mode({:?})", mode),
                         },
-                        _ => println!("{:?}", csi),
+                        _ => println!("CSI({:?})", csi),
                     },
                     _ => println!("{:?}", action),
                 },
-                _ => return,
+                _ => break,
             }
+        }
+
+        self.renderer.render_from_cells(self.terminal.get_cells());
+    }
+
+    pub fn set_dec_private_mode(&mut self, mode: DecPrivateMode, active: bool) {
+        let code = match mode {
+            DecPrivateMode::Code(c) => c,
+            DecPrivateMode::Unspecified(_) => return,
+        };
+
+        use termwiz::escape::csi::DecPrivateModeCode::*;
+        match code {
+            BracketedPaste => self.terminal.state.bracketed_paste = active,
+            EnableAlternateScreen => self.terminal.state.alt_screen = active,
+            ClearAndEnableAlternateScreen => self.terminal.state.alt_screen = active,
+            _ => println!("Code {:?}, set to {}", code, active),
         }
     }
 
     pub fn handle_input(&mut self, key: KeyEvent) {
         self.terminal
+            .pty
             .writer
             .write_all(self.input.key_to_str(key).as_bytes());
     }

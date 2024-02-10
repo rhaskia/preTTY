@@ -3,14 +3,10 @@
 // crate imports
 mod app;
 mod input;
-mod palette;
-mod render;
+mod renderer;
 mod terminal;
-mod utils;
 
 use app::App;
-use input::InputManager;
-use render::TextRenderer;
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};

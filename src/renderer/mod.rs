@@ -1,15 +1,20 @@
+mod palette;
+mod utils;
+
+use crate::terminal::screen::Cell;
+
 use glyph_brush::{
-    ab_glyph::{Font, FontRef, PxScale, VariableFont}, BuiltInLineBreaker, Layout, OwnedSection, OwnedText, Section, VerticalAlign,
+    ab_glyph::{Font, FontRef}, BuiltInLineBreaker, Layout, OwnedSection, OwnedText, Section, VerticalAlign,
 };
 use termwiz::color::ColorSpec;
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
 use wgpu_text::{BrushBuilder, TextBrush};
 use winit::{dpi::PhysicalSize, window::Window};
 
-use crate::utils::WgpuUtils;
 use std::sync::Arc;
 
-use crate::palette::Palette;
+use utils::WgpuUtils;
+use palette::Palette;
 
 pub struct TextRenderer<'a> {
     brush: TextBrush<FontRef<'a>>,
@@ -19,7 +24,6 @@ pub struct TextRenderer<'a> {
     section: OwnedSection,
     config: SurfaceConfiguration,
     font_size: f32,
-    text: String,
     pub color: [f32; 4],
 }
 
@@ -27,7 +31,7 @@ impl TextRenderer<'_> {
     pub fn new(window: Arc<Window>) -> TextRenderer<'static> {
         let (device, queue, surface, config) = WgpuUtils::init(window);
 
-        let font: &[u8] = include_bytes!("../fonts/JetBrainsMono-Regular.ttf");
+        let font: &[u8] = include_bytes!("../../fonts/JetBrainsMono-Regular.ttf");
         let brush = BrushBuilder::using_font_bytes(font).unwrap().build(
             &device,
             config.width,
@@ -54,18 +58,20 @@ impl TextRenderer<'_> {
             config,
             brush,
             section,
-            text: String::new(),
             color: [1.0, 1.0, 1.0, 1.0],
         }
     }
 
-    pub fn push_text(&mut self, s: String) {
-        self.text.push_str(&s);
-        self.section.text.push(
-            OwnedText::new(s.clone())
-                .with_scale(self.font_size)
-                .with_color(self.color.clone()),
-        );
+    pub fn render_from_cells(&mut self, cells: Vec<Cell>) {
+        self.section.text = Vec::new();
+
+        for cell in cells {
+            self.section.text.push(
+                OwnedText::new(cell.char)
+                    .with_scale(self.font_size)
+                    .with_color(cell.attr.fg.to_vec()),
+            );
+        }
     }
 
     /// Resizes the screen renderer, text box, and text renderer

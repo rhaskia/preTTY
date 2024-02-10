@@ -5,6 +5,7 @@
 - [ ] Rendering glyph in code for background drawing etc
 - [ ] font units per em
 - [ ] pt to px scale
+- [ ] Switch to better ui?
 
 # Processing
 - [ ] ANSI Codes
@@ -13,6 +14,10 @@
     - [ ] Brackets
 - [ ] Lines
 
+# Terminal
+Alt Screen
+Erase Line
+Cursor setting
 
 # Input
 - [ ] Time between clicks held down

@@ -1,46 +1,25 @@
-use glyph_brush::ab_glyph::PxScale;
-use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
-use std::io::{Read, Write};
-use std::sync::mpsc::Sender;
 use std::{
-    sync::mpsc::{channel, Receiver},
+    io::Read,
+    io::Write,
+    sync::mpsc::{channel, Receiver, Sender},
     thread::{self, JoinHandle},
 };
-use termwiz::escape::Action;
-use winit::dpi::PhysicalSize;
 
-pub struct Terminal {
-    reader_thread: JoinHandle<()>,
-    pty_system: Box<dyn PtySystem + Send>,
-    pair: PtyPair,
-    child: Box<dyn Child + Sync + Send>,
+use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
+use termwiz::escape::Action;
+
+pub struct PseudoTerminal {
+    pub reader_thread: JoinHandle<()>,
+    pub pty_system: Box<dyn PtySystem + Send>,
+    pub pair: PtyPair,
+    pub child: Box<dyn Child + Sync + Send>,
 
     pub writer: Box<dyn Write + Send>,
     pub rx: Receiver<Action>,
-
-    pub rows: u16,
-    pub cols: u16,
 }
 
-impl Terminal {
-    // Resizes how big the terminal thinks it is
-    // mostly useful for rendering tui applications
-    pub fn resize(&mut self, size: PhysicalSize<u32>, glyph_size: (f32, f32)) {
-        let screen_width = size.width.max(1);
-        let screen_height = size.height.max(1);
-
-        self.rows = screen_width as u16 / (glyph_size.0.round() as u16);
-        self.cols = screen_height as u16 / (glyph_size.1.round() as u16);
-
-        self.pair.master.resize(PtySize {
-            rows: self.rows,
-            cols: self.cols,
-            pixel_width: glyph_size.0.round() as u16,
-            pixel_height: glyph_size.1.round() as u16,
-        });
-    }
-
-    pub fn setup() -> anyhow::Result<Terminal> {
+impl PseudoTerminal {
+    pub fn setup() -> anyhow::Result<PseudoTerminal> {
         // Send data to the pty by writing to the master
         let pty_system = native_pty_system();
 
@@ -75,15 +54,13 @@ impl Terminal {
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
         // program to hang on windows
-        Ok(Terminal {
+        Ok(PseudoTerminal {
             reader_thread,
-            writer,
-            rx,
             pty_system,
             pair,
             child,
-            rows: 24,
-            cols: 24,
+            writer,
+            rx,
         })
     }
 }
