@@ -6,17 +6,20 @@ use termwiz::escape::csi::{
     DecPrivateMode,
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
-use termwiz::escape::{Action, ControlCode, CSI};
+use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 
 pub struct App<'a> {
     renderer: TextRenderer<'a>,
     input: InputManager,
     terminal: Terminal,
+
+    pub title: String,
 }
 
 impl App<'_> {
     pub fn setup(window: Arc<Window>) -> App<'static> {
         App {
+            title: String::from("Term"),
             renderer: TextRenderer::new(window),
             input: InputManager::new(),
             terminal: Terminal::setup().unwrap(),
@@ -55,6 +58,12 @@ impl App<'_> {
                         CSI::Cursor(cursor) => self.terminal.handle_cursor(cursor),
                         _ => println!("CSI({:?})", csi),
                     },
+                    Action::OperatingSystemCommand(command) => match *command {
+                        OperatingSystemCommand::SetIconNameAndWindowTitle(title) => {
+                            self.title = title
+                        }
+                        _ => println!("OperatingSystemCommand({:?})", command),
+                    },
                     _ => println!("{:?}", action),
                 },
                 _ => break,
@@ -80,9 +89,14 @@ impl App<'_> {
     }
 
     pub fn handle_input(&mut self, key: KeyEvent) {
-        self.terminal
-            .pty
-            .writer
-            .write_all(self.input.key_to_str(key).as_bytes());
+        use crate::input::Input;
+        match self.input.key_to_str(key) {
+            Input::String(s) => self.terminal.pty.writer.write_all(s.as_bytes()),
+            Input::Control(c) => match c.as_str() {
+                "c" => self.terminal.pty.writer.write_all("\x03".as_bytes()),
+                _ => Ok(())
+            },
+            Input::None => Ok(())
+        }.unwrap();
     }
 }

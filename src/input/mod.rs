@@ -6,6 +6,18 @@ pub struct InputManager {
     pub control: bool,
 }
 
+pub enum Input {
+    String(String),
+    Control(String),
+    None
+}
+
+impl Input {
+    pub fn str(s: &str) -> Input {
+        Input::String(s.to_string())
+    }
+}
+
 impl InputManager {
     pub fn new() -> InputManager {
         InputManager {
@@ -15,36 +27,37 @@ impl InputManager {
     }
 
     // TODO: option string
-    pub fn key_to_str(&mut self, key: KeyEvent) -> String {
+    pub fn key_to_str(&mut self, key: KeyEvent) -> Input {
         match key.logical_key {
             Key::Named(k) => match k {
-                NamedKey::Control => self.alt = key.state.is_pressed(),
+                NamedKey::Control => self.control = key.state.is_pressed(),
                 _ => {}
             },
             _ => {}
         }
 
-        if key.state.is_pressed() { return String::new(); }
+        if key.state.is_pressed() { return Input::None; }
 
         match key.logical_key {
             Key::Named(k) => match k {
-                NamedKey::Escape => String::from("\u{1b}"),
-                NamedKey::Delete => String::from("\u{7f}"),
-                NamedKey::Backspace => String::from("\u{8}"),
-                NamedKey::Enter => String::from("\r\n"),
-                NamedKey::Space => String::from(" "),
-                NamedKey::Tab => String::from("\t"),
+                NamedKey::Escape => Input::str("\u{1b}"),
+                NamedKey::Delete => Input::str("\u{7f}"),
+                NamedKey::Backspace => Input::str("\u{8}"),
+                NamedKey::Enter => Input::str("\r\n"),
+                NamedKey::Space => Input::str(" "),
+                NamedKey::Tab => Input::str("\t"),
 
-                NamedKey::ArrowRight => String::from("\x1b[C"),
-                NamedKey::ArrowLeft => String::from("\x1b[D"),
-                NamedKey::ArrowUp => String::from("\x1b[A"),
-                NamedKey::ArrowDown => String::from("\x1b[B"),
+                NamedKey::ArrowRight => Input::str("\x1b[C"),
+                NamedKey::ArrowLeft => Input::str("\x1b[D"),
+                NamedKey::ArrowUp => Input::str("\x1b[A"),
+                NamedKey::ArrowDown => Input::str("\x1b[B"),
 
-                _ => String::new(),
+                _ => Input::None,
             },
-            Key::Character(char) => char.to_string(),
+            Key::Character(char) if !self.control => Input::String(char.to_string()),
+            Key::Character(char) if self.control => Input::Control(char.to_string()),
 
-            _ => String::new(),
+            _ => Input::None,
         }
     }
 }

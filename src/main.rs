@@ -38,6 +38,7 @@ fn main() -> anyhow::Result<()> {
     event_loop
         .run(move |event, elwt| {
             app.update();
+            window.set_title(&app.title);
 
             match event {
                 Event::LoopExiting => println!("Exiting!"),
