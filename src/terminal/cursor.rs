@@ -1,5 +1,7 @@
 use termwiz::escape::csi::CursorStyle;
 
+/// Cursor object to store cursor position and style
+/// Allows for storing, restoring etc with positions as well
 pub struct TerminalCursor {
     pub x: u32,
     pub y: u32,
@@ -21,23 +23,28 @@ impl TerminalCursor {
         }
     }
 
+    /// Sets the cursor position
     pub fn set(&mut self, x: u32, y: u32) {
         self.x = x;
         self.y = y;
     }
 
+    /// Shifts the cursor down
     pub fn shift_down(&mut self, amount: u32) {
         self.y += amount;
     }
 
+    /// Shifts the cursor right
     pub fn shift_right(&mut self, amount: u32) {
         self.x += amount
     }
 
+    /// Shifts the cursor up
     pub fn shift_up(&mut self, amount: u32) {
         self.y = self.y.checked_sub(amount).unwrap();
     }
 
+    /// Shifts the cursor left
     pub fn shift_left(&mut self, amount: u32) {
         self.x = self.x.checked_sub(amount).unwrap();
     }

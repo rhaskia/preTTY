@@ -26,6 +26,7 @@ impl App<'_> {
         }
     }
 
+    /// Resizes the rendere and terminal
     pub fn resize_view(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.renderer.resize_view(new_size);
         let glyph_size = self.renderer.glyph_size();
@@ -36,18 +37,21 @@ impl App<'_> {
         self.renderer.render();
     }
 
+    /// Mostly a handler of Actions that the terminal gives out
     pub fn update(&mut self) {
         loop {
             match self.terminal.pty.rx.try_recv() {
                 Ok(action) => match action {
                     Action::Print(s) => self.terminal.print(s),
                     Action::PrintString(s) => self.terminal.print_str(s),
+
                     Action::Control(control) => match control {
                         ControlCode::LineFeed => self.terminal.print('\n'),
                         ControlCode::CarriageReturn => self.terminal.print('\r'),
                         ControlCode::Backspace => self.terminal.backspace(),
                         _ => println!("ControlCode({:?})", control),
                     },
+
                     Action::CSI(csi) => match csi {
                         CSI::Sgr(sgr) => self.terminal.renderer.handle_sgr(sgr),
                         CSI::Mode(mode) => match mode {
@@ -58,6 +62,7 @@ impl App<'_> {
                         CSI::Cursor(cursor) => self.terminal.handle_cursor(cursor),
                         _ => println!("CSI({:?})", csi),
                     },
+
                     Action::OperatingSystemCommand(command) => match *command {
                         OperatingSystemCommand::SetIconNameAndWindowTitle(title) => {
                             self.title = title
@@ -73,6 +78,8 @@ impl App<'_> {
         self.renderer.render_from_cells(self.terminal.get_cells());
     }
 
+    /// Switches dec private modes on or off
+    /// Useful stuff like alt_screen, bracketed_paste etc
     pub fn set_dec_private_mode(&mut self, mode: DecPrivateMode, active: bool) {
         let code = match mode {
             DecPrivateMode::Code(c) => c,
@@ -88,9 +95,11 @@ impl App<'_> {
         }
     }
 
+    /// Handles what happends with keyboard inputs
     pub fn handle_input(&mut self, key: KeyEvent) {
         use crate::input::Input;
-        match self.input.key_to_str(key) {
+
+        match self.input.handle_input(key) {
             Input::String(s) => self.terminal.pty.writer.write_all(s.as_bytes()),
             Input::Control(c) => match c.as_str() {
                 "c" => self.terminal.pty.writer.write_all("\x03".as_bytes()),

@@ -22,12 +22,12 @@ impl InputManager {
     pub fn new() -> InputManager {
         InputManager {
             alt: false,
-            control: true,
+            control: false,
         }
     }
 
-    // TODO: option string
-    pub fn key_to_str(&mut self, key: KeyEvent) -> Input {
+    pub fn handle_input(&mut self, key: KeyEvent) -> Input {
+        // Handling modifiers
         match key.logical_key {
             Key::Named(k) => match k {
                 NamedKey::Control => self.control = key.state.is_pressed(),
@@ -36,6 +36,7 @@ impl InputManager {
             _ => {}
         }
 
+        // Don't sent anything on key up
         if key.state.is_pressed() { return Input::None; }
 
         match key.logical_key {

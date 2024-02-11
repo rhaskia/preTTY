@@ -6,11 +6,12 @@ mod pty;
 mod cursor;
 pub mod screen;
 use pty::PseudoTerminal;
-use screen::{Screen, TerminalRenderer};
+use screen::TerminalRenderer;
 
-use self::{cursor::TerminalCursor, screen::{Cell, CellAttributes}};
+use self::{cursor::TerminalCursor, screen::Cell};
 
-// windows build hangs if these fields aren't stored
+/// Main terminal controller
+/// Holds a lot of sub-objects
 pub struct Terminal {
     pub rows: u16,
     pub cols: u16,
@@ -41,6 +42,7 @@ impl Terminal {
         });
     }
 
+    /// Gets all cells the renderer should be showing
     pub fn get_cells(&self) -> Vec<Cell> {
         if self.state.alt_screen {
             self.renderer.alt_screen.cells.clone()
@@ -49,6 +51,8 @@ impl Terminal {
         }
     }
 
+    /// Handles cursor movements, etc
+    // Really need to move this to the cursor object
     pub fn handle_cursor(&mut self, cursor: Cursor) {
         use Cursor::*;
         match cursor {
@@ -62,11 +66,13 @@ impl Terminal {
         }
     }
 
+    /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
         self.renderer.get_screen(self.state.alt_screen).cells.pop();
         // TODO pop at cursor position
     }
 
+    /// Pushes a cell onto the current screen
     pub fn print(&mut self, text: char) {
         let attr = self.renderer.attr.clone();
 

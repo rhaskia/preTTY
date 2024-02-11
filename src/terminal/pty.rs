@@ -27,12 +27,6 @@ impl PseudoTerminal {
         let pair = pty_system.openpty(PtySize {
             rows: 24,
             cols: 80,
-            // TODO: set this to an actual size
-            // Not all systems support pixel_width, pixel_height,
-            // but it is good practice to set it to something
-            // that matches the size of the selected font.  That
-            // is more complex than can be shown here in this
-            // brief example though!
             pixel_width: 0,
             pixel_height: 0,
         })?;
@@ -48,7 +42,7 @@ impl PseudoTerminal {
         let (tx, rx) = channel();
 
         let reader_thread = thread::spawn(move || {
-            read_and_send_chars(reader, tx);
+            parse_terminal_ouput(reader, tx);
         });
 
         // Pretty much everything needs to be kept in the struct,
@@ -65,10 +59,9 @@ impl PseudoTerminal {
     }
 }
 
-// thread to read from terminal output
-// really need to rename to match the fact that it
-// no longer sends chars, but Actions
-fn read_and_send_chars(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
+/// Reads from the pseudoterminal, parses using termwiz and
+/// then sends it for the app to pick up and use
+fn parse_terminal_ouput(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
     let mut buffer = [0u8; 1]; // Buffer to hold a single character
     let mut parser = termwiz::escape::parser::Parser::new();
 
