@@ -2,8 +2,8 @@ use portable_pty::PtySize;
 use termwiz::escape::csi::Cursor;
 use winit::dpi::PhysicalSize;
 
-mod pty;
 mod cursor;
+mod pty;
 pub mod screen;
 use pty::PseudoTerminal;
 use screen::TerminalRenderer;
@@ -43,12 +43,14 @@ impl Terminal {
     }
 
     /// Gets all cells the renderer should be showing
-    pub fn get_cells(&self) -> Vec<Cell> {
-        if self.state.alt_screen {
-            self.renderer.alt_screen.cells.clone()
-        } else {
-            self.renderer.screen.cells.clone()
-        }
+    pub fn get_cells(&mut self) -> Vec<Cell> {
+        self.renderer
+            .get_screen(self.state.alt_screen)
+            .cells
+            .clone()
+            .into_iter()
+            .flatten()
+            .collect()
     }
 
     /// Handles cursor movements, etc
@@ -62,23 +64,28 @@ impl Terminal {
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
             Position { line, col } => self.cursor.set(line.as_zero_based(), col.as_zero_based()),
             CursorStyle(style) => self.cursor.set_style(style),
-            _ => println!("{:?}", cursor)
+            _ => println!("{:?}", cursor),
         }
     }
 
     /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
-        self.renderer.get_screen(self.state.alt_screen).cells.pop();
-        // TODO pop at cursor position
+        self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
+
+        self.cursor.x -= 1;
     }
 
     /// Pushes a cell onto the current screen
     pub fn print(&mut self, text: char) {
         let attr = self.renderer.attr.clone();
 
-        self.renderer
-            .get_screen(self.state.alt_screen)
-            .push(Cell::new(text, attr))
+        self.renderer.get_screen(self.state.alt_screen).push(
+            Cell::new(text, attr),
+            self.cursor.x,
+            self.cursor.y,
+        );
+
+        self.cursor.x += 1;
     }
 
     // I don't believe this ever happens

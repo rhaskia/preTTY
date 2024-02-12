@@ -48,7 +48,7 @@ impl TerminalRenderer {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CellAttributes {
     pub bg: ColorSpec,
     pub fg: ColorSpec,
@@ -77,7 +77,7 @@ impl CellAttributes {
 }
 
 // Change to enum to allow for box drawing etc
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Cell {
     pub char: char,
     pub attr: CellAttributes,
@@ -90,12 +90,16 @@ impl Cell {
 }
 
 pub struct Screen {
-    pub cells: Vec<Cell>,
+    pub cells: Vec<Vec<Cell>>,
 }
 
 impl Screen {
-    pub fn push(&mut self, c: Cell) {
-        self.cells.push(c);
+    pub fn push(&mut self, c: Cell, cursorx: usize, cursory: usize) {
+        if cursory as usize >= self.cells.len() { self.cells.push(Vec::new()) } 
+
+        println!("{:?}", c);
+
+        self.cells[cursory as usize].insert(cursorx as usize, c)
     }
 
     pub fn new() -> Screen {
