@@ -46,8 +46,14 @@ impl App<'_> {
                     Action::PrintString(s) => self.terminal.print_str(s),
 
                     Action::Control(control) => match control {
-                        ControlCode::LineFeed => self.terminal.print('\n'),
-                        ControlCode::CarriageReturn => self.terminal.print('\r'),
+                        ControlCode::LineFeed => {
+                            self.terminal.print('\n');
+                            self.terminal.cursor.shift_down(1);
+                        }
+                        ControlCode::CarriageReturn => {
+                            self.terminal.print('\r');
+                            self.terminal.cursor.set_x(0)
+                        }
                         ControlCode::Backspace => self.terminal.backspace(),
                         _ => println!("ControlCode({:?})", control),
                     },
@@ -103,9 +109,10 @@ impl App<'_> {
             Input::String(s) => self.terminal.pty.writer.write_all(s.as_bytes()),
             Input::Control(c) => match c.as_str() {
                 "c" => self.terminal.pty.writer.write_all("\x03".as_bytes()),
-                _ => Ok(())
+                _ => Ok(()),
             },
-            Input::None => Ok(())
-        }.unwrap();
+            Input::None => Ok(()),
+        }
+        .unwrap();
     }
 }

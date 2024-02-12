@@ -29,6 +29,14 @@ impl TerminalCursor {
         self.y = y;
     }
 
+    pub fn set_x(&mut self, x: u32) {
+        self.x = x
+    }
+
+    pub fn set_y(&mut self, y: u32) {
+        self.y = y
+    }
+
     /// Shifts the cursor down
     pub fn shift_down(&mut self, amount: u32) {
         self.y += amount;
