@@ -1,6 +1,7 @@
 use portable_pty::PtySize;
 use termwiz::escape::csi::Cursor;
 use winit::dpi::PhysicalSize;
+use joinery::JoinableIterator;
 
 mod cursor;
 mod pty;
@@ -73,17 +74,17 @@ impl Terminal {
 
     /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
-        self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
-
         self.cursor.x -= 1;
+
+        self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
     pub fn new_line(&mut self) {
-        self.renderer.get_screen(self.state.alt_screen).push(
-            Cell::new('\n', CellAttributes::default()),
-            self.cursor.x,
-            self.cursor.y,
-        );
+        // self.renderer.get_screen(self.state.alt_screen).push(
+        //     Cell::new('\n', CellAttributes::default()),
+        //     self.cursor.x,
+        //     self.cursor.y,
+        // );
 
         self.cursor.shift_down(1);
         self.cursor.set_x(0)

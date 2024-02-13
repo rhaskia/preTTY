@@ -44,15 +44,16 @@ impl App<'_> {
                 Ok(a) => a,
                 _ => break,
             };
+
             match action {
                 Action::Print(s) => self.terminal.print(s),
                 Action::PrintString(s) => self.terminal.print_str(s),
 
                 Action::Control(control) => match control {
                     ControlCode::LineFeed => self.terminal.new_line(),
-                    // Don't do anything fancy for carriage return
+                    // Don't do anything for carriage return
                     // would be nice to but it breaks cursor movement
-                    ControlCode::CarriageReturn => self.terminal.print('\r'),
+                    // ControlCode::CarriageReturn => self.terminal.print('\r'),
                     ControlCode::Backspace => self.terminal.backspace(),
                     _ => println!("ControlCode({:?})", control),
                 },
@@ -78,6 +79,8 @@ impl App<'_> {
             }
         }
 
+        // TODO: only render when needed
+        // im sure dixous will fix this issue
         self.renderer.render_from_cells(self.terminal.get_cells());
     }
 

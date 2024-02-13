@@ -2225,6 +2225,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "joinery"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57d8bde02bbf44a562cf068a8ff4a68842df387e302a03a4de4a57fcf82ec377"
+
+[[package]]
 name = "js-sys"
 version = "0.3.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4145,6 +4151,7 @@ dependencies = [
  "dioxus-desktop",
  "env_logger",
  "glyph_brush",
+ "joinery",
  "pollster",
  "portable-pty",
  "termwiz",

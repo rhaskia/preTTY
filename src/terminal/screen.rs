@@ -4,6 +4,8 @@ use termwiz::{
     escape::csi::Sgr,
 };
 
+use super::cursor;
+
 pub struct TerminalRenderer {
     pub screen: Screen,
     pub alt_screen: Screen,
@@ -87,6 +89,20 @@ impl Cell {
     pub fn new(char: char, attr: CellAttributes) -> Cell {
         Cell { char, attr }
     }
+
+    pub fn default() -> Cell {
+        Cell {
+            char: ' ',
+            attr: CellAttributes::default(),
+        }
+    }
+
+    pub fn new_line() -> Cell {
+        Cell {
+            char: '\n',
+            attr: CellAttributes::default(),
+        }
+    }
 }
 
 pub struct Screen {
@@ -95,10 +111,18 @@ pub struct Screen {
 
 impl Screen {
     pub fn push(&mut self, c: Cell, cursorx: usize, cursory: usize) {
-        if cursory as usize >= self.cells.len() { self.cells.push(Vec::new()) } 
+        if cursory >= self.cells.len() {
+            let extend_amount = cursory - &self.cells.len();
+            self.cells.extend(vec![Vec::new(); extend_amount + 1])
+        }
+
+        if cursorx >= self.cells[cursory].len() {
+            let extend_amount = cursorx - &self.cells[cursory].len();
+            self.cells[cursory].extend(vec![Cell::default(); extend_amount + 1])
+        }
 
         // TODO: add extra if cursor out of index
-        self.cells[cursory as usize].insert(cursorx as usize, c)
+        self.cells[cursory].insert(cursorx, c)
     }
 
     pub fn new() -> Screen {
