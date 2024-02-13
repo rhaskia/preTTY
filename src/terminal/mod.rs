@@ -8,7 +8,10 @@ pub mod screen;
 use pty::PseudoTerminal;
 use screen::TerminalRenderer;
 
-use self::{cursor::TerminalCursor, screen::Cell};
+use self::{
+    cursor::TerminalCursor,
+    screen::{Cell, CellAttributes},
+};
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -39,7 +42,7 @@ impl Terminal {
             cols: self.cols,
             pixel_width: glyph_size.0.round() as u16,
             pixel_height: glyph_size.1.round() as u16,
-        });
+        }).unwrap();
     }
 
     /// Gets all cells the renderer should be showing
@@ -73,6 +76,17 @@ impl Terminal {
         self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
 
         self.cursor.x -= 1;
+    }
+
+    pub fn new_line(&mut self) {
+        self.renderer.get_screen(self.state.alt_screen).push(
+            Cell::new('\n', CellAttributes::default()),
+            self.cursor.x,
+            self.cursor.y,
+        );
+
+        self.cursor.shift_down(1);
+        self.cursor.set_x(0)
     }
 
     /// Pushes a cell onto the current screen

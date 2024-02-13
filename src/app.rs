@@ -40,44 +40,41 @@ impl App<'_> {
     /// Mostly a handler of Actions that the terminal gives out
     pub fn update(&mut self) {
         loop {
-            match self.terminal.pty.rx.try_recv() {
-                Ok(action) => match action {
-                    Action::Print(s) => self.terminal.print(s),
-                    Action::PrintString(s) => self.terminal.print_str(s),
-
-                    Action::Control(control) => match control {
-                        ControlCode::LineFeed => {
-                            self.terminal.print('\n');
-                            self.terminal.cursor.shift_down(1);
-                        }
-                        ControlCode::CarriageReturn => {
-                            self.terminal.print('\r');
-                            self.terminal.cursor.set_x(0)
-                        }
-                        ControlCode::Backspace => self.terminal.backspace(),
-                        _ => println!("ControlCode({:?})", control),
-                    },
-
-                    Action::CSI(csi) => match csi {
-                        CSI::Sgr(sgr) => self.terminal.renderer.handle_sgr(sgr),
-                        CSI::Mode(mode) => match mode {
-                            SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
-                            ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
-                            _ => println!("Mode({:?})", mode),
-                        },
-                        CSI::Cursor(cursor) => self.terminal.handle_cursor(cursor),
-                        _ => println!("CSI({:?})", csi),
-                    },
-
-                    Action::OperatingSystemCommand(command) => match *command {
-                        OperatingSystemCommand::SetIconNameAndWindowTitle(title) => {
-                            self.title = title
-                        }
-                        _ => println!("OperatingSystemCommand({:?})", command),
-                    },
-                    _ => println!("{:?}", action),
-                },
+            let action = match self.terminal.pty.rx.try_recv() {
+                Ok(a) => a,
                 _ => break,
+            };
+            match action {
+                Action::Print(s) => self.terminal.print(s),
+                Action::PrintString(s) => self.terminal.print_str(s),
+
+                Action::Control(control) => match control {
+                    ControlCode::LineFeed => self.terminal.new_line(),
+                    // Don't do anything fancy for carriage return
+                    // would be nice to but it breaks cursor movement
+                    ControlCode::CarriageReturn => self.terminal.print('\r'),
+                    ControlCode::Backspace => self.terminal.backspace(),
+                    _ => println!("ControlCode({:?})", control),
+                },
+
+                Action::CSI(csi) => match csi {
+                    CSI::Sgr(sgr) => self.terminal.renderer.handle_sgr(sgr),
+                    CSI::Mode(mode) => match mode {
+                        SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
+                        ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
+                        _ => println!("Mode({:?})", mode),
+                    },
+                    CSI::Cursor(cursor) => self.terminal.handle_cursor(cursor),
+                    _ => println!("CSI({:?})", csi),
+                },
+
+                Action::OperatingSystemCommand(command) => match *command {
+                    OperatingSystemCommand::SetIconNameAndWindowTitle(title) => {
+                        self.title = title
+                    }
+                    _ => println!("OperatingSystemCommand({:?})", command),
+                },
+                _ => println!("{:?}", action),
             }
         }
 

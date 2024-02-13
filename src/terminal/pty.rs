@@ -69,7 +69,10 @@ fn parse_terminal_ouput(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
         match reader.read(&mut buffer) {
             Ok(_) => {
                 parser.parse(&buffer, |t| {
-                    tx.send(t);
+                    match tx.send(t) {
+                        Ok(o) => {},
+                        Err(err) => println!("{:?}", err.0),
+                    }
                 });
             }
             Err(err) => {

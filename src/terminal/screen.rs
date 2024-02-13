@@ -97,8 +97,7 @@ impl Screen {
     pub fn push(&mut self, c: Cell, cursorx: usize, cursory: usize) {
         if cursory as usize >= self.cells.len() { self.cells.push(Vec::new()) } 
 
-        println!("{:?}", c);
-
+        // TODO: add extra if cursor out of index
         self.cells[cursory as usize].insert(cursorx as usize, c)
     }
 
