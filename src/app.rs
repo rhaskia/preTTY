@@ -3,7 +3,8 @@ use winit::{event::KeyEvent, window::Window};
 
 use crate::{input::InputManager, renderer::TextRenderer, terminal::Terminal};
 use termwiz::escape::csi::{
-    DecPrivateMode,
+    EraseInLine,
+    DecPrivateMode, Edit,
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
@@ -44,6 +45,8 @@ impl App<'_> {
                 Ok(a) => a,
                 _ => break,
             };
+            
+            println!("cursor {}, {}", self.terminal.cursor.x, self.terminal.cursor.y);
 
             match action {
                 Action::Print(s) => self.terminal.print(s),
@@ -53,7 +56,7 @@ impl App<'_> {
                     ControlCode::LineFeed => self.terminal.new_line(),
                     // Don't do anything for carriage return
                     // would be nice to but it breaks cursor movement
-                    // ControlCode::CarriageReturn => self.terminal.print('\r'),
+                    ControlCode::CarriageReturn => self.terminal.carriage_return(),
                     ControlCode::Backspace => self.terminal.backspace(),
                     _ => println!("ControlCode({:?})", control),
                 },
@@ -66,13 +69,12 @@ impl App<'_> {
                         _ => println!("Mode({:?})", mode),
                     },
                     CSI::Cursor(cursor) => self.terminal.handle_cursor(cursor),
+                    CSI::Edit(edit) => self.handle_edit(edit),
                     _ => println!("CSI({:?})", csi),
                 },
 
                 Action::OperatingSystemCommand(command) => match *command {
-                    OperatingSystemCommand::SetIconNameAndWindowTitle(title) => {
-                        self.title = title
-                    }
+                    OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
                     _ => println!("OperatingSystemCommand({:?})", command),
                 },
                 _ => println!("{:?}", action),
@@ -82,6 +84,15 @@ impl App<'_> {
         // TODO: only render when needed
         // im sure dixous will fix this issue
         self.renderer.render_from_cells(self.terminal.get_cells());
+    }
+
+    pub fn handle_edit(&mut self, edit: Edit) {
+        use EraseInLine::*;
+        match edit {
+            //Edit::EraseInLine(EraseToEndOfLine) => {}
+            Edit::EraseInLine(e) => self.terminal.erase_in_line(e),
+            _ => println!("Edit {:?}", edit),
+        }
     }
 
     /// Switches dec private modes on or off

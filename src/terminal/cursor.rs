@@ -6,6 +6,10 @@ pub struct TerminalCursor {
     pub x: usize,
     pub y: usize,
 
+
+    pub alt_x: usize,
+    pub alt_y: usize,
+
     pub saved_x: usize,
     pub saved_y: usize,
 
@@ -20,6 +24,8 @@ impl TerminalCursor {
             saved_x: 0,
             saved_y: 0,
             style: CursorStyle::Default,
+            alt_x: 0,
+            alt_y: 0,
         }
     }
 

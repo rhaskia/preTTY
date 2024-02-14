@@ -1,7 +1,7 @@
-use portable_pty::PtySize;
-use termwiz::escape::csi::Cursor;
-use winit::dpi::PhysicalSize;
 use joinery::JoinableIterator;
+use portable_pty::PtySize;
+use termwiz::escape::csi::{Cursor, EraseInLine};
+use winit::dpi::PhysicalSize;
 
 mod cursor;
 mod pty;
@@ -34,16 +34,20 @@ impl Terminal {
         let screen_height = size.height.max(1);
 
         self.rows = (screen_height as f32 / glyph_size.1) as u16;
-        self.cols = (screen_width as f32 / glyph_size.0) as u16 + 14;
+        self.cols = (screen_width as f32 / glyph_size.0) as u16;
 
-        println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
+        //println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
 
-        self.pty.pair.master.resize(PtySize {
-            rows: self.rows,
-            cols: self.cols,
-            pixel_width: glyph_size.0.round() as u16,
-            pixel_height: glyph_size.1.round() as u16,
-        }).unwrap();
+        self.pty
+            .pair
+            .master
+            .resize(PtySize {
+                rows: self.rows,
+                cols: self.cols,
+                pixel_width: glyph_size.0.round() as u16,
+                pixel_height: glyph_size.1.round() as u16,
+            })
+            .unwrap();
     }
 
     /// Gets all cells the renderer should be showing
@@ -53,7 +57,10 @@ impl Terminal {
             .cells
             .clone()
             .into_iter()
-            .flat_map(|mut e| { e.push(Cell::new_line()); e })
+            .flat_map(|mut e| {
+                e.push(Cell::new_line());
+                e
+            })
             .collect()
     }
 
@@ -78,16 +85,35 @@ impl Terminal {
 
         self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
+{
+                screen.cells[self.cursor.y].drain(self.cursor.x..);
+    pub fn carriage_return(&mut self) {
+        self.cursor.set_x(0)
+    }
 
     pub fn new_line(&mut self) {
-        // self.renderer.get_screen(self.state.alt_screen).push(
-        //     Cell::new('\n', CellAttributes::default()),
-        //     self.cursor.x,
-        //     self.cursor.y,
-        // );
-
         self.cursor.shift_down(1);
         self.cursor.set_x(0)
+    }
+
+    pub fn erase_in_line(&mut self, edit: EraseInLine) {
+        let screen = self.renderer.get_screen(self.state.alt_screen);
+
+        match edit {
+            EraseInLine::EraseToEndOfLine => {
+                if screen.cells.len() > self.cursor.y {
+                    screen.cells[self.cursor.y].drain(self.cursor.x..);
+                }
+            }
+            EraseInLine::EraseToStartOfLine => {
+                screen.cells[self.cursor.y].truncate(self.cursor.x);
+                self.cursor.set_x(0);
+            }
+            EraseInLine::EraseLine => {
+                screen.cells.remove(self.cursor.y);
+                self.cursor.set_x(0);
+            }
+        }
     }
 
     /// Pushes a cell onto the current screen
