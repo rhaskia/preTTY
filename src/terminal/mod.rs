@@ -53,7 +53,7 @@ impl Terminal {
             .cells
             .clone()
             .into_iter()
-            .flatten()
+            .flat_map(|mut e| { e.push(Cell::new_line()); e })
             .collect()
     }
 
