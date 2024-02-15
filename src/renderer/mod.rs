@@ -1,4 +1,5 @@
 mod palette;
+pub mod terminal;
 mod utils;
 
 use crate::terminal::screen::Cell;
@@ -15,6 +16,7 @@ use std::sync::Arc;
 
 use utils::WgpuUtils;
 use palette::Palette;
+
 
 pub struct TextRenderer<'a> {
     brush: TextBrush<FontRef<'a>>,

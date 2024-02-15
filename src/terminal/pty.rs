@@ -9,13 +9,9 @@ use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, P
 use termwiz::escape::Action;
 
 pub struct PseudoTerminal {
-    pub reader_thread: JoinHandle<()>,
     pub pty_system: Box<dyn PtySystem + Send>,
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
-
-    pub writer: Box<dyn Write + Send>,
-    pub rx: Receiver<Action>,
 }
 
 impl PseudoTerminal {
@@ -35,50 +31,14 @@ impl PseudoTerminal {
         let cmd = CommandBuilder::new("bash");
         let child = pair.slave.spawn_command(cmd)?;
 
-        // Read and parse output from the pty with reader
-        let reader = pair.master.try_clone_reader()?;
-        let writer = pair.master.take_writer()?;
-
-        let (tx, rx) = channel();
-
-        let reader_thread = thread::spawn(move || {
-            parse_terminal_ouput(reader, tx);
-        });
 
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
         // program to hang on windows
         Ok(PseudoTerminal {
-            reader_thread,
             pty_system,
             pair,
             child,
-            writer,
-            rx,
         })
-    }
-}
-
-/// Reads from the pseudoterminal, parses using termwiz and
-/// then sends it for the app to pick up and use
-fn parse_terminal_ouput(mut reader: Box<dyn Read + Send>, tx: Sender<Action>) {
-    let mut buffer = [0u8; 1]; // Buffer to hold a single character
-    let mut parser = termwiz::escape::parser::Parser::new();
-
-    loop {
-        match reader.read(&mut buffer) {
-            Ok(_) => {
-                parser.parse(&buffer, |t| {
-                    match tx.send(t) {
-                        Ok(o) => {},
-                        Err(err) => println!("{:?}", err.0),
-                    }
-                });
-            }
-            Err(err) => {
-                eprintln!("Error reading from Read object: {}", err);
-                break;
-            }
-        }
     }
 }

@@ -1,14 +1,21 @@
 use joinery::JoinableIterator;
 use portable_pty::PtySize;
-use termwiz::escape::csi::{Cursor, EraseInLine};
 use winit::dpi::PhysicalSize;
 
 mod cursor;
 mod pty;
+mod state;
 pub mod screen;
+
 use pty::PseudoTerminal;
 use screen::TerminalRenderer;
+use state::TerminalState;
 
+use termwiz::escape::csi::{
+    DecPrivateMode, Edit, EraseInLine,Cursor,
+    Mode::{ResetDecPrivateMode, SetDecPrivateMode},
+};
+use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 use self::{
     cursor::TerminalCursor,
     screen::{Cell, CellAttributes},
@@ -24,6 +31,8 @@ pub struct Terminal {
     pub state: TerminalState,
     pub pty: PseudoTerminal,
     pub cursor: TerminalCursor,
+
+    pub title: String,
 }
 
 impl Terminal {
@@ -51,17 +60,8 @@ impl Terminal {
     }
 
     /// Gets all cells the renderer should be showing
-    pub fn get_cells(&mut self) -> Vec<Cell> {
-        self.renderer
-            .get_screen(self.state.alt_screen)
-            .cells
-            .clone()
-            .into_iter()
-            .flat_map(|mut e| {
-                e.push(Cell::new_line());
-                e
-            })
-            .collect()
+    pub fn get_cells(&self) -> &Vec<Vec<Cell>> {
+        &self.renderer.get_screen(self.state.alt_screen).cells
     }
 
     /// Handles cursor movements, etc
@@ -83,7 +83,7 @@ impl Terminal {
     pub fn backspace(&mut self) {
         self.cursor.x -= 1;
 
-        self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
+        self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
     pub fn carriage_return(&mut self) {
@@ -96,7 +96,7 @@ impl Terminal {
     }
 
     pub fn erase_in_line(&mut self, edit: EraseInLine) {
-        let screen = self.renderer.get_screen(self.state.alt_screen);
+        let screen = self.renderer.mut_screen(self.state.alt_screen);
 
         match edit {
             EraseInLine::EraseToEndOfLine => {
@@ -119,7 +119,7 @@ impl Terminal {
     pub fn print(&mut self, text: char) {
         let attr = self.renderer.attr.clone();
 
-        self.renderer.get_screen(self.state.alt_screen).push(
+        self.renderer.mut_screen(self.state.alt_screen).push(
             Cell::new(text, attr),
             self.cursor.x,
             self.cursor.y,
@@ -133,6 +133,49 @@ impl Terminal {
         println!("String {}", text);
     }
 
+    pub fn handle_action(&mut self, action: Action) {
+        match action {
+            Action::Print(s) => self.print(s),
+            Action::PrintString(s) => self.print_str(s),
+
+            Action::Control(control) => match control {
+                ControlCode::LineFeed => self.new_line(),
+                // Don't do anything for carriage return
+                // would be nice to but it breaks cursor movement
+                ControlCode::CarriageReturn => self.carriage_return(),
+                ControlCode::Backspace => self.backspace(),
+                _ => println!("ControlCode({:?})", control),
+            },
+
+            Action::CSI(csi) => match csi {
+                CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
+                CSI::Mode(mode) => match mode {
+                    SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
+                    ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
+                    _ => println!("Mode({:?})", mode),
+                },
+                CSI::Cursor(cursor) => self.handle_cursor(cursor),
+                CSI::Edit(edit) => self.handle_edit(edit),
+                _ => println!("CSI({:?})", csi),
+            },
+
+            Action::OperatingSystemCommand(command) => match *command {
+                OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
+                _ => println!("OperatingSystemCommand({:?})", command),
+            },
+            _ => println!("{:?}", action),
+        }
+    }
+
+    pub fn handle_edit(&mut self, edit: Edit) {
+        use EraseInLine::*;
+        match edit {
+            //Edit::EraseInLine(EraseToEndOfLine) => {}
+            Edit::EraseInLine(e) => self.erase_in_line(e),
+            _ => println!("Edit {:?}", edit),
+        }
+    }
+
     pub fn setup() -> anyhow::Result<Terminal> {
         Ok(Terminal {
             pty: PseudoTerminal::setup()?,
@@ -141,20 +184,8 @@ impl Terminal {
             renderer: TerminalRenderer::new(),
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
+            title: "Terminal".into(),
         })
     }
 }
 
-pub struct TerminalState {
-    pub alt_screen: bool,
-    pub bracketed_paste: bool,
-}
-
-impl TerminalState {
-    pub fn new() -> TerminalState {
-        TerminalState {
-            alt_screen: false,
-            bracketed_paste: false,
-        }
-    }
-}

@@ -26,7 +26,15 @@ impl TerminalRenderer {
         self.attr = CellAttributes::default();
     }
 
-    pub fn get_screen(&mut self, alt: bool) -> &mut Screen {
+    pub fn get_screen(&self, alt: bool) -> &Screen {
+        if alt {
+            &self.alt_screen
+        } else {
+            &self.screen
+        }
+    }
+
+    pub fn mut_screen(&mut self, alt: bool) -> &mut Screen {
         if alt {
             &mut self.alt_screen
         } else {
