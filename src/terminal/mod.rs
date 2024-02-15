@@ -85,8 +85,7 @@ impl Terminal {
 
         self.renderer.get_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
-{
-                screen.cells[self.cursor.y].drain(self.cursor.x..);
+
     pub fn carriage_return(&mut self) {
         self.cursor.set_x(0)
     }

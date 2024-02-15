@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use winit::{event::KeyEvent, window::Window};
+use dioxus::prelude::*;
 
 use crate::{input::InputManager, renderer::TextRenderer, terminal::Terminal};
 use termwiz::escape::csi::{
@@ -8,6 +9,15 @@ use termwiz::escape::csi::{
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
+
+pub fn app(cx: Scope) -> Element {
+    let terminal = use_signal(|| Terminal::setup()); 
+
+    cx.render(rsx! {
+        style { include_str!("style.css") }
+        div {}
+    })
+}
 
 pub struct App<'a> {
     renderer: TextRenderer<'a>,
