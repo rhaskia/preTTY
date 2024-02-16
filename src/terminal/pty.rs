@@ -12,6 +12,9 @@ pub struct PseudoTerminal {
     pub pty_system: Box<dyn PtySystem + Send>,
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
+    pub reader_thread: JoinHandle<()>,
+    pub rx: Receiver<Action>,
+    pub writer: Box<dyn Write + Send>
 }
 
 impl PseudoTerminal {
@@ -31,6 +34,16 @@ impl PseudoTerminal {
         let cmd = CommandBuilder::new("bash");
         let child = pair.slave.spawn_command(cmd)?;
 
+        // Read and parse output from the pty with reader
+        let master = &pair.master;
+        let writer = master.take_writer().unwrap();
+        let reader = master.try_clone_reader().unwrap();
+
+        let (tx, rx) = channel();
+
+        let reader_thread = thread::spawn(move || {
+            parse_terminal_output(tx, reader);
+        });
 
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
@@ -39,6 +52,26 @@ impl PseudoTerminal {
             pty_system,
             pair,
             child,
+            writer,
+            rx, 
+            reader_thread,
         })
     }
+}
+
+pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
+        let mut buffer = [0u8; 1]; // Buffer to hold a single character
+        let mut parser = termwiz::escape::parser::Parser::new();
+
+        loop {
+            match reader.read(&mut buffer) {
+                Ok(_) => {
+                    parser.parse(&buffer, |t| {tx.send(t);});
+                }
+                Err(err) => {
+                    eprintln!("Error reading from Read object: {}", err);
+                    break;
+                }
+            }
+        }
 }

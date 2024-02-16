@@ -21,9 +21,11 @@ use self::{
     screen::{Cell, CellAttributes},
 };
 
+use dioxus::prelude::Coroutine;
+
 /// Main terminal controller
 /// Holds a lot of sub-objects
-pub struct Terminal {
+pub struct Terminal<'a> {
     pub rows: u16,
     pub cols: u16,
 
@@ -33,9 +35,11 @@ pub struct Terminal {
     pub cursor: TerminalCursor,
 
     pub title: String,
+
+    pub receiver: &'a Coroutine<Action>,
 }
 
-impl Terminal {
+impl<'a> Terminal<'a> {
     // Resizes how big the terminal thinks it is
     // mostly useful for rendering tui applications
     pub fn resize(&mut self, size: PhysicalSize<u32>, glyph_size: (f32, f32)) {
@@ -176,7 +180,7 @@ impl Terminal {
         }
     }
 
-    pub fn setup() -> anyhow::Result<Terminal> {
+    pub fn setup(receiver: &Coroutine<Action>) -> anyhow::Result<Terminal> {
         Ok(Terminal {
             pty: PseudoTerminal::setup()?,
             rows: 0,
@@ -185,7 +189,7 @@ impl Terminal {
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
             title: "Terminal".into(),
+            receiver,
         })
     }
 }
-
