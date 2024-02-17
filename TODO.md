@@ -26,7 +26,7 @@
 - [ ] Translate non keys into strings
 - [ ] Escape certain characters
 - [ ] Modifiers [ ALT: , CTRL: ^, SHIFT: uppercase ]
-- [ ] Ctrl C kill 
+https://docs.rs/tao/latest/tao/event/enum.WindowEvent.html
 
 # Clean
 clean files

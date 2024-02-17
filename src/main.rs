@@ -7,6 +7,7 @@ mod renderer;
 mod terminal;
 
 use app::app;
+use dioxus_desktop::Config;
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -66,7 +67,7 @@ fn main() -> anyhow::Result<()> {
     //     })
     //     .unwrap();
 
-    dioxus_desktop::launch(app);
+    dioxus_desktop::launch_cfg(app, Config::new().with_background_color((0,0,0,0)));
 
     Ok(())
 }

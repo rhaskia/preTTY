@@ -6,22 +6,22 @@ use winit::dpi::PhysicalSize;
 
 mod cursor;
 mod pty;
-mod state;
 pub mod screen;
+mod state;
 
 use pty::PseudoTerminal;
 use screen::TerminalRenderer;
 use state::TerminalState;
 
-use termwiz::escape::csi::{
-    DecPrivateMode, Edit, EraseInLine,Cursor,
-    Mode::{ResetDecPrivateMode, SetDecPrivateMode},
-};
-use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 use self::{
     cursor::TerminalCursor,
     screen::{Cell, CellAttributes},
 };
+use termwiz::escape::csi::{
+    Cursor, DecPrivateMode, Edit, EraseInDisplay, EraseInLine,
+    Mode::{ResetDecPrivateMode, SetDecPrivateMode},
+};
+use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 
 use dioxus::prelude::Coroutine;
 
@@ -40,6 +40,18 @@ pub struct Terminal {
 }
 
 impl Terminal {
+    pub fn setup() -> anyhow::Result<Terminal> {
+        Ok(Terminal {
+            pty: PseudoTerminal::setup()?,
+            rows: 0,
+            cols: 0,
+            renderer: TerminalRenderer::new(),
+            state: TerminalState::new(),
+            cursor: TerminalCursor::new(),
+            title: "Terminal".into(),
+        })
+    }
+
     // Resizes how big the terminal thinks it is
     // mostly useful for rendering tui applications
     pub fn resize(&mut self, size: PhysicalSize<u32>, glyph_size: (f32, f32)) {
@@ -171,24 +183,27 @@ impl Terminal {
         }
     }
 
+    pub fn erase_in_display(&mut self, edit: EraseInDisplay) {
+        let screen = self.renderer.mut_screen(self.state.alt_screen);
+
+        match edit {
+            EraseInDisplay::EraseToEndOfDisplay => {}
+            EraseInDisplay::EraseToStartOfDisplay => {}
+            EraseInDisplay::EraseDisplay => {
+                screen.cells = Vec::new();
+                self.cursor.set(0, 0);
+            }
+            EraseInDisplay::EraseScrollback => {}
+        }
+    }
+
     pub fn handle_edit(&mut self, edit: Edit) {
         use EraseInLine::*;
         match edit {
             //Edit::EraseInLine(EraseToEndOfLine) => {}
             Edit::EraseInLine(e) => self.erase_in_line(e),
+            Edit::EraseInDisplay(e) => self.erase_in_display(e),
             _ => println!("Edit {:?}", edit),
         }
-    }
-
-    pub fn setup() -> anyhow::Result<Terminal> {
-        Ok(Terminal {
-            pty: PseudoTerminal::setup()?,
-            rows: 0,
-            cols: 0,
-            renderer: TerminalRenderer::new(),
-            state: TerminalState::new(),
-            cursor: TerminalCursor::new(),
-            title: "Terminal".into(),
-        })
     }
 }
