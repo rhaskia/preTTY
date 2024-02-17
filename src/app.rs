@@ -7,9 +7,9 @@ use crate::{input::InputManager, renderer::terminal::TerminalApp, terminal::Term
 use dioxus_elements::*;
 
 pub fn app(cx: Scope) -> Element {
+    
     cx.render(rsx! {
         style { include_str!("style.css") }
-        h1 { "whu" }
         TerminalApp {}
     })
 }

@@ -1,5 +1,5 @@
 pub struct Palette {
-    pub colors: Vec<[f32; 4]>,
+    pub colors: Vec<String>,
 }
 
 impl Palette {
@@ -7,37 +7,37 @@ impl Palette {
         Palette {
             colors: vec![
                 // Black
-                [0.0, 0.0, 0.0, 1.0],
+                "#000000".to_string(),
 
-                // Red, Yellow, Green
-                [1.0, 0.0, 0.0, 1.0],
-                [0.0, 1.0, 0.0, 1.0],
-                [1.0, 1.0, 0.0, 1.0],
+                // Red, Green, Yellow
+                "#ff0000".to_string(),
+                "#00ff00".to_string(),
+                "#ffff00".to_string(),
 
                 // Blue, Cyan, Magenta
-                [0.0, 0.0, 1.0, 1.0],
-                [1.0, 0.0, 1.0, 1.0],
-                [0.0, 1.0, 1.0, 1.0],
+                "#0000ff".to_string(),
+                "#00ffff".to_string(),
+                "#ff00ff".to_string(),
 
                 // White
-                [1.0, 1.0, 1.0, 1.0],
+                "#dddddd".to_string(),
 
                 // Bright Colours
                 // Black
-                [0.5, 0.5, 0.5, 1.0],
+                "#999999".to_string(),
 
-                // Red, Yellow, Green
-                [1.0, 0.0, 0.0, 1.0],
-                [0.0, 1.0, 0.0, 1.0],
-                [1.0, 1.0, 0.0, 1.0],
+                // Red, Green, Yellow
+                "#ff0000".to_string(),
+                "#00ff00".to_string(),
+                "#ffff00".to_string(),
 
                 // Blue, Cyan, Magenta
-                [0.0, 0.0, 1.0, 1.0],
-                [1.0, 0.0, 1.0, 1.0],
-                [0.0, 1.0, 1.0, 1.0],
+                "#0000ff".to_string(),
+                "#00ffff".to_string(),
+                "#ff00ff".to_string(),
 
                 // White
-                [1.0, 1.0, 1.0, 1.0],
+                "#ffffff".to_string(),
             ]
         }
     }

@@ -53,8 +53,8 @@ impl PseudoTerminal {
             pair,
             child,
             writer,
-            rx, 
             reader_thread,
+            rx,
         })
     }
 }

@@ -58,7 +58,7 @@ impl TerminalRenderer {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CellAttributes {
     pub bg: ColorSpec,
     pub fg: ColorSpec,
@@ -87,7 +87,7 @@ impl CellAttributes {
 }
 
 // Change to enum to allow for box drawing etc
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Cell {
     pub char: char,
     pub attr: CellAttributes,
