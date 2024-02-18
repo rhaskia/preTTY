@@ -29,4 +29,4 @@
 https://docs.rs/tao/latest/tao/event/enum.WindowEvent.html
 
 # Clean
-clean files
+config option for decorations

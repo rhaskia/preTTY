@@ -111,26 +111,6 @@ impl Terminal {
         self.cursor.set_x(0)
     }
 
-    pub fn erase_in_line(&mut self, edit: EraseInLine) {
-        let screen = self.renderer.mut_screen(self.state.alt_screen);
-
-        match edit {
-            EraseInLine::EraseToEndOfLine => {
-                if screen.cells.len() > self.cursor.y {
-                    screen.cells[self.cursor.y].drain(self.cursor.x..);
-                }
-            }
-            EraseInLine::EraseToStartOfLine => {
-                screen.cells[self.cursor.y].truncate(self.cursor.x);
-                self.cursor.set_x(0);
-            }
-            EraseInLine::EraseLine => {
-                screen.cells.remove(self.cursor.y);
-                self.cursor.set_x(0);
-            }
-        }
-    }
-
     /// Pushes a cell onto the current screen
     pub fn print(&mut self, text: char) {
         let attr = self.renderer.attr.clone();
@@ -197,12 +177,40 @@ impl Terminal {
         }
     }
 
+    pub fn erase_in_line(&mut self, edit: EraseInLine) {
+        let screen = self.renderer.mut_screen(self.state.alt_screen);
+
+        match edit {
+            EraseInLine::EraseToEndOfLine => {
+                if screen.cells.len() > self.cursor.y {
+                    screen.cells[self.cursor.y].drain(self.cursor.x..);
+                }
+            }
+            EraseInLine::EraseToStartOfLine => {
+                screen.cells[self.cursor.y].truncate(self.cursor.x);
+                self.cursor.set_x(0);
+            }
+            EraseInLine::EraseLine => {
+                screen.cells.remove(self.cursor.y);
+                self.cursor.set_x(0);
+            }
+        }
+    }
+
+    pub fn erase_characters(&mut self, n: u32) {
+        let screen = self.renderer.mut_screen(self.state.alt_screen);
+        let end = screen.cells[self.cursor.y].len().min(self.cursor.x + n as usize);
+
+        screen.cells[self.cursor.y]
+            .drain(self.cursor.x..end);
+    }
+
     pub fn handle_edit(&mut self, edit: Edit) {
         use EraseInLine::*;
         match edit {
-            //Edit::EraseInLine(EraseToEndOfLine) => {}
             Edit::EraseInLine(e) => self.erase_in_line(e),
             Edit::EraseInDisplay(e) => self.erase_in_display(e),
+            Edit::EraseCharacter(n) => self.erase_characters(n),
             _ => println!("Edit {:?}", edit),
         }
     }

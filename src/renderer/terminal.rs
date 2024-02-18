@@ -1,11 +1,12 @@
-use crate::renderer::Palette;
-use crate::terminal::screen::Cell;
+use crate::renderer::palette::Palette;
+use crate::terminal::screen::{Cell, CellAttributes};
 use crate::terminal::Terminal;
 use dioxus::prelude::*;
-use dioxus_desktop::tao::event::WindowEvent;
+use dioxus_desktop::tao::event::{WindowEvent, Event};
 use dioxus_desktop::tao::keyboard::ModifiersState;
-use dioxus_desktop::use_window;
+use dioxus_desktop::{use_window, use_wry_event_handler};
 use dioxus_signals::*;
+use termwiz::cell::{Blink, Intensity};
 use std::time::Duration;
 use termwiz::color::ColorSpec;
 use termwiz::escape::Action;
@@ -17,19 +18,21 @@ pub fn TerminalApp(cx: Scope) -> Element {
     let modifiers = use_state(cx, || ModifiersState::empty());
     let window = use_window(cx);
 
-    // window.create_wry_event_handler(|event, t| match event {
-    //     dioxus_desktop::tao::event::Event::WindowEvent { event, .. } => match event {
-    //         WindowEvent::Resized(size) => todo!(),
-    //         WindowEvent::KeyboardInput {
-    //             device_id, event, ..
-    //         } => todo!(),
-    //         WindowEvent::ModifiersChanged(new_modifiers) => modifiers.set(new_modifiers.clone()),
-    //         _ => {}
-    //     },
-    //     _ => {}
-    // });
+    // Window event listener
+    // Might need to move it up a component to make way for multiple terminals
+    use_wry_event_handler(cx, |event, t| match event {
+        Event::WindowEvent { event, .. } => match event {
+            WindowEvent::Resized(size) => println!("{size:?}"),
+            // WindowEvent::KeyboardInput {
+            //     device_id, event, ..
+            // } => todo!(),
+            WindowEvent::ModifiersChanged(new_modifiers) => println!("{new_modifiers:?}"), //modifiers.set(new_modifiers.clone()),
+            _ => {}
+        },
+        _ => {}
+    });
 
-    // Action Receiver
+    // Reads from the terminal and sends actions into the Terminal object
     use_future(cx, (), move |_| async move {
         terminal.write().pty.writer.write_all(b"nvim\n");
 
@@ -74,13 +77,29 @@ pub struct CellProps {
     pub cell: Cell,
 }
 
+pub trait GetClasses {
+    fn get_classes(&self) -> String;
+}
+
+impl GetClasses for CellAttributes {
+    fn get_classes(&self) -> String {
+        let intensity = match self.intensity {
+            Intensity::Normal => "",
+            Intensity::Bold => "cell-bold",
+            Intensity::Half => "cell-dim",
+        };
+
+        format!("cellspan {intensity}")
+    }
+}
+
 #[component]
 pub fn CellSpan(cx: Scope<CellProps>) -> Element {
     let cell = &cx.props.cell;
 
     cx.render(rsx! {
         span {
-            class: "cell-span",
+            class: "{cell.attr.get_classes()}",
             style: "color: {cell.attr.fg.to_hex()};",
             "{cx.props.cell.char}"
         }

@@ -1,3 +1,7 @@
+:root {
+
+}
+
 * {
     font-family: "JetBrainsMono Nerd Font";   
 }
@@ -11,3 +15,15 @@ pre {
     height: 21px;
     color: white;
 }
+
+.window-header {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.header-button {
+    background: #222222;
+    color: #ffffff;
+    border: none;
+}
+

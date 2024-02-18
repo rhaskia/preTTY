@@ -3,13 +3,14 @@ use std::sync::Arc;
 use winit::{event::KeyEvent, window::Window};
 
 use crate::{input::InputManager, renderer::terminal::TerminalApp, terminal::Terminal};
+use crate::renderer::header::Header;
 
 use dioxus_elements::*;
 
 pub fn app(cx: Scope) -> Element {
-    
     cx.render(rsx! {
         style { include_str!("style.css") }
+        Header {}
         TerminalApp {}
     })
 }

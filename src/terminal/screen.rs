@@ -121,7 +121,8 @@ impl Screen {
     pub fn push(&mut self, c: Cell, cursorx: usize, cursory: usize) {
         if cursory >= self.cells.len() {
             let extend_amount = cursory - &self.cells.len();
-            self.cells.extend(vec![Vec::new(); extend_amount + 1])
+            self.cells
+                .extend(vec![vec![Cell::default()]; extend_amount + 1])
         }
 
         if cursorx >= self.cells[cursory].len() {

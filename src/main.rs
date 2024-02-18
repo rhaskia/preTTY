@@ -7,13 +7,7 @@ mod renderer;
 mod terminal;
 
 use app::app;
-use dioxus_desktop::Config;
-
-use std::sync::Arc;
-use std::time::{Duration, Instant};
-use winit::event::Event;
-use winit::event_loop::{self, ControlFlow};
-use winit::{event::WindowEvent, window::WindowBuilder};
+use dioxus_desktop::{Config, WindowBuilder};
 
 // TODO text layout of characters like 'š, ć, ž, đ' doesn't work correctly.
 fn main() -> anyhow::Result<()> {
@@ -67,7 +61,13 @@ fn main() -> anyhow::Result<()> {
     //     })
     //     .unwrap();
 
-    dioxus_desktop::launch_cfg(app, Config::new().with_background_color((0,0,0,0)));
+    dioxus_desktop::launch_cfg(
+        app,
+        Config::new()
+            .with_background_color((0, 0, 0, 0))
+            .with_disable_context_menu(true)
+            .with_window(WindowBuilder::new().with_decorations(false)),
+    );
 
     Ok(())
 }
