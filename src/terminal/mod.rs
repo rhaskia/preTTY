@@ -3,6 +3,7 @@ use std::sync::mpsc::Receiver;
 use joinery::JoinableIterator;
 use portable_pty::PtySize;
 use winit::dpi::PhysicalSize;
+use dioxus_desktop::tao::event::{DeviceEvent, KeyEvent};
 
 mod cursor;
 mod pty;
@@ -73,6 +74,10 @@ impl Terminal {
                 pixel_height: glyph_size.1.round() as u16,
             })
             .unwrap();
+    }
+
+    pub fn handle_key_input(&mut self, input: &KeyEvent) {
+
     }
 
     /// Gets all cells the renderer should be showing

@@ -20,15 +20,15 @@ pub fn TerminalApp(cx: Scope) -> Element {
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
-    use_wry_event_handler(cx, |event, t| match event {
+    use_wry_event_handler(cx, move |event, t| match event {
         Event::WindowEvent { event, .. } => match event {
             WindowEvent::Resized(size) => println!("{size:?}"),
-            // WindowEvent::KeyboardInput {
-            //     device_id, event, ..
-            // } => todo!(),
-            WindowEvent::ModifiersChanged(new_modifiers) => println!("{new_modifiers:?}"), //modifiers.set(new_modifiers.clone()),
-            _ => {}
+            WindowEvent::KeyboardInput {
+                device_id, event, ..
+            } => terminal.write().handle_key_input(event),
+            _ => println!("{event:?}"),
         },
+        Event::DeviceEvent { device_id, event, .. } => println!("{event:?}"),
         _ => {}
     });
 

@@ -3,11 +3,13 @@
 }
 
 * {
-    font-family: "JetBrainsMono Nerd Font";   
+    font-family: "JetBrainsMono Nerd Font";  
+    overflow-x:hidden;
 }
 
 body {
     background-color: #000000;
+    margin:0;
 }
 
 pre {
@@ -22,8 +24,14 @@ pre {
 }
 
 .header-button {
-    background: #222222;
+    background: black;
     color: #ffffff;
     border: none;
+    margin-left: 5px;
 }
 
+.window-title {
+    margin-top: 2px;
+    margin-right: auto;
+    margin-left: 10px;
+}

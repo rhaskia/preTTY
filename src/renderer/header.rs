@@ -10,6 +10,7 @@ pub fn Header(cx: Scope) -> Element {
     cx.render(rsx! {
         header { class: "window-header", onmousedown: move |_| window.drag(),
             pre {
+                class: "window-title",
                "Window Title"     
             }
 
