@@ -1,9 +1,9 @@
-use std::sync::mpsc::Receiver;
 
-use joinery::JoinableIterator;
+
+
 use portable_pty::PtySize;
 use winit::dpi::PhysicalSize;
-use dioxus_desktop::tao::event::{DeviceEvent, KeyEvent};
+use dioxus_desktop::tao::event::{KeyEvent};
 
 mod cursor;
 mod pty;
@@ -16,15 +16,15 @@ use state::TerminalState;
 
 use self::{
     cursor::TerminalCursor,
-    screen::{Cell, CellAttributes},
+    screen::{Cell},
 };
 use termwiz::escape::csi::{
-    Cursor, DecPrivateMode, Edit, EraseInDisplay, EraseInLine,
+    Cursor, Edit, EraseInDisplay, EraseInLine,
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 
-use dioxus::prelude::Coroutine;
+
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -76,7 +76,7 @@ impl Terminal {
             .unwrap();
     }
 
-    pub fn handle_key_input(&mut self, input: &KeyEvent) {
+    pub fn handle_key_input(&mut self, _input: &KeyEvent) {
 
     }
 
@@ -211,7 +211,7 @@ impl Terminal {
     }
 
     pub fn handle_edit(&mut self, edit: Edit) {
-        use EraseInLine::*;
+        
         match edit {
             Edit::EraseInLine(e) => self.erase_in_line(e),
             Edit::EraseInDisplay(e) => self.erase_in_display(e),

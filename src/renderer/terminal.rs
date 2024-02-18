@@ -6,29 +6,29 @@ use dioxus_desktop::tao::event::{WindowEvent, Event};
 use dioxus_desktop::tao::keyboard::ModifiersState;
 use dioxus_desktop::{use_window, use_wry_event_handler};
 use dioxus_signals::*;
-use termwiz::cell::{Blink, Intensity};
+use termwiz::cell::{Intensity};
 use std::time::Duration;
 use termwiz::color::ColorSpec;
-use termwiz::escape::Action;
+
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
 pub fn TerminalApp(cx: Scope) -> Element {
-    let mut terminal = use_signal(cx, || Terminal::setup().unwrap());
-    let modifiers = use_state(cx, || ModifiersState::empty());
-    let window = use_window(cx);
+    let terminal = use_signal(cx, || Terminal::setup().unwrap());
+    let _modifiers = use_state(cx, || ModifiersState::empty());
+    let _window = use_window(cx);
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
-    use_wry_event_handler(cx, move |event, t| match event {
+    use_wry_event_handler(cx, move |event, _t| match event {
         Event::WindowEvent { event, .. } => match event {
             WindowEvent::Resized(size) => println!("{size:?}"),
             WindowEvent::KeyboardInput {
-                device_id, event, ..
+                 event, ..
             } => terminal.write().handle_key_input(event),
             _ => println!("{event:?}"),
         },
-        Event::DeviceEvent { device_id, event, .. } => println!("{event:?}"),
+        Event::DeviceEvent {  event, .. } => println!("{event:?}"),
         _ => {}
     });
 
@@ -40,7 +40,7 @@ pub fn TerminalApp(cx: Scope) -> Element {
             let recv = terminal().pty.rx.try_recv();
             match recv {
                 Ok(action) => terminal.write().handle_action(action),
-                Err(err) => {}
+                Err(_err) => {}
             }
             tokio::time::sleep(Duration::from_nanos(100)).await;
         }

@@ -4,7 +4,7 @@ use dioxus_signals::use_signal;
 
 #[component]
 pub fn Header(cx: Scope) -> Element {
-    let mut fullscreen = use_signal(cx, || false);
+    let fullscreen = use_signal(cx, || false);
     let window = use_window(cx);
 
     cx.render(rsx! {

@@ -4,7 +4,7 @@ use termwiz::{
     escape::csi::Sgr,
 };
 
-use super::cursor;
+
 
 pub struct TerminalRenderer {
     pub screen: Screen,
