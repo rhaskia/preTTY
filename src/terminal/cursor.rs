@@ -6,7 +6,6 @@ pub struct TerminalCursor {
     pub x: usize,
     pub y: usize,
 
-
     pub alt_x: usize,
     pub alt_y: usize,
 

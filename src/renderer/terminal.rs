@@ -9,23 +9,23 @@ use dioxus_signals::*;
 use termwiz::cell::{Intensity};
 use std::time::Duration;
 use termwiz::color::ColorSpec;
-
+use crate::input::{InputManager, Input};
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
 pub fn TerminalApp(cx: Scope) -> Element {
     let terminal = use_signal(cx, || Terminal::setup().unwrap());
-    let _modifiers = use_state(cx, || ModifiersState::empty());
-    let _window = use_window(cx);
+    let input = use_signal(cx, || InputManager::new());
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
     use_wry_event_handler(cx, move |event, _t| match event {
         Event::WindowEvent { event, .. } => match event {
             WindowEvent::Resized(size) => println!("{size:?}"),
-            WindowEvent::KeyboardInput {
-                 event, ..
-            } => terminal.write().handle_key_input(event),
+            WindowEvent::KeyboardInput { event, .. } => match input.write().parse_key(event) { 
+                Input::String(text) => terminal.write().write_str(text),
+                _ => {},
+            },
             _ => println!("{event:?}"),
         },
         Event::DeviceEvent {  event, .. } => println!("{event:?}"),

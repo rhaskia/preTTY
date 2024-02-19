@@ -1,11 +1,6 @@
 use dioxus::prelude::*;
-
-
-
 use crate::{renderer::terminal::TerminalApp};
 use crate::renderer::header::Header;
-
-
 
 pub fn app(cx: Scope) -> Element {
     cx.render(rsx! {

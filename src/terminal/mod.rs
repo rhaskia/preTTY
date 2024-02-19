@@ -1,9 +1,4 @@
-
-
-
 use portable_pty::PtySize;
-use winit::dpi::PhysicalSize;
-use dioxus_desktop::tao::event::{KeyEvent};
 
 mod cursor;
 mod pty;
@@ -23,8 +18,7 @@ use termwiz::escape::csi::{
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
-
-
+use dioxus_desktop::PhysicalSize;
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -53,6 +47,10 @@ impl Terminal {
         })
     }
 
+    pub fn write_str(&mut self, s: String) {
+        self.pty.writer.write_all(s.as_bytes());
+    }
+
     // Resizes how big the terminal thinks it is
     // mostly useful for rendering tui applications
     pub fn resize(&mut self, size: PhysicalSize<u32>, glyph_size: (f32, f32)) {
@@ -74,10 +72,6 @@ impl Terminal {
                 pixel_height: glyph_size.1.round() as u16,
             })
             .unwrap();
-    }
-
-    pub fn handle_key_input(&mut self, _input: &KeyEvent) {
-
     }
 
     /// Gets all cells the renderer should be showing
@@ -211,7 +205,6 @@ impl Terminal {
     }
 
     pub fn handle_edit(&mut self, edit: Edit) {
-        
         match edit {
             Edit::EraseInLine(e) => self.erase_in_line(e),
             Edit::EraseInDisplay(e) => self.erase_in_display(e),
