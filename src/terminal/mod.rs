@@ -9,16 +9,13 @@ use pty::PseudoTerminal;
 use screen::TerminalRenderer;
 use state::TerminalState;
 
-use self::{
-    cursor::TerminalCursor,
-    screen::{Cell},
-};
+use self::{cursor::TerminalCursor, screen::Cell};
+use dioxus_desktop::PhysicalSize;
 use termwiz::escape::csi::{
     Cursor, Edit, EraseInDisplay, EraseInLine,
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
-use dioxus_desktop::PhysicalSize;
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -47,7 +44,14 @@ impl Terminal {
         })
     }
 
+    pub fn read_all_actions(&mut self) {
+        while let Ok(action) = self.pty.rx.try_recv() {
+            self.handle_action(action);
+        }
+    }
+
     pub fn write_str(&mut self, s: String) {
+        println!("printing string {s}");
         self.pty.writer.write_all(s.as_bytes());
     }
 
@@ -198,10 +202,11 @@ impl Terminal {
 
     pub fn erase_characters(&mut self, n: u32) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
-        let end = screen.cells[self.cursor.y].len().min(self.cursor.x + n as usize);
+        let end = screen.cells[self.cursor.y]
+            .len()
+            .min(self.cursor.x + n as usize);
 
-        screen.cells[self.cursor.y]
-            .drain(self.cursor.x..end);
+        screen.cells[self.cursor.y].drain(self.cursor.x..end);
     }
 
     pub fn handle_edit(&mut self, edit: Edit) {

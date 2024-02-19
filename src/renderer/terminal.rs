@@ -1,15 +1,15 @@
+use crate::input::{Input, InputManager};
 use crate::renderer::palette::Palette;
 use crate::terminal::screen::{Cell, CellAttributes};
 use crate::terminal::Terminal;
 use dioxus::prelude::*;
-use dioxus_desktop::tao::event::{WindowEvent, Event};
+use dioxus_desktop::tao::event::{Event, WindowEvent};
 use dioxus_desktop::tao::keyboard::ModifiersState;
 use dioxus_desktop::{use_window, use_wry_event_handler};
 use dioxus_signals::*;
-use termwiz::cell::{Intensity};
 use std::time::Duration;
+use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
-use crate::input::{InputManager, Input};
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
@@ -21,27 +21,25 @@ pub fn TerminalApp(cx: Scope) -> Element {
     // Might need to move it up a component to make way for multiple terminals
     use_wry_event_handler(cx, move |event, _t| match event {
         Event::WindowEvent { event, .. } => match event {
-            WindowEvent::Resized(size) => println!("{size:?}"),
-            WindowEvent::KeyboardInput { event, .. } => match input.write().parse_key(event) { 
-                Input::String(text) => terminal.write().write_str(text),
-                _ => {},
-            },
-            _ => println!("{event:?}"),
+            // WindowEvent::Resized(size) => println!("{size:?}"),
+            // WindowEvent::KeyboardInput { event, .. } => match input.write().parse_key(event) {
+            //     Input::String(text) => terminal.write().write_str(text),
+            //     Input::Control(c) => match c.as_str() {
+            //         "c" => terminal.write().write_str("\x03".to_string()),
+            //         _ => {},
+            //     },
+            //     _ => {}
+            // },
+            _ => println!("Window Event {event:?}"),
         },
-        Event::DeviceEvent {  event, .. } => println!("{event:?}"),
-        _ => {}
+        Event::DeviceEvent { event, .. } => println!("device {event:?}"),
+        _ => {},
     });
 
     // Reads from the terminal and sends actions into the Terminal object
     use_future(cx, (), move |_| async move {
-        terminal.write().pty.writer.write_all(b"nvim\n");
-
         loop {
-            let recv = terminal().pty.rx.try_recv();
-            match recv {
-                Ok(action) => terminal.write().handle_action(action),
-                Err(_err) => {}
-            }
+            terminal.write().read_all_actions();
             tokio::time::sleep(Duration::from_nanos(100)).await;
         }
     });
