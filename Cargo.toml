@@ -13,3 +13,5 @@ dioxus = "0.4.3"
 dioxus-desktop = "0.4.3"
 dioxus-signals = "0.4.3"
 tokio = "1.36.0"
+web-sys = {version =  "0.3.68", features = ["ResizeObserver", "ResizeObserverEntry"] }
+futures = "0.3.30"

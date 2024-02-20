@@ -1,3 +1,4 @@
+use dioxus::html::MountedData;
 use portable_pty::PtySize;
 
 mod cursor;
@@ -16,6 +17,7 @@ use termwiz::escape::csi::{
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
+use futures::executor::block_on;
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -57,25 +59,28 @@ impl Terminal {
 
     // Resizes how big the terminal thinks it is
     // mostly useful for rendering tui applications
-    pub fn resize(&mut self, size: PhysicalSize<u32>, glyph_size: (f32, f32)) {
-        let screen_width = size.width.max(1);
-        let screen_height = size.height.max(1);
+    pub fn resize(&mut self, md: &MountedData) {
+        println!("w");
+        println!("{:?}", md.get_raw_element().unwrap().downcast_ref::<web_sys::Element>());
 
-        self.rows = (screen_height as f32 / glyph_size.1) as u16;
-        self.cols = (screen_width as f32 / glyph_size.0) as u16;
-
-        //println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
-
-        self.pty
-            .pair
-            .master
-            .resize(PtySize {
-                rows: self.rows,
-                cols: self.cols,
-                pixel_width: glyph_size.0.round() as u16,
-                pixel_height: glyph_size.1.round() as u16,
-            })
-            .unwrap();
+        // let screen_width = size.width.max(1);
+        // let screen_height = size.height.max(1);
+        //
+        // self.rows = (screen_height as f32 / glyph_size.1) as u16;
+        // self.cols = (screen_width as f32 / glyph_size.0) as u16;
+        //
+        // //println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
+        //
+        // self.pty
+        //     .pair
+        //     .master
+        //     .resize(PtySize {
+        //         rows: self.rows,
+        //         cols: self.cols,
+        //         pixel_width: glyph_size.0.round() as u16,
+        //         pixel_height: glyph_size.1.round() as u16,
+        //     })
+        //     .unwrap();
     }
 
     /// Gets all cells the renderer should be showing

@@ -2,11 +2,15 @@ use crate::input::{Input, InputManager};
 use crate::renderer::palette::Palette;
 use crate::terminal::screen::{Cell, CellAttributes};
 use crate::terminal::Terminal;
+use dioxus::html::object;
 use dioxus::prelude::*;
-use dioxus_desktop::tao::event::{Event, WindowEvent};
-use dioxus_desktop::tao::keyboard::ModifiersState;
+use dioxus_desktop::tao::{
+    event::{Event, WindowEvent},
+    keyboard::ModifiersState,
+};
 use dioxus_desktop::{use_window, use_wry_event_handler};
-use dioxus_signals::*;
+use dioxus_signals::{use_signal, Signal};
+use std::rc::Rc;
 use std::time::Duration;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
@@ -16,24 +20,28 @@ use termwiz::color::ColorSpec;
 pub fn TerminalApp(cx: Scope) -> Element {
     let terminal = use_signal(cx, || Terminal::setup().unwrap());
     let input = use_signal(cx, || InputManager::new());
+    let terminal_element: Signal<Option<Rc<MountedData>>> = use_signal(cx, || None);
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
     use_wry_event_handler(cx, move |event, _t| match event {
         Event::WindowEvent { event, .. } => match event {
-            // WindowEvent::Resized(size) => println!("{size:?}"),
-            // WindowEvent::KeyboardInput { event, .. } => match input.write().parse_key(event) {
-            //     Input::String(text) => terminal.write().write_str(text),
-            //     Input::Control(c) => match c.as_str() {
-            //         "c" => terminal.write().write_str("\x03".to_string()),
-            //         _ => {},
-            //     },
-            //     _ => {}
-            // },
+            WindowEvent::Resized(size) => match terminal_element.read().as_deref() {
+                Some(ref el) => terminal.write().resize(el),
+                None => {}
+            },
+            WindowEvent::KeyboardInput { event, .. } => match input.write().parse_key(event) {
+                Input::String(text) => terminal.write().write_str(text),
+                Input::Control(c) => match c.as_str() {
+                    "c" => terminal.write().write_str("\x03".to_string()),
+                    _ => {}
+                },
+                _ => {}
+            },
             _ => println!("Window Event {event:?}"),
         },
-        Event::DeviceEvent { event, .. } => println!("device {event:?}"),
-        _ => {},
+        Event::DeviceEvent { event, .. } => {} //println!("device {event:?}"),
+        _ => {}
     });
 
     // Reads from the terminal and sends actions into the Terminal object
@@ -46,11 +54,17 @@ pub fn TerminalApp(cx: Scope) -> Element {
 
     cx.render(rsx! {
         div{
+            p {
+            onmounted: move |event| println!("{:?}", event.get_raw_element().unwrap().type_id()),
+            }
             terminal().get_cells().into_iter().map(|l| rsx!{
                 pre {
                     l.iter().map(|cell| rsx!(CellSpan { cell: cell.clone()}))
                 }
             })
+            script {
+                include_str!("../js/size.js")
+            }
         }
     })
 }
