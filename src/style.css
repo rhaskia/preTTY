@@ -14,8 +14,8 @@ body {
 
 pre {
     margin: 0;
-    height: 21px;
     color: white;
+    font-size: 14px;
 }
 
 .window-header {

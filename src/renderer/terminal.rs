@@ -23,13 +23,14 @@ pub fn TerminalApp(cx: Scope) -> Element {
     let terminal_element: Signal<Option<Rc<MountedData>>> = use_signal(cx, || None);
     let js = use_eval(cx);
 
-    let mut eval = js(
-        r#"
-        let sp = document.getElementsByTagName("cellspan").item(0).clientRect;
-        dioxus.send("n" + sp);
-        "#,
-    )
+    let mut eval = js(r#"
+        let size = await dioxus.recv();
+        let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: 'JetBrainsMono Nerd Font'});
+        dioxus.send(width);
+        "#)
     .unwrap();
+
+    eval.send(14.into()).unwrap();
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
@@ -49,7 +50,14 @@ pub fn TerminalApp(cx: Scope) -> Element {
             // },
             _ => println!("Window Event {event:?}"),
         },
-        Event::DeviceEvent { event, .. } => {} //println!("device {event:?}"),
+        Event::DeviceEvent { event, .. } => match event {
+            dioxus_desktop::tao::event::DeviceEvent::Added => {}
+            dioxus_desktop::tao::event::DeviceEvent::Removed => {}
+            dioxus_desktop::tao::event::DeviceEvent::MouseMotion { .. } => {}
+            dioxus_desktop::tao::event::DeviceEvent::MouseWheel { .. } => {}
+            dioxus_desktop::tao::event::DeviceEvent::Motion { .. } => {}
+            _ => println!("{event:?}"),
+        },
         _ => {}
     });
 
@@ -61,16 +69,13 @@ pub fn TerminalApp(cx: Scope) -> Element {
         }
     });
 
-    let future = use_future(cx, (), |_| {
-        to_owned![eval];
-        async move {
-            // You can receive any message from JavaScript with the recv method
-            eval.recv().await.unwrap()
-        }
-    });
+    let future = use_future(cx, (), |_| async move { eval.recv().await.unwrap() });
 
     cx.render(rsx! {
         div{
+            script {
+                include_str!("../../js/textsize.js")
+            }
             pre {
                 "{future.value():?}"
             }
