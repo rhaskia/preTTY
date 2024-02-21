@@ -21,6 +21,15 @@ pub fn TerminalApp(cx: Scope) -> Element {
     let terminal = use_signal(cx, || Terminal::setup().unwrap());
     let input = use_signal(cx, || InputManager::new());
     let terminal_element: Signal<Option<Rc<MountedData>>> = use_signal(cx, || None);
+    let js = use_eval(cx);
+
+    let mut eval = js(
+        r#"
+        let sp = document.getElementsByTagName("cellspan").item(0).clientRect;
+        dioxus.send("n" + sp);
+        "#,
+    )
+    .unwrap();
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
@@ -30,14 +39,14 @@ pub fn TerminalApp(cx: Scope) -> Element {
                 Some(ref el) => terminal.write().resize(el),
                 None => {}
             },
-            WindowEvent::KeyboardInput { event, .. } => match input.write().parse_key(event) {
-                Input::String(text) => terminal.write().write_str(text),
-                Input::Control(c) => match c.as_str() {
-                    "c" => terminal.write().write_str("\x03".to_string()),
-                    _ => {}
-                },
-                _ => {}
-            },
+            // WindowEvent::KeyboardInput { event, .. } =>  match input.write().parse_key(event) {
+            //     Input::String(text) => terminal.write().write_str(text),
+            //     Input::Control(c) => match c.as_str() {
+            //         "c" => terminal.write().write_str("\x03".to_string()),
+            //         _ => {}
+            //     },
+            //     _ => {}
+            // },
             _ => println!("Window Event {event:?}"),
         },
         Event::DeviceEvent { event, .. } => {} //println!("device {event:?}"),
@@ -52,19 +61,24 @@ pub fn TerminalApp(cx: Scope) -> Element {
         }
     });
 
+    let future = use_future(cx, (), |_| {
+        to_owned![eval];
+        async move {
+            // You can receive any message from JavaScript with the recv method
+            eval.recv().await.unwrap()
+        }
+    });
+
     cx.render(rsx! {
         div{
-            p {
-            onmounted: move |event| println!("{:?}", event.get_raw_element().unwrap().type_id()),
+            pre {
+                "{future.value():?}"
             }
             terminal().get_cells().into_iter().map(|l| rsx!{
                 pre {
                     l.iter().map(|cell| rsx!(CellSpan { cell: cell.clone()}))
                 }
             })
-            script {
-                include_str!("../js/size.js")
-            }
         }
     })
 }
