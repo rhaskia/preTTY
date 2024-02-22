@@ -1,4 +1,5 @@
 mod palette;
+pub mod cell;
 pub mod terminal;
 pub mod header;
 

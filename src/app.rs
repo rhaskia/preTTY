@@ -1,24 +1,31 @@
 use dioxus::prelude::*;
+use dioxus_desktop::tao::event::Event;
 use crate::{renderer::terminal::TerminalApp};
 use crate::renderer::header::Header;
-use dioxus_desktop::use_wry_event_handler;
+use dioxus_desktop::{use_wry_event_handler, use_window};
 
 pub fn app(cx: Scope) -> Element {
+    let window = use_window(cx);
+
     use_wry_event_handler(cx, move |event, _t| match event {
-        dioxus_desktop::tao::event::Event::NewEvents(_) => {},
-        dioxus_desktop::tao::event::Event::UserEvent(_) => {},
-        dioxus_desktop::tao::event::Event::Suspended => {},
-        dioxus_desktop::tao::event::Event::Resumed => {},
-        dioxus_desktop::tao::event::Event::MainEventsCleared => {},
-        dioxus_desktop::tao::event::Event::RedrawRequested(_) => {},
-        dioxus_desktop::tao::event::Event::RedrawEventsCleared => {},
-        dioxus_desktop::tao::event::Event::LoopDestroyed => {},
+        Event::NewEvents(_) => {},
+        Event::UserEvent(_) => {},
+        Event::Suspended => {},
+        Event::Resumed => {},
+        Event::MainEventsCleared => {},
+        Event::RedrawRequested(_) => {},
+        Event::RedrawEventsCleared => {},
+        Event::LoopDestroyed => {},
+        Event::DeviceEvent { device_id, event, .. } => {},
         _ => println!("{event:?}"),
     });
 
     cx.render(rsx! {
         style { include_str!("style.css") }
         Header {}
+        button {
+            onclick: |_| window.set_focus(),
+        }
         TerminalApp {}
     })
 }

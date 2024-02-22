@@ -1,5 +1,6 @@
 use dioxus_desktop::tao::event::*;
 use dioxus_desktop::tao::keyboard::Key;
+use crate::terminal::screen::{Cell, CellAttributes};
 
 pub struct InputManager {
     pub alt: bool,

@@ -1,6 +1,5 @@
 use crate::input::{Input, InputManager};
-use crate::renderer::palette::Palette;
-use crate::terminal::screen::{Cell, CellAttributes};
+use super::{palette::Palette, cell::CellSpan};
 use crate::terminal::Terminal;
 use dioxus::html::object;
 use dioxus::prelude::*;
@@ -13,8 +12,6 @@ use dioxus_desktop::{use_window, use_wry_event_handler};
 use dioxus_signals::{use_signal, Signal};
 use std::rc::Rc;
 use std::time::Duration;
-use termwiz::cell::Intensity;
-use termwiz::color::ColorSpec;
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
@@ -67,55 +64,6 @@ pub fn TerminalApp(cx: Scope) -> Element {
                     l.iter().map(|cell| rsx!(CellSpan { cell: cell.clone()}))
                 }
             })
-        }
-    })
-}
-
-pub trait ToHex {
-    fn to_hex(&self) -> String;
-}
-
-impl ToHex for ColorSpec {
-    fn to_hex(&self) -> String {
-        match self {
-            ColorSpec::TrueColor(c) => c.to_string(),
-            ColorSpec::Default => String::from("inherit"),
-            // TODO: better implementation
-            ColorSpec::PaletteIndex(i) => Palette::default().colors[*i as usize].clone(),
-        }
-    }
-}
-
-#[derive(PartialEq, Props, Clone)]
-pub struct CellProps {
-    pub cell: Cell,
-}
-
-pub trait GetClasses {
-    fn get_classes(&self) -> String;
-}
-
-impl GetClasses for CellAttributes {
-    fn get_classes(&self) -> String {
-        let intensity = match self.intensity {
-            Intensity::Normal => "",
-            Intensity::Bold => "cell-bold",
-            Intensity::Half => "cell-dim",
-        };
-
-        format!("cellspan {intensity}")
-    }
-}
-
-#[component]
-pub fn CellSpan(cx: Scope<CellProps>) -> Element {
-    let cell = &cx.props.cell;
-
-    cx.render(rsx! {
-        span {
-            class: "{cell.attr.get_classes()}",
-            style: "color: {cell.attr.fg.to_hex()}; background-color: {cell.attr.bg.to_hex()}",
-            "{cx.props.cell.char}"
         }
     })
 }
