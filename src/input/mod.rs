@@ -1,6 +1,6 @@
 use dioxus_desktop::tao::event::*;
 use dioxus_desktop::tao::keyboard::Key;
-use crate::terminal::screen::{Cell, CellAttributes};
+
 
 pub struct InputManager {
     pub alt: bool,
@@ -29,10 +29,6 @@ impl InputManager {
             alt: false,
             control: false,
         }
-    }
-
-    pub fn parse_raw_key(&mut self, key: RawKeyEvent) {
-
     }
 
     pub fn parse_key(&mut self, key: &KeyEvent) -> Input {

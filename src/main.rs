@@ -7,7 +7,7 @@ mod renderer;
 mod terminal;
 
 use app::app;
-use dioxus_desktop::{Config, WindowBuilder};
+use dioxus_desktop::{Config};
 
 fn main()  {
     dioxus_desktop::launch_cfg(

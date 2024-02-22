@@ -1,5 +1,5 @@
 use dioxus::html::MountedData;
-use portable_pty::PtySize;
+
 
 mod cursor;
 mod pty;
@@ -11,13 +11,13 @@ use screen::TerminalRenderer;
 use state::TerminalState;
 
 use self::{cursor::TerminalCursor, screen::Cell};
-use dioxus_desktop::PhysicalSize;
+
 use termwiz::escape::csi::{
     Cursor, Edit, EraseInDisplay, EraseInLine,
     Mode::{ResetDecPrivateMode, SetDecPrivateMode},
 };
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
-use futures::executor::block_on;
+
 
 /// Main terminal controller
 /// Holds a lot of sub-objects

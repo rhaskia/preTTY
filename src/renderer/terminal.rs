@@ -1,16 +1,13 @@
 use crate::input::{Input, InputManager};
-use super::{palette::Palette, cell::CellSpan};
+use super::{cell::CellSpan};
 use crate::terminal::Terminal;
-use dioxus::html::object;
+
 use dioxus::prelude::*;
-use dioxus_desktop::tao::event::DeviceEvent;
-use dioxus_desktop::tao::{
-    event::{Event, WindowEvent},
-    keyboard::ModifiersState,
-};
-use dioxus_desktop::{use_window, use_wry_event_handler};
-use dioxus_signals::{use_signal, Signal};
-use std::rc::Rc;
+
+
+use dioxus_desktop::{use_window};
+use dioxus_signals::{use_signal};
+
 use std::time::Duration;
 
 // TODO: split this up for the use of multiple ptys per terminal
@@ -20,9 +17,9 @@ pub fn TerminalApp(cx: Scope) -> Element {
     let input = use_signal(cx, || InputManager::new());
     let window = use_window(cx);
     let js = use_eval(cx);
-    let mut font_size = use_state(cx, || 14);
+    let font_size = use_state(cx, || 14);
 
-    let mut glyph_size = js(r#"
+    let glyph_size = js(r#"
         let size = await dioxus.recv();
         let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: 'JetBrainsMono Nerd Font'});
         dioxus.send(width);
@@ -39,9 +36,6 @@ pub fn TerminalApp(cx: Scope) -> Element {
         },
         _ => {}
     };
-
-    // Window event listener
-    // Might need to move it up a component to make way for multiple terminals
 
     // Reads from the terminal and sends actions into the Terminal object
     use_future(cx, (), move |_| async move {

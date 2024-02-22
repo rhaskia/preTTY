@@ -1,20 +1,19 @@
+use crate::renderer::palette::Palette;
+use crate::terminal::screen::{Cell, CellAttributes};
+use dioxus::prelude::*;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
-use dioxus::prelude::*;
-use crate::terminal::screen::{Cell, CellAttributes};
-use crate::renderer::palette::Palette;
 
 pub trait ToHex {
-    fn to_hex(&self) -> String;
+    fn to_hex(&self, def: String) -> String;
 }
 
 impl ToHex for ColorSpec {
-    fn to_hex(&self) -> String {
+    fn to_hex(&self, def: String) -> String {
         match self {
             ColorSpec::TrueColor(c) => c.to_string(),
-            ColorSpec::Default => String::from("inherit"),
-            // TODO: css implementation
-            ColorSpec::PaletteIndex(i) => Palette::default().colors[*i as usize].clone(),
+            ColorSpec::Default => def,
+            ColorSpec::PaletteIndex(i) => format!("var(--pallete-{i})"),
         }
     }
 }
@@ -43,11 +42,13 @@ impl GetClasses for CellAttributes {
 #[component]
 pub fn CellSpan(cx: Scope<CellProps>) -> Element {
     let cell = &cx.props.cell;
+    let fg = cell.attr.fg.to_hex(String::from("var(--fg-default)"));
+    let bg = cell.attr.fg.to_hex(String::from("var(--bg-default)"));
 
     cx.render(rsx! {
         span {
             class: "{cell.attr.get_classes()}",
-            style: "color: {cell.attr.fg.to_hex()}; background-color: {cell.attr.bg.to_hex()}",
+            style: "--fg: {fg}; --bg: {bg};",
             "{cx.props.cell.char}"
         }
     })

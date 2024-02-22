@@ -1,5 +1,6 @@
 :root {
-
+    --fg-default: #ffffff;
+    --bg-default: #000000;
 }
 
 * {
@@ -18,9 +19,14 @@ pre {
     font-size: 14px;
 }
 
-pre::selection {
-  color: red;
-  background: yellow;
+span {
+    color: var(--fg);
+    background-color: var(--bg);
+}
+
+::selection {
+  color: var(--bg);
+  background: var(--fg);
 }
 
 .window-header {
