@@ -4,6 +4,7 @@ use crate::terminal::screen::{Cell, CellAttributes};
 use crate::terminal::Terminal;
 use dioxus::html::object;
 use dioxus::prelude::*;
+use dioxus_desktop::tao::event::DeviceEvent;
 use dioxus_desktop::tao::{
     event::{Event, WindowEvent},
     keyboard::ModifiersState,
@@ -20,46 +21,30 @@ use termwiz::color::ColorSpec;
 pub fn TerminalApp(cx: Scope) -> Element {
     let terminal = use_signal(cx, || Terminal::setup().unwrap());
     let input = use_signal(cx, || InputManager::new());
-    let terminal_element: Signal<Option<Rc<MountedData>>> = use_signal(cx, || None);
+    let window = use_window(cx);
     let js = use_eval(cx);
+    let mut font_size = use_state(cx, || 14);
 
-    let mut eval = js(r#"
+    let mut glyph_size = js(r#"
         let size = await dioxus.recv();
         let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: 'JetBrainsMono Nerd Font'});
         dioxus.send(width);
         "#)
     .unwrap();
 
-    eval.send(14.into()).unwrap();
+    glyph_size.send(font_size.to_string().into()).unwrap();
+
+    let handle_input = move |input: Input| match input {
+        Input::String(text) => terminal.write().write_str(text),
+        Input::Control(c) => match c.as_str() {
+            "c" => terminal.write().write_str("\x03".to_string()),
+            _ => {}
+        },
+        _ => {}
+    };
 
     // Window event listener
     // Might need to move it up a component to make way for multiple terminals
-    use_wry_event_handler(cx, move |event, _t| match event {
-        Event::WindowEvent { event, .. } => match event {
-            WindowEvent::Resized(size) => match terminal_element.read().as_deref() {
-                Some(ref el) => terminal.write().resize(el),
-                None => {}
-            },
-            // WindowEvent::KeyboardInput { event, .. } =>  match input.write().parse_key(event) {
-            //     Input::String(text) => terminal.write().write_str(text),
-            //     Input::Control(c) => match c.as_str() {
-            //         "c" => terminal.write().write_str("\x03".to_string()),
-            //         _ => {}
-            //     },
-            //     _ => {}
-            // },
-            _ => println!("Window Event {event:?}"),
-        },
-        Event::DeviceEvent { event, .. } => match event {
-            dioxus_desktop::tao::event::DeviceEvent::Added => {}
-            dioxus_desktop::tao::event::DeviceEvent::Removed => {}
-            dioxus_desktop::tao::event::DeviceEvent::MouseMotion { .. } => {}
-            dioxus_desktop::tao::event::DeviceEvent::MouseWheel { .. } => {}
-            dioxus_desktop::tao::event::DeviceEvent::Motion { .. } => {}
-            _ => println!("{event:?}"),
-        },
-        _ => {}
-    });
 
     // Reads from the terminal and sends actions into the Terminal object
     use_future(cx, (), move |_| async move {
@@ -69,15 +54,13 @@ pub fn TerminalApp(cx: Scope) -> Element {
         }
     });
 
-    let future = use_future(cx, (), |_| async move { eval.recv().await.unwrap() });
+    let future = use_future(cx, (), |_| async move { println!("Receieved glyph size"); glyph_size.recv().await.unwrap() });
 
     cx.render(rsx! {
         div{
+            "{future.value():?}"
             script {
                 include_str!("../../js/textsize.js")
-            }
-            pre {
-                "{future.value():?}"
             }
             terminal().get_cells().into_iter().map(|l| rsx!{
                 pre {
@@ -131,7 +114,7 @@ pub fn CellSpan(cx: Scope<CellProps>) -> Element {
     cx.render(rsx! {
         span {
             class: "{cell.attr.get_classes()}",
-            style: "color: {cell.attr.fg.to_hex()};",
+            style: "color: {cell.attr.fg.to_hex()}; background-color: {cell.attr.bg.to_hex()}",
             "{cx.props.cell.char}"
         }
     })

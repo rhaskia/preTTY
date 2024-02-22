@@ -1,8 +1,21 @@
 use dioxus::prelude::*;
 use crate::{renderer::terminal::TerminalApp};
 use crate::renderer::header::Header;
+use dioxus_desktop::use_wry_event_handler;
 
 pub fn app(cx: Scope) -> Element {
+    use_wry_event_handler(cx, move |event, _t| match event {
+        dioxus_desktop::tao::event::Event::NewEvents(_) => {},
+        dioxus_desktop::tao::event::Event::UserEvent(_) => {},
+        dioxus_desktop::tao::event::Event::Suspended => {},
+        dioxus_desktop::tao::event::Event::Resumed => {},
+        dioxus_desktop::tao::event::Event::MainEventsCleared => {},
+        dioxus_desktop::tao::event::Event::RedrawRequested(_) => {},
+        dioxus_desktop::tao::event::Event::RedrawEventsCleared => {},
+        dioxus_desktop::tao::event::Event::LoopDestroyed => {},
+        _ => println!("{event:?}"),
+    });
+
     cx.render(rsx! {
         style { include_str!("style.css") }
         Header {}

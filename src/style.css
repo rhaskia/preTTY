@@ -18,6 +18,11 @@ pre {
     font-size: 14px;
 }
 
+pre::selection {
+  color: red;
+  background: yellow;
+}
+
 .window-header {
     display: flex;
     justify-content: flex-end;

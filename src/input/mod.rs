@@ -1,5 +1,4 @@
-use dioxus_desktop::tao::event::{KeyEvent};
-use dioxus_desktop::tao::event::ElementState;
+use dioxus_desktop::tao::event::*;
 use dioxus_desktop::tao::keyboard::Key;
 
 pub struct InputManager {
@@ -29,6 +28,10 @@ impl InputManager {
             alt: false,
             control: false,
         }
+    }
+
+    pub fn parse_raw_key(&mut self, key: RawKeyEvent) {
+
     }
 
     pub fn parse_key(&mut self, key: &KeyEvent) -> Input {
