@@ -1,14 +1,13 @@
 use dioxus::prelude::*;
-use dioxus_desktop::use_window;
-use dioxus_signals::use_signal;
+use dioxus::desktop::use_window;
 
 #[component]
-pub fn Header(cx: Scope) -> Element {
-    let fullscreen = use_signal(cx, || false);
-    let window = use_window(cx);
+pub fn Header() -> Element {
+    let mut fullscreen = use_signal(|| false);
+    let window = use_signal(|| use_window());
 
-    cx.render(rsx! {
-        header { class: "window-header", onmousedown: move |_| window.drag(),
+    rsx! {
+        header { class: "window-header", onmousedown: move |_| window().drag(),
             pre {
                 class: "window-title",
                "Window Title"     
@@ -18,7 +17,7 @@ pub fn Header(cx: Scope) -> Element {
             button {
                 class: "header-button",
                 onmousedown: |evt| evt.stop_propagation(),
-                onclick: move |_| window.set_minimized(true),
+                onclick: move |_| window().set_minimized(true),
                 "🗕"
             }
 
@@ -27,11 +26,11 @@ pub fn Header(cx: Scope) -> Element {
                 class: "header-button",
                 onmousedown: |evt| evt.stop_propagation(),
                 onclick: move |_| {
-                    window.set_fullscreen(!*fullscreen());
-                    window.set_resizable(*fullscreen());
+                    window().set_fullscreen(!fullscreen());
+                    window().set_resizable(fullscreen());
                     fullscreen.toggle();
                 },
-                if *fullscreen() { "🗗" } else { "🗖" }
+                if fullscreen() { "🗗" } else { "🗖" }
             }
 
             // Close the window
@@ -39,9 +38,9 @@ pub fn Header(cx: Scope) -> Element {
             button {
                 class: "header-button",
                 onmousedown: |evt| evt.stop_propagation(),
-                onclick: move |_| window.close(),
+                onclick: move |_| window().close(),
                 "🗙"
             }
         }
-    })
+    }
 }

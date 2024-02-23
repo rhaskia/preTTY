@@ -1,7 +1,3 @@
-use dioxus_desktop::tao::event::*;
-use dioxus_desktop::tao::keyboard::Key;
-
-
 pub struct InputManager {
     pub alt: bool,
     pub control: bool,
@@ -31,38 +27,38 @@ impl InputManager {
         }
     }
 
-    pub fn parse_key(&mut self, key: &KeyEvent) -> Input {
-        println!("input key {key:?}");
-
-        // Handling modifiers
-        match key.logical_key {
-            Key::Control => self.control = key.state == ElementState::Pressed,
-            _ => {}
-        }
-        
-        // // Don't sent anything on key up
-        if key.state == ElementState::Released { return Input::None; }
-
-        match key.logical_key {
-            Key::Escape => Input::str("\u{1b}"),
-            Key::Delete => Input::str("\u{7f}"),
-            Key::Backspace => Input::str("\u{8}"),
-            Key::Enter => Input::str("\r\n"),
-            Key::Space => Input::str(" "),
-            Key::Tab => Input::str("\t"),
-            
-            Key::ArrowRight => Input::str("\x1b[C"),
-            Key::ArrowLeft => Input::str("\x1b[D"),
-            Key::ArrowUp => Input::str("\x1b[A"),
-            Key::ArrowDown => Input::str("\x1b[B"),
-            
-            Key::Character(char) if !self.control => Input::String(char.to_string()),
-            Key::Character(char) if self.control => Input::Control(char.to_string()),
-
-            _ => {
-                println!("{key:?}");
-                Input::None
-            },
-        }
-    }
+    // pub fn parse_key(&mut self, key: &KeyEvent) -> Input {
+    //     println!("input key {key:?}");
+    //
+    //     // Handling modifiers
+    //     match key.logical_key {
+    //         Key::Control => self.control = key.state == ElementState::Pressed,
+    //         _ => {}
+    //     }
+    //     
+    //     // // Don't sent anything on key up
+    //     if key.state == ElementState::Released { return Input::None; }
+    //
+    //     match key.logical_key {
+    //         Key::Escape => Input::str("\u{1b}"),
+    //         Key::Delete => Input::str("\u{7f}"),
+    //         Key::Backspace => Input::str("\u{8}"),
+    //         Key::Enter => Input::str("\r\n"),
+    //         Key::Space => Input::str(" "),
+    //         Key::Tab => Input::str("\t"),
+    //         
+    //         Key::ArrowRight => Input::str("\x1b[C"),
+    //         Key::ArrowLeft => Input::str("\x1b[D"),
+    //         Key::ArrowUp => Input::str("\x1b[A"),
+    //         Key::ArrowDown => Input::str("\x1b[B"),
+    //         
+    //         Key::Character(char) if !self.control => Input::String(char.to_string()),
+    //         Key::Character(char) if self.control => Input::Control(char.to_string()),
+    //
+    //         _ => {
+    //             println!("{key:?}");
+    //             Input::None
+    //         },
+    //     }
+    // }
 }

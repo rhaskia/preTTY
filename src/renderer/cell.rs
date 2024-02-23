@@ -18,7 +18,6 @@ impl ToHex for ColorSpec {
     }
 }
 
-#[derive(PartialEq, Props, Clone)]
 pub struct CellProps {
     pub cell: Cell,
 }
@@ -40,16 +39,19 @@ impl GetClasses for CellAttributes {
 }
 
 #[component]
-pub fn CellSpan(cx: Scope<CellProps>) -> Element {
-    let cell = &cx.props.cell;
+pub fn CellSpan(cell: Cell) -> Element {
     let fg = cell.attr.fg.to_hex(String::from("var(--fg-default)"));
     let bg = cell.attr.fg.to_hex(String::from("var(--bg-default)"));
 
-    cx.render(rsx! {
-        span {
-            class: "{cell.attr.get_classes()}",
-            style: "--fg: {fg}; --bg: {bg};",
-            "{cx.props.cell.char}"
+    rsx! {
+        div {
+            color: "#ffffff",
+            "hello",
         }
-    })
+        // span {
+        //     class: "{cell.attr.get_classes()}",
+        //     style: "--fg: {fg}; --bg: {bg};",
+        //     "{cell.char}"
+        // }
+    }
 }
