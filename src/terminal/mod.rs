@@ -59,32 +59,33 @@ impl Terminal {
 
     // Resizes how big the terminal thinks it is
     // mostly useful for rendering tui applications
-    pub fn resize(&mut self, md: &MountedData) {
-        println!("w");
-        println!("{:?}", md.get_raw_element().unwrap().downcast_ref::<web_sys::Element>());
-
-        // let screen_width = size.width.max(1);
-        // let screen_height = size.height.max(1);
-        //
-        // self.rows = (screen_height as f32 / glyph_size.1) as u16;
-        // self.cols = (screen_width as f32 / glyph_size.0) as u16;
-        //
-        // //println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
-        //
-        // self.pty
-        //     .pair
-        //     .master
-        //     .resize(PtySize {
-        //         rows: self.rows,
-        //         cols: self.cols,
-        //         pixel_width: glyph_size.0.round() as u16,
-        //         pixel_height: glyph_size.1.round() as u16,
-        //     })
-        //     .unwrap();
-    }
+    // pub fn resize(&mut self, md: &MountedData) {
+    //     println!("w");
+    //     println!("{:?}", md.get_raw_element().unwrap().downcast_ref::<web_sys::Element>());
+    //
+    //     // let screen_width = size.width.max(1);
+    //     // let screen_height = size.height.max(1);
+    //     //
+    //     // self.rows = (screen_height as f32 / glyph_size.1) as u16;
+    //     // self.cols = (screen_width as f32 / glyph_size.0) as u16;
+    //     //
+    //     // //println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
+    //     //
+    //     // self.pty
+    //     //     .pair
+    //     //     .master
+    //     //     .resize(PtySize {
+    //     //         rows: self.rows,
+    //     //         cols: self.cols,
+    //     //         pixel_width: glyph_size.0.round() as u16,
+    //     //         pixel_height: glyph_size.1.round() as u16,
+    //     //     })
+    //     //     .unwrap();
+    // }
 
     /// Gets all cells the renderer should be showing
     pub fn get_cells(&self) -> &Vec<Vec<Cell>> {
+        println!("{:?}", self.renderer.get_screen(self.state.alt_screen).cells);
         &self.renderer.get_screen(self.state.alt_screen).cells
     }
 

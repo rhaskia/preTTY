@@ -7,14 +7,8 @@ mod renderer;
 mod terminal;
 
 use app::app;
-use dioxus_desktop::{Config};
+use dioxus::prelude::*;
 
 fn main()  {
-    dioxus_desktop::launch_cfg(
-        app,
-        Config::new()
-            //.with_background_color((0, 0, 0, 0))
-            //.with_disable_context_menu(true)
-            //.with_window(WindowBuilder::new().with_decorations(false)),
-    );
+    launch(app);
 }

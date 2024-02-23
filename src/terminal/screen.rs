@@ -4,8 +4,7 @@ use termwiz::{
     escape::csi::Sgr,
 };
 
-
-
+#[derive(Debug)]
 pub struct TerminalRenderer {
     pub screen: Screen,
     pub alt_screen: Screen,
@@ -87,7 +86,8 @@ impl CellAttributes {
 }
 
 // Change to enum to allow for box drawing etc
-#[derive(Clone, Debug, PartialEq)]
+use dioxus::prelude::*;
+#[derive(Clone, Debug, PartialEq, Props)]
 pub struct Cell {
     pub char: char,
     pub attr: CellAttributes,
@@ -113,6 +113,8 @@ impl Cell {
     }
 }
 
+
+#[derive(Debug)]
 pub struct Screen {
     pub cells: Vec<Vec<Cell>>,
 }
