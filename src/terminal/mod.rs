@@ -1,6 +1,5 @@
 use dioxus::html::MountedData;
 
-
 mod cursor;
 mod pty;
 pub mod screen;
@@ -48,9 +47,7 @@ impl Terminal {
 
     pub fn read_all_actions(&mut self) {
         while let Ok(action) = self.pty.rx.try_recv() {
-            println!("handling action");
             self.handle_action(action);
-            println!("{:?}", self.title);
         }
     }
 

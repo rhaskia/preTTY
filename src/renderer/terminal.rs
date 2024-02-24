@@ -17,14 +17,15 @@ pub fn TerminalApp() -> Element {
     let font_size = use_signal(|| 14);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
 
-    // let glyph_size = js(r#"
+    // let mut glyph_size = eval(r#"
     //     let size = await dioxus.recv();
     //     let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: "JetBrainsMono Nerd Font"});
     //     dioxus.send(width);
-    //     "#)
-    // .unwrap();
+    //     "#);
     //
     // glyph_size.send(font_size.to_string().into()).unwrap();
+    //
+    // let future = use_future(move || async move { println!("Receieved glyph size"); glyph_size.recv().await.unwrap() });
 
     // let mut key_press = eval(r#"
     //     window.addEventListener('keydown', function(event) {
@@ -37,14 +38,11 @@ pub fn TerminalApp() -> Element {
     //         dioxus.send(key_info);
     //     });
     // "#);
-
+    //
     // let current = use_future(move || async move {
-    //     loop {
-    //         let value = key_press.recv().await.unwrap();
-    //         println!("{value:?}");
-    //     }
+    //     key_press.recv().await.unwrap();
     // });
-
+    //
     // let handle_input = move |input: Input| match input {
     //     Input::String(text) => terminal.write().write_str(text),
     //     Input::Control(c) => match c.as_str() {
@@ -58,20 +56,15 @@ pub fn TerminalApp() -> Element {
     use_future(move || async move {
         loop {
             terminal.write().read_all_actions();
+            //TODO: wait until terminal can be read
             tokio::time::sleep(Duration::from_nanos(1000)).await;
         }
     });
 
-    //    let future = use_future(cx, (), |_| async move { println!("Receieved glyph size"); glyph_size.recv().await.unwrap() });
-
     rsx! {
-        div{
+        div {
             script {
                 src: "/js/textsize.js"
-            }
-            button {
-                onclick: move |_| terminal.write().read_all_actions(),
-                "load"
             }
             for l in terminal.read().get_cells() {
                 pre {
