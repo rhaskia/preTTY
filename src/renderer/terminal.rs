@@ -26,39 +26,38 @@ pub fn TerminalApp() -> Element {
     //
     // glyph_size.send(font_size.to_string().into()).unwrap();
 
-    let mut key_press = eval(r#"
-        window.addEventListener('keydown', function(event) {
-            let key_info = {"key": event.key,
-                            "ctrl": event.ctrlKey,
-                            "alt": event.altKey,
-                            "meta": event.metaKey,
-                            "shift": event.shiftKey,
-            };
-            dioxus.send(key_info);
-        });
-    "#);
+    // let mut key_press = eval(r#"
+    //     window.addEventListener('keydown', function(event) {
+    //         let key_info = {"key": event.key,
+    //                         "ctrl": event.ctrlKey,
+    //                         "alt": event.altKey,
+    //                         "meta": event.metaKey,
+    //                         "shift": event.shiftKey,
+    //         };
+    //         dioxus.send(key_info);
+    //     });
+    // "#);
 
-    let current = use_future(move || async move {
-        loop {
-            let value = key_press.recv().await.unwrap();
-            println!("{value:?}");
-        }
-    });
+    // let current = use_future(move || async move {
+    //     loop {
+    //         let value = key_press.recv().await.unwrap();
+    //         println!("{value:?}");
+    //     }
+    // });
 
-    let handle_input = move |input: Input| match input {
-        Input::String(text) => terminal.write().write_str(text),
-        Input::Control(c) => match c.as_str() {
-            "c" => terminal.write().write_str("\x03".to_string()),
-            _ => {}
-        },
-        _ => {}
-    };
+    // let handle_input = move |input: Input| match input {
+    //     Input::String(text) => terminal.write().write_str(text),
+    //     Input::Control(c) => match c.as_str() {
+    //         "c" => terminal.write().write_str("\x03".to_string()),
+    //         _ => {}
+    //     },
+    //     _ => {}
+    // };
 
     // Reads from the terminal and sends actions into the Terminal object
     use_future(move || async move {
         loop {
             terminal.write().read_all_actions();
-            println!("{:?}", terminal.read().get_cells());
             tokio::time::sleep(Duration::from_nanos(1000)).await;
         }
     });
@@ -71,19 +70,16 @@ pub fn TerminalApp() -> Element {
                 src: "/js/textsize.js"
             }
             button {
-                onclick: move |_| terminal.write().write_str("a".into()),
-                "whuh"
+                onclick: move |_| terminal.write().read_all_actions(),
+                "load"
             }
-            pre {
-                "{terminal.read().renderer:?}"
+            for l in terminal.read().get_cells() {
+                pre {
+                    for cell in l {
+                        CellSpan { cell: cell.clone() }
+                    }
+                }
             }
-            // for l in terminal.read().get_cells() {
-            //     pre {
-            //         for cell in l {
-            //             CellSpan { cell: cell.clone()}
-            //         }
-            //     }
-            // }
         }
     }
 }

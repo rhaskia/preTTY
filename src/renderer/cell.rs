@@ -44,14 +44,10 @@ pub fn CellSpan(cell: Cell) -> Element {
     let bg = cell.attr.fg.to_hex(String::from("var(--bg-default)"));
 
     rsx! {
-        div {
-            color: "#ffffff",
-            "hello",
+        span {
+            class: "{cell.attr.get_classes()}",
+            style: "--fg: {fg}; --bg: {bg};",
+            "{cell.char}"
         }
-        // span {
-        //     class: "{cell.attr.get_classes()}",
-        //     style: "--fg: {fg}; --bg: {bg};",
-        //     "{cell.char}"
-        // }
     }
 }

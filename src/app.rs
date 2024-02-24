@@ -3,7 +3,7 @@ use crate::{renderer::terminal::TerminalApp};
 use crate::renderer::header::Header;
 
 #[component]
-pub fn app() -> Element {
+pub fn App() -> Element {
     rsx! {
         style { {include_str!("style.css")} }
         //Header {}

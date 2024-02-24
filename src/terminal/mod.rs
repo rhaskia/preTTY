@@ -48,7 +48,9 @@ impl Terminal {
 
     pub fn read_all_actions(&mut self) {
         while let Ok(action) = self.pty.rx.try_recv() {
+            println!("handling action");
             self.handle_action(action);
+            println!("{:?}", self.title);
         }
     }
 
@@ -85,7 +87,6 @@ impl Terminal {
 
     /// Gets all cells the renderer should be showing
     pub fn get_cells(&self) -> &Vec<Vec<Cell>> {
-        println!("{:?}", self.renderer.get_screen(self.state.alt_screen).cells);
         &self.renderer.get_screen(self.state.alt_screen).cells
     }
 
