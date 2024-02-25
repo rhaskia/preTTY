@@ -5,8 +5,13 @@ use crate::renderer::header::Header;
 #[component]
 pub fn App() -> Element {
     rsx! {
-        style { {include_str!("style.css")} }
-        //Header {}
-        TerminalApp {}
+        div {
+            id: "app",
+            class: "app",
+
+            style { {include_str!("style.css")} }
+            //Header {}
+            TerminalApp {}
+        }
     }
 }

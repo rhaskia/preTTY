@@ -8,6 +8,15 @@
     overflow-x:hidden;
 }
 
+.app, #main, html, body {
+    width: 100%;
+    height: 100%;
+}
+
+.app:focus {
+    outline: none;
+}
+
 body {
     background-color: #000000;
     margin:0;

@@ -1,14 +1,21 @@
-pub struct InputManager {
-    pub alt: bool,
-    pub control: bool,
-    pub super_key: bool,
-    pub shift: bool, // not acut
+use serde::Deserialize;
+use serde_json::{Value, from_value};
+
+pub struct InputManager {}
+
+#[derive(Deserialize)]
+pub struct Key {
+    key: String,
+    alt: bool,
+    ctrl: bool,
+    meta: bool,
+    shift: bool,
 }
 
 pub enum Input {
     String(String),
     Control(String),
-    None
+    None,
 }
 
 impl Input {
@@ -19,46 +26,31 @@ impl Input {
 
 impl InputManager {
     pub fn new() -> InputManager {
-        InputManager {
-            super_key: false,
-            shift: false,
-            alt: false,
-            control: false,
-        }
+        InputManager {}
     }
 
-    // pub fn parse_key(&mut self, key: &KeyEvent) -> Input {
-    //     println!("input key {key:?}");
-    //
-    //     // Handling modifiers
-    //     match key.logical_key {
-    //         Key::Control => self.control = key.state == ElementState::Pressed,
-    //         _ => {}
-    //     }
-    //     
-    //     // // Don't sent anything on key up
-    //     if key.state == ElementState::Released { return Input::None; }
-    //
-    //     match key.logical_key {
-    //         Key::Escape => Input::str("\u{1b}"),
-    //         Key::Delete => Input::str("\u{7f}"),
-    //         Key::Backspace => Input::str("\u{8}"),
-    //         Key::Enter => Input::str("\r\n"),
-    //         Key::Space => Input::str(" "),
-    //         Key::Tab => Input::str("\t"),
-    //         
-    //         Key::ArrowRight => Input::str("\x1b[C"),
-    //         Key::ArrowLeft => Input::str("\x1b[D"),
-    //         Key::ArrowUp => Input::str("\x1b[A"),
-    //         Key::ArrowDown => Input::str("\x1b[B"),
-    //         
-    //         Key::Character(char) if !self.control => Input::String(char.to_string()),
-    //         Key::Character(char) if self.control => Input::Control(char.to_string()),
-    //
-    //         _ => {
-    //             println!("{key:?}");
-    //             Input::None
-    //         },
-    //     }
-    // }
+    pub fn handle_key(&self, js_key: Value) -> Input {
+        let key: Key = from_value(js_key).unwrap();
+
+        if key.key.len() == 1 { return if key.ctrl { Input::Control(key.key) } else { Input::String(key.key) } }
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
+        match key.key.as_str() {
+            "Escape" => Input::str("\u{1b}"),
+            "Delete" => Input::str("\u{7f}"),
+            "Backspace" => Input::str("\u{8}"),
+            "Enter" => Input::str("\r\n"),
+            "Tab" => Input::str("\t"),
+
+            "ArrowRight" => Input::str("\x1b[C"),
+            "ArrowLeft" => Input::str("\x1b[D"),
+            "ArrowUp" => Input::str("\x1b[A"),
+            "ArrowDown" => Input::str("\x1b[B"),
+
+            _ => {
+                println!("{:?}", key.key);
+                Input::None
+            }
+        }
+    }
 }
