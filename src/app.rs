@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
-use crate::{renderer::terminal::TerminalApp};
+use crate::renderer::TerminalSplit;
+use crate::renderer::terminal::TerminalApp;
 use crate::renderer::header::Header;
 
 #[component]
@@ -11,7 +12,7 @@ pub fn App() -> Element {
 
             style { {include_str!("style.css")} }
             //Header {}
-            TerminalApp {}
+            TerminalSplit {}
         }
     }
 }

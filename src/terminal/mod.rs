@@ -26,7 +26,6 @@ pub struct Terminal {
 
     pub renderer: TerminalRenderer,
     pub state: TerminalState,
-    pub pty: PseudoTerminal,
     pub cursor: TerminalCursor,
 
     pub title: String,
@@ -35,7 +34,6 @@ pub struct Terminal {
 impl Terminal {
     pub fn setup() -> anyhow::Result<Terminal> {
         Ok(Terminal {
-            pty: PseudoTerminal::setup()?,
             rows: 0,
             cols: 0,
             renderer: TerminalRenderer::new(),
@@ -45,15 +43,15 @@ impl Terminal {
         })
     }
 
-    pub fn read_all_actions(&mut self) {
-        while let Ok(action) = self.pty.rx.try_recv() {
-            self.handle_action(action);
-        }
-    }
+    // pub fn read_all_actions(&mut self) {
+    //     while let Ok(action) = self.pty.rx.try_recv() {
+    //         self.handle_action(action);
+    //     }
+    // }
 
-    pub fn write_str(&mut self, s: String) {
-        self.pty.writer.write_all(s.as_bytes());
-    }
+    // pub fn write_str(&mut self, s: String) {
+    //     self.pty.writer.write_all(s.as_bytes());
+    // }
 
     // Resizes how big the terminal thinks it is
     // mostly useful for rendering tui applications

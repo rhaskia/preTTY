@@ -12,9 +12,8 @@ pub struct PseudoTerminal {
     pub pty_system: Box<dyn PtySystem + Send>,
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
-    pub reader_thread: JoinHandle<()>,
-    pub rx: Receiver<Action>,
-    pub writer: Box<dyn Write + Send>
+    pub writer: Box<dyn Write + Send>,
+    pub reader: Box<dyn Read + Send>,
 }
 
 impl PseudoTerminal {
@@ -39,11 +38,11 @@ impl PseudoTerminal {
         let writer = master.take_writer().unwrap();
         let reader = master.try_clone_reader().unwrap();
 
-        let (tx, rx) = channel();
-
-        let reader_thread = thread::spawn(move || {
-            parse_terminal_output(tx, reader);
-        });
+        // let (tx, rx) = channel();
+        //
+        // let reader_thread = thread::spawn(move || {
+        //     parse_terminal_output(tx, reader);
+        // });
 
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
@@ -53,25 +52,24 @@ impl PseudoTerminal {
             pair,
             child,
             writer,
-            reader_thread,
-            rx,
+            reader,
         })
     }
 }
 
-pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
-        let mut buffer = [0u8; 1]; // Buffer to hold a single character
-        let mut parser = termwiz::escape::parser::Parser::new();
-
-        loop {
-            match reader.read(&mut buffer) {
-                Ok(_) => {
-                    parser.parse(&buffer, |t| {tx.send(t);});
-                }
-                Err(err) => {
-                    eprintln!("Error reading from Read object: {}", err);
-                    break;
-                }
-            }
-        }
-}
+// pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
+//         let mut buffer = [0u8; 1]; // Buffer to hold a single character
+//         let mut parser = termwiz::escape::parser::Parser::new();
+//
+//         loop {
+//             match reader.read(&mut buffer) {
+//                 Ok(_) => {
+//                     parser.parse(&buffer, |t| {tx.send(t);});
+//                 }
+//                 Err(err) => {
+//                     eprintln!("Error reading from Read object: {}", err);
+//                     break;
+//                 }
+//             }
+//         }
+// }

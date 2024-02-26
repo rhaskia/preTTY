@@ -1,7 +1,9 @@
 use super::cell::CellSpan;
 use crate::input::{Input, InputManager};
+use crate::terminal::screen::TerminalRenderer;
 use crate::terminal::Terminal;
 use dioxus::prelude::*;
+use portable_pty::{PtySystem, PtyPair, CommandBuilder};
 use std::time::Duration;
 
 pub struct FontInfo {
@@ -11,9 +13,13 @@ pub struct FontInfo {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp() -> Element {
+pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
-    let mut screen = use_signal(|| TerminalRenderer::setup());
+    let mut screen = use_signal(|| TerminalRenderer::new());
+    
+    let child = pair.write().slave.spawn_command(CommandBuilder::new("bash")).ok()?;
+
+    let mut writer = use_signal(|| pair.write().master.take_writer().unwrap());
 
     let input = use_signal(|| InputManager::new());
     let font_size = use_signal(|| 14);
@@ -44,15 +50,15 @@ pub fn TerminalApp() -> Element {
         //await dioxus.recv();
     "#,
     );
-    
+
     use_future(move || async move {
         loop {
             let key = key_press.recv().await.unwrap();
 
             match input.read().handle_key(key) {
-                Input::String(text) => terminal.write().write_str(text),
+                Input::String(text) => writer.write().write_all(text.as_bytes()).unwrap(),
                 Input::Control(c) => match c.as_str() {
-                    "c" => terminal.write().write_str("\x03".to_string()),
+                    "c" => writer.write().write_all(b"\x03").unwrap(),
                     _ => {}
                 },
                 _ => {}
@@ -62,13 +68,26 @@ pub fn TerminalApp() -> Element {
 
     // Reads from the terminal and sends actions into the Terminal object
     use_future(move || async move {
-        // tokio::spawn( async {
+        let mut reader = pair.write().master.try_clone_reader().unwrap();
+
+        tokio::spawn(async move {
+            let mut parser = termwiz::escape::parser::Parser::new();
+            let mut buffer = [0u8; 1]; // Buffer to hold a single character
+
             loop {
-                terminal.write().read_all_actions();
-                //TODO: wait until terminal can be read
-                tokio::time::sleep(Duration::from_millis(10)).await;
+                let read = reader.read(&mut buffer);
+
+                match read {
+                    Ok(_) => {
+                        parser.parse(&buffer, |a| terminal.write().handle_action(a));
+                    }
+                    Err(err) => {
+                        eprintln!("Error reading from Read object: {}", err);
+                        break;
+                    }
+                }
             }
-        // });
+        });
     });
 
     rsx! {
