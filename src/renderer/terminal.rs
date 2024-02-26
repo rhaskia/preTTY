@@ -42,7 +42,7 @@ pub fn TerminalApp() -> Element {
         //await dioxus.recv();
     "#,
     );
-
+    
     use_future(move || async move {
         loop {
             let key = key_press.recv().await.unwrap();
@@ -59,21 +59,12 @@ pub fn TerminalApp() -> Element {
     });
 
     // Reads from the terminal and sends actions into the Terminal object
-    use_future(move || async move {});
-
-    spawn(async move {
-        to_owned![terminal];
-        let _ = tokio::spawn(async {}).await;
-
-        let _ = tokio::spawn(async move {
-            loop {
-                let action = terminal.write().pty.rx.recv().unwrap();
-                terminal.write().handle_action(action);
-                //TODO: wait until terminal can be read
-                tokio::time::sleep(Duration::from_nanos(1000)).await;
-            }
-        })
-        .await;
+    use_future(move || async move {
+        loop {
+            terminal.write().read_all_actions();
+            //TODO: wait until terminal can be read
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
     });
 
     rsx! {

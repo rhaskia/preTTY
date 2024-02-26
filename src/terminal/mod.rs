@@ -52,7 +52,6 @@ impl Terminal {
     }
 
     pub fn write_str(&mut self, s: String) {
-        println!("printing string {s}");
         self.pty.writer.write_all(s.as_bytes());
     }
 
@@ -137,6 +136,7 @@ impl Terminal {
     }
 
     pub fn handle_action(&mut self, action: Action) {
+        println!("{action:?}");
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
