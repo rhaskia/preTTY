@@ -2,8 +2,7 @@
 - [ ] Line Breaks
 - [ ] Fancy Boxes
     - [ ] Shadows
-- [ ] Rendering glyph in code for background drawing etc
-- [ ] Switch to better ui?
+- [ ] Cursor Rendering
 
 # Processing
 - [ ] ANSI Codes
@@ -13,20 +12,11 @@
 - [ ] Lines
 
 # Terminal
-- [ ] Erase Line
 - [ ] Cursor setting
 - [ ] Scrolling
-- [ ] Printing at Cursor
-- [ ] Deleting at Cursor
-- [ ] Moving cursor on print 
 
 # Input
-- [ ] Time between clicks held down
-    - [ ] larger time before start
-- [ ] Translate non keys into strings
-- [ ] Escape certain characters
-- [ ] Modifiers [ ALT: , CTRL: ^, SHIFT: uppercase ]
-https://docs.rs/tao/latest/tao/event/enum.WindowEvent.html
+- [ ] More Keys
 
-# Clean
-config option for decorations
+# Config
+- [ ] option for decorations
