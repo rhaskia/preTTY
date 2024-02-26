@@ -13,6 +13,8 @@ pub struct FontInfo {
 #[component]
 pub fn TerminalApp() -> Element {
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
+    let mut screen = use_signal(|| TerminalRenderer::setup());
+
     let input = use_signal(|| InputManager::new());
     let font_size = use_signal(|| 14);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
@@ -60,11 +62,13 @@ pub fn TerminalApp() -> Element {
 
     // Reads from the terminal and sends actions into the Terminal object
     use_future(move || async move {
-        loop {
-            terminal.write().read_all_actions();
-            //TODO: wait until terminal can be read
-            tokio::time::sleep(Duration::from_millis(10)).await;
-        }
+        // tokio::spawn( async {
+            loop {
+                terminal.write().read_all_actions();
+                //TODO: wait until terminal can be read
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        // });
     });
 
     rsx! {
