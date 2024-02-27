@@ -6,6 +6,7 @@ mod input;
 mod renderer;
 mod terminal;
 
+use std::ops::Add;
 use app::App;
 use dioxus::prelude::*;
 
