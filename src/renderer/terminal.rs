@@ -56,7 +56,6 @@ pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
         
         loop {
             let key = key_press.recv().await.unwrap();
-            println!("{actions:?}");
 
             match input.read().handle_key(key) {
                 Input::String(text) => writer.write_all(text.as_bytes()).unwrap(),
@@ -82,7 +81,7 @@ pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
                 
                 match read {
                     Ok(_) => {
-                        parser.parse(&buffer, |a| actions.push(a)); // terminal.write().handle_action(a));
+                        parser.parse(&buffer, |a| terminal.try_write().handle_action(a));
                     }
                     Err(err) => {
                         eprintln!("Error reading from Read object: {}", err);
@@ -98,19 +97,13 @@ pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
             script {
                 src: "/js/textsize.js"
             }
-            pre {
-                "hi"
+            for l in terminal.read().get_cells() {
+                pre {
+                    for cell in l {
+                        CellSpan { cell: cell.clone() }
+                    }
+                }
             }
-            // pre {
-            //     "{actions.read():?}"
-            // }
-            // for l in terminal.read().get_cells() {
-            //     pre {
-            //         for cell in l {
-            //             CellSpan { cell: cell.clone() }
-            //         }
-            //     }
-            // }
         }
     }
 }
