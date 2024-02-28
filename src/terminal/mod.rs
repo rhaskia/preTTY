@@ -20,6 +20,7 @@ use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
+#[derive(Debug)]
 pub struct Terminal {
     pub rows: u16,
     pub cols: u16,
@@ -43,8 +44,8 @@ impl Terminal {
         })
     }
 
-    // pub fn read_all_actions(&mut self) {
-    //     while let Ok(action) = self.pty.rx.try_recv() {
+    // pub fn handle_actions(&mut self, actions: &mut dioxus::prelude::Write<Vec<Action>, SyncStorage>) {
+    //     while let Some(action) = actions.pop() {
     //         self.handle_action(action);
     //     }
     // }

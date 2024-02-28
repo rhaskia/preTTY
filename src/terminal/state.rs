@@ -1,5 +1,6 @@
 use termwiz::escape::csi::DecPrivateMode;
 
+#[derive(Debug)]
 pub struct TerminalState {
     pub alt_screen: bool,
     pub bracketed_paste: bool,

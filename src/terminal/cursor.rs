@@ -2,6 +2,7 @@ use termwiz::escape::csi::CursorStyle;
 
 /// Cursor object to store cursor position and style
 /// Allows for storing, restoring etc with positions as well
+#[derive(Debug)]
 pub struct TerminalCursor {
     pub x: usize,
     pub y: usize,

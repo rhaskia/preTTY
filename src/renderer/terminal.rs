@@ -1,4 +1,6 @@
 use super::cell::CellSpan;
+use std::sync::mpsc::channel;
+use super::write_block::*;
 use crate::input::{Input, InputManager};
 use crate::terminal::screen::TerminalRenderer;
 use crate::terminal::Terminal;
@@ -16,9 +18,7 @@ pub struct FontInfo {
 pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
     let mut terminal = use_signal_sync(|| Terminal::setup().unwrap());
     let mut screen = use_signal(|| TerminalRenderer::new());
-    let mut actions = use_signal_sync(|| Vec::new());
-    
-    let child = pair.write().slave.spawn_command(CommandBuilder::new("bash")).ok()?;
+    let child = pair.write().slave.spawn_command(CommandBuilder::new("fish")).ok()?;
 
     let input = use_signal(|| InputManager::new());
     let font_size = use_signal(|| 14);
@@ -67,10 +67,11 @@ pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
             }
         }
     });
-
+    
     // Reads from the terminal and sends actions into the Terminal object
     use_future(move || async move {
         let mut reader = pair.write().master.try_clone_reader().unwrap();
+        to_owned![terminal];
 
         std::thread::spawn(move || {
             let mut parser = termwiz::escape::parser::Parser::new();
@@ -78,10 +79,11 @@ pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
 
             loop {
                 let read = reader.read(&mut buffer);
+                println!("{:?}", read);
                 
                 match read {
                     Ok(_) => {
-                        parser.parse(&buffer, |a| terminal.try_write().handle_action(a));
+                        parser.parse(&buffer, |a| terminal.try_write().unwrap().handle_action(a));
                     }
                     Err(err) => {
                         eprintln!("Error reading from Read object: {}", err);
