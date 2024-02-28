@@ -3,7 +3,7 @@ use std::sync::mpsc::channel;
 use super::write_block::*;
 use crate::input::{Input, InputManager};
 use crate::terminal::screen::TerminalRenderer;
-use crate::terminal::Terminal;
+use crate::terminal::{Terminal, pty::PseudoTerminal};
 use dioxus::prelude::*;
 use portable_pty::{PtySystem, PtyPair, CommandBuilder};
 use std::time::Duration;
@@ -15,10 +15,11 @@ pub struct FontInfo {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
-    let mut terminal = use_signal_sync(|| Terminal::setup().unwrap());
-    let mut screen = use_signal(|| TerminalRenderer::new());
-    let child = pair.write().slave.spawn_command(CommandBuilder::new("fish")).ok()?;
+pub fn TerminalApp() -> Element {
+    let (tx, rx) = async_channel::unbounded();
+    let mut rx = use_signal(|| rx);
+    let mut terminal = use_signal(|| Terminal::setup().unwrap());
+    let mut pty = use_signal(|| PseudoTerminal::setup(tx).unwrap());
 
     let input = use_signal(|| InputManager::new());
     let font_size = use_signal(|| 14);
@@ -34,70 +35,54 @@ pub fn TerminalApp(pair: Signal<PtyPair>) -> Element {
     //
     // let future = use_future(move || async move { println!("Receieved glyph size"); glyph_size.recv().await.unwrap() });
 
-    let mut key_press = eval(
-        r#"
-        console.log("adding key listener");
-        window.addEventListener('keydown', function(event) {
-            let key_info = {"key": event.key,
-                            "ctrl": event.ctrlKey,
-                            "alt": event.altKey,
-                            "meta": event.metaKey,
-                            "shift": event.shiftKey,
-            };
-            dioxus.send(key_info);
-        });
-        //await dioxus.recv();
-    "#,
-    );
-    
-    // Writer future
-    use_future(move || async move {
-        let mut writer = pair.write().master.take_writer().unwrap();
-        
-        loop {
-            let key = key_press.recv().await.unwrap();
+    // let mut key_press = eval(
+    //     r#"
+    //     console.log("adding key listener");
+    //     window.addEventListener('keydown', function(event) {
+    //         let key_info = {"key": event.key,
+    //                         "ctrl": event.ctrlKey,
+    //                         "alt": event.altKey,
+    //                         "meta": event.metaKey,
+    //                         "shift": event.shiftKey,
+    //         };
+    //         dioxus.send(key_info);
+    //     });
+    //     //await dioxus.recv();
+    // "#,
+    // );
+    //  
+    // // Writer future
+    // use_future(move || async move {
+    //     loop {
+    //         let key = key_press.recv().await.unwrap();
+    //
+    //         match input.read().handle_key(key) {
+    //             Input::String(text) => pty.write().writer.write_all(text.as_bytes()).unwrap(),
+    //             Input::Control(c) => match c.as_str() {
+    //                 "c" => pty.write().writer.write_all(b"\x03").unwrap(),
+    //                 _ => {}
+    //             },
+    //             _ => {}
+    //         }
+    //     }
+    // });
 
-            match input.read().handle_key(key) {
-                Input::String(text) => writer.write_all(text.as_bytes()).unwrap(),
-                Input::Control(c) => match c.as_str() {
-                    "c" => writer.write_all(b"\x03").unwrap(),
-                    _ => {}
-                },
-                _ => {}
-            }
+    use_future(move || async move {
+        loop {
+            println!("hello");
+            let action = rx.write().recv().await;
+            println!("happned");
+            terminal.write().handle_action(action.unwrap());
         }
     });
     
-    // Reads from the terminal and sends actions into the Terminal object
-    use_future(move || async move {
-        let mut reader = pair.write().master.try_clone_reader().unwrap();
-        to_owned![terminal];
-
-        std::thread::spawn(move || {
-            let mut parser = termwiz::escape::parser::Parser::new();
-            let mut buffer = [0u8; 1]; // Buffer to hold a single character
-
-            loop {
-                let read = reader.read(&mut buffer);
-                println!("{:?}", read);
-                
-                match read {
-                    Ok(_) => {
-                        parser.parse(&buffer, |a| terminal.try_write().unwrap().handle_action(a));
-                    }
-                    Err(err) => {
-                        eprintln!("Error reading from Read object: {}", err);
-                        break;
-                    }
-                }
-            }
-        });
-    });
-
     rsx! {
         div {
             script {
                 src: "/js/textsize.js"
+            }
+            pre {
+                "hi"
             }
             for l in terminal.read().get_cells() {
                 pre {

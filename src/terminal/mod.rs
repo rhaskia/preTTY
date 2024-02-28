@@ -1,7 +1,8 @@
 use dioxus::html::MountedData;
+use async_channel::Sender;
 
 mod cursor;
-mod pty;
+pub mod pty;
 pub mod screen;
 mod state;
 
@@ -20,7 +21,6 @@ use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
-#[derive(Debug)]
 pub struct Terminal {
     pub rows: u16,
     pub cols: u16,

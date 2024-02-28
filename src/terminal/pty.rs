@@ -1,23 +1,23 @@
 use std::{
     io::Read,
     io::Write,
-    sync::mpsc::{channel, Receiver, Sender},
     thread::{self, JoinHandle},
 };
-
+use tokio::runtime::Runtime;
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use termwiz::escape::Action;
+use async_channel::{Sender, Receiver};
 
 pub struct PseudoTerminal {
     pub pty_system: Box<dyn PtySystem + Send>,
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
     pub writer: Box<dyn Write + Send>,
-    pub reader: Box<dyn Read + Send>,
+    pub reader_thread: JoinHandle<()>,
 }
 
 impl PseudoTerminal {
-    pub fn setup() -> anyhow::Result<PseudoTerminal> {
+    pub fn setup(tx: Sender<Action>) -> anyhow::Result<PseudoTerminal> {
         // Send data to the pty by writing to the master
         let pty_system = native_pty_system();
 
@@ -38,11 +38,9 @@ impl PseudoTerminal {
         let writer = master.take_writer().unwrap();
         let reader = master.try_clone_reader().unwrap();
 
-        // let (tx, rx) = channel();
-        //
-        // let reader_thread = thread::spawn(move || {
-        //     parse_terminal_output(tx, reader);
-        // });
+        let reader_thread = thread::spawn(move || {
+            parse_terminal_output(tx, reader);
+        });
 
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
@@ -52,24 +50,28 @@ impl PseudoTerminal {
             pair,
             child,
             writer,
-            reader,
+            reader_thread,
         })
     }
 }
 
-// pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
-//         let mut buffer = [0u8; 1]; // Buffer to hold a single character
-//         let mut parser = termwiz::escape::parser::Parser::new();
-//
-//         loop {
-//             match reader.read(&mut buffer) {
-//                 Ok(_) => {
-//                     parser.parse(&buffer, |t| {tx.send(t);});
-//                 }
-//                 Err(err) => {
-//                     eprintln!("Error reading from Read object: {}", err);
-//                     break;
-//                 }
-//             }
-//         }
-// }
+pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
+    let mut buffer = [0u8; 1]; // Buffer to hold a single character
+    let mut parser = termwiz::escape::parser::Parser::new();
+    let rt = Runtime::new().unwrap();
+
+    loop {
+        match reader.read(&mut buffer) {
+            Ok(_) => {
+                parser.parse(&buffer, |t| {
+                    rt.block_on(async { tx.send(t.clone()).await });
+                    println!("{t:?}");
+                });
+            }
+            Err(err) => {
+                eprintln!("Error reading from Read object: {}", err);
+                break;
+            }
+        }
+    }
+}

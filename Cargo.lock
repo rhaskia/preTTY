@@ -3791,6 +3791,7 @@ name = "term"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-channel",
  "dioxus",
  "futures",
  "portable-pty",
