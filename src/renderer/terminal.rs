@@ -35,37 +35,37 @@ pub fn TerminalApp() -> Element {
     //
     // let future = use_future(move || async move { println!("Receieved glyph size"); glyph_size.recv().await.unwrap() });
 
-    // let mut key_press = eval(
-    //     r#"
-    //     console.log("adding key listener");
-    //     window.addEventListener('keydown', function(event) {
-    //         let key_info = {"key": event.key,
-    //                         "ctrl": event.ctrlKey,
-    //                         "alt": event.altKey,
-    //                         "meta": event.metaKey,
-    //                         "shift": event.shiftKey,
-    //         };
-    //         dioxus.send(key_info);
-    //     });
-    //     //await dioxus.recv();
-    // "#,
-    // );
-    //  
-    // // Writer future
-    // use_future(move || async move {
-    //     loop {
-    //         let key = key_press.recv().await.unwrap();
-    //
-    //         match input.read().handle_key(key) {
-    //             Input::String(text) => pty.write().writer.write_all(text.as_bytes()).unwrap(),
-    //             Input::Control(c) => match c.as_str() {
-    //                 "c" => pty.write().writer.write_all(b"\x03").unwrap(),
-    //                 _ => {}
-    //             },
-    //             _ => {}
-    //         }
-    //     }
-    // });
+    let mut key_press = eval(
+        r#"
+        console.log("adding key listener");
+        window.addEventListener('keydown', function(event) {
+            let key_info = {"key": event.key,
+                            "ctrl": event.ctrlKey,
+                            "alt": event.altKey,
+                            "meta": event.metaKey,
+                            "shift": event.shiftKey,
+            };
+            dioxus.send(key_info);
+        });
+        //await dioxus.recv();
+    "#,
+    );
+     
+    // Writer future
+    use_future(move || async move {
+        loop {
+            let key = key_press.recv().await.unwrap();
+
+            match input.read().handle_key(key) {
+                Input::String(text) => pty.write().writer.write_all(text.as_bytes()).unwrap(),
+                Input::Control(c) => match c.as_str() {
+                    "c" => pty.write().writer.write_all(b"\x03").unwrap(),
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+    });
 
     use_future(move || async move {
         loop {

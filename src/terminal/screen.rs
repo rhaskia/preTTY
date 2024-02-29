@@ -133,7 +133,7 @@ impl Screen {
         }
 
         // TODO: add extra if cursor out of index
-        self.cells[cursory].insert(cursorx, c)
+        self.cells[cursory][cursorx] = c;
     }
 
     pub fn new() -> Screen {
