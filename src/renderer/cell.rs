@@ -1,8 +1,10 @@
 use crate::renderer::palette::Palette;
-use crate::terminal::screen::{Cell, CellAttributes};
+use crate::terminal::cell::{Cell, CellAttributes};
 use dioxus::prelude::*;
-use termwiz::cell::Intensity;
-use termwiz::color::ColorSpec;
+use termwiz::{
+    cell::{Blink, Intensity, Underline},
+    color::ColorSpec,
+};
 
 pub trait ToHex {
     fn to_hex(&self, def: String) -> String;

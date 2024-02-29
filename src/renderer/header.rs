@@ -1,5 +1,5 @@
-use dioxus::prelude::*;
 use dioxus::desktop::use_window;
+use dioxus::prelude::*;
 
 #[component]
 pub fn Header() -> Element {
@@ -10,7 +10,7 @@ pub fn Header() -> Element {
         header { class: "window-header", onmousedown: move |_| window().drag(),
             pre {
                 class: "window-title",
-               "Window Title"     
+               "Window Title"
             }
 
             // Set the window to minimized

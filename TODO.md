@@ -17,6 +17,8 @@
 
 # Input
 - [ ] More Keys
+- [ ] Modifier Specifics
+- [ ] Mouse
 
 # Config
 - [ ] option for decorations

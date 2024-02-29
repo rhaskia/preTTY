@@ -1,12 +1,12 @@
+use async_channel::{Receiver, Sender};
+use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::{
     io::Read,
     io::Write,
     thread::{self, JoinHandle},
 };
-use tokio::runtime::Runtime;
-use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use termwiz::escape::Action;
-use async_channel::{Sender, Receiver};
+use tokio::runtime::Runtime;
 
 pub struct PseudoTerminal {
     pub pty_system: Box<dyn PtySystem + Send>,
@@ -65,7 +65,6 @@ pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send
             Ok(_) => {
                 parser.parse(&buffer, |t| {
                     rt.block_on(async { tx.send(t.clone()).await });
-                    println!("{t:?}");
                 });
             }
             Err(err) => {

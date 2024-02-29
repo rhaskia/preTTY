@@ -1,11 +1,10 @@
 use super::cell::CellSpan;
-use std::sync::mpsc::channel;
-use super::write_block::*;
 use crate::input::{Input, InputManager};
 use crate::terminal::screen::TerminalRenderer;
-use crate::terminal::{Terminal, pty::PseudoTerminal};
+use crate::terminal::{pty::PseudoTerminal, Terminal};
 use dioxus::prelude::*;
-use portable_pty::{PtySystem, PtyPair, CommandBuilder};
+use portable_pty::{CommandBuilder, PtyPair, PtySystem};
+use std::sync::mpsc::channel;
 use std::time::Duration;
 
 pub struct FontInfo {
@@ -50,7 +49,7 @@ pub fn TerminalApp() -> Element {
         //await dioxus.recv();
     "#,
     );
-     
+
     // Writer future
     use_future(move || async move {
         loop {
@@ -69,15 +68,22 @@ pub fn TerminalApp() -> Element {
 
     use_future(move || async move {
         loop {
-            println!("hello");
             let action = rx.write().recv().await;
-            println!("happned");
             terminal.write().handle_action(action.unwrap());
         }
     });
-    
+
+    let overflow = use_memo(move || {
+        if terminal.read().state.alt_screen {
+            "hidden"
+        } else {
+            "auto"
+        }
+    });
+
     rsx! {
         div {
+            overflow_y: overflow,
             script {
                 src: "/js/textsize.js"
             }

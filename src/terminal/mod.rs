@@ -1,6 +1,7 @@
-use dioxus::html::MountedData;
 use async_channel::Sender;
+use dioxus::html::MountedData;
 
+pub mod cell;
 mod cursor;
 pub mod pty;
 pub mod screen;
@@ -10,14 +11,16 @@ use pty::PseudoTerminal;
 use screen::TerminalRenderer;
 use state::TerminalState;
 
-use self::{cursor::TerminalCursor, screen::Cell};
+use self::{cell::Cell, cursor::TerminalCursor};
 
-use termwiz::escape::csi::{
-    Cursor, Edit, EraseInDisplay, EraseInLine,
-    Mode::{ResetDecPrivateMode, SetDecPrivateMode},
+use termwiz::escape::{
+    csi::{
+        Cursor, Edit, EraseInDisplay, EraseInLine,
+        Mode::{ResetDecPrivateMode, SetDecPrivateMode},
+        CSI,
+    },
+    Action, ControlCode, OperatingSystemCommand,
 };
-use termwiz::escape::{Action, ControlCode, OperatingSystemCommand, CSI};
-
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -35,8 +38,8 @@ pub struct Terminal {
 impl Terminal {
     pub fn setup() -> anyhow::Result<Terminal> {
         Ok(Terminal {
-            rows: 0,
-            cols: 0,
+            rows: 24,
+            cols: 80,
             renderer: TerminalRenderer::new(),
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
@@ -94,7 +97,7 @@ impl Terminal {
             Down(amount) | NextLine(amount) => self.cursor.shift_down(amount),
             Right(amount) => self.cursor.shift_right(amount),
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
-            Position { line, col } => self.cursor.set(line.as_zero_based(), col.as_zero_based()),
+            Position { line, col } => self.cursor.set(col.as_zero_based(), line.as_zero_based()),
             CursorStyle(style) => self.cursor.set_style(style),
             _ => println!("{:?}", cursor),
         }
@@ -120,6 +123,13 @@ impl Terminal {
     pub fn print(&mut self, text: char) {
         let attr = self.renderer.attr.clone();
 
+        // shells don't automatically do wrapping for applications
+        // weird as hell
+        if self.cursor.x >= self.cols.into() {
+            self.cursor.x = 0;
+            self.cursor.y += 1;
+        }
+
         self.renderer.mut_screen(self.state.alt_screen).push(
             Cell::new(text, attr),
             self.cursor.x,
@@ -135,7 +145,7 @@ impl Terminal {
     }
 
     pub fn handle_action(&mut self, action: Action) {
-        println!("{action:?}");
+        println!("{:?}, {:?}", action, self.cursor);
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
