@@ -1,5 +1,5 @@
-use async_channel::Sender;
-use dioxus::html::MountedData;
+
+
 
 pub mod cell;
 mod cursor;
@@ -7,7 +7,7 @@ pub mod pty;
 pub mod screen;
 mod state;
 
-use pty::PseudoTerminal;
+
 use screen::TerminalRenderer;
 use state::TerminalState;
 

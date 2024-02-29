@@ -1,11 +1,11 @@
 use super::cell::CellSpan;
 use crate::input::{Input, InputManager};
-use crate::terminal::screen::TerminalRenderer;
+
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use dioxus::prelude::*;
-use portable_pty::{CommandBuilder, PtyPair, PtySystem};
-use std::sync::mpsc::channel;
-use std::time::Duration;
+
+
+
 
 pub struct FontInfo {
     pub size: u32,

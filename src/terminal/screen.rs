@@ -1,8 +1,6 @@
 use super::cell::{Cell, CellAttributes};
 
 use termwiz::{
-    cell::{Blink, Intensity, Underline},
-    color::ColorSpec,
     escape::csi::Sgr,
 };
 

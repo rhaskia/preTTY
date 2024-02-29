@@ -1,4 +1,4 @@
-use async_channel::{Receiver, Sender};
+use async_channel::{Sender};
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::{
     io::Read,

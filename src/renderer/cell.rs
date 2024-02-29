@@ -1,8 +1,8 @@
-use crate::renderer::palette::Palette;
+
 use crate::terminal::cell::{Cell, CellAttributes};
 use dioxus::prelude::*;
 use termwiz::{
-    cell::{Blink, Intensity, Underline},
+    cell::{Intensity},
     color::ColorSpec,
 };
 
