@@ -55,12 +55,18 @@ impl TerminalCursor {
 
     /// Shifts the cursor up
     pub fn shift_up(&mut self, amount: u32) {
-        self.y = self.y.checked_sub(amount as usize).unwrap();
+        match self.y.checked_sub(amount as usize) {
+            Some(n) => self.y = n,
+            None => {}
+        }
     }
 
     /// Shifts the cursor left
     pub fn shift_left(&mut self, amount: u32) {
-        self.x = self.x.checked_sub(amount as usize).unwrap();
+        match self.x.checked_sub(amount as usize) {
+            Some(n) => self.x = n,
+            None => {}
+        }
     }
 
     pub fn set_style(&mut self, style: CursorStyle) {

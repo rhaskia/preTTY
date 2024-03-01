@@ -6,7 +6,7 @@ mod state;
 
 use screen::TerminalRenderer;
 use state::TerminalState;
-
+use termwiz::escape::csi::DecPrivateMode;
 use self::{cell::Cell, cursor::TerminalCursor};
 
 use termwiz::escape::{
@@ -102,12 +102,7 @@ impl Terminal {
     /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
         self.cursor.x -= 1;
-
         self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
-    }
-
-    pub fn carriage_return(&mut self) {
-        self.cursor.set_x(0)
     }
 
     pub fn new_line(&mut self) {
@@ -150,7 +145,7 @@ impl Terminal {
                 ControlCode::LineFeed => self.new_line(),
                 // Don't do anything for carriage return
                 // would be nice to but it breaks cursor movement
-                ControlCode::CarriageReturn => self.carriage_return(),
+                ControlCode::CarriageReturn => self.cursor.set_x(0),
                 ControlCode::Backspace => self.backspace(),
                 _ => println!("ControlCode({:?})", control),
             },
@@ -158,8 +153,8 @@ impl Terminal {
             Action::CSI(csi) => match csi {
                 CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
                 CSI::Mode(mode) => match mode {
-                    SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
-                    ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
+                    SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
+                    ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
                     _ => println!("Mode({:?})", mode),
                 },
                 CSI::Cursor(cursor) => self.handle_cursor(cursor),
@@ -173,6 +168,24 @@ impl Terminal {
             },
             _ => println!("{:?}", action),
         }
+    }
+
+    pub fn set_dec_private_mode(&mut self, pmode: DecPrivateMode, active: bool) {
+        self.state.save_dec_private_mode(pmode, active);
+
+        // let code = match mode {
+        //     DecPrivateMode::Code(c) => c,
+        //     DecPrivateMode::Unspecified(_) => return,
+        // };
+
+        // use termwiz::escape::csi::DecPrivateModeCode::*;
+        // match code {
+        //     EnableAlternateScreen | ClearAndEnableAlternateScreen => {
+        //         cursor.save_alt(active);
+        //         cursor.set(0, 0);
+        //     },
+        //     _ => println!("Code {:?}, set to {}", code, active),
+        // }
     }
 
     pub fn erase_in_display(&mut self, edit: EraseInDisplay) {
@@ -211,11 +224,13 @@ impl Terminal {
 
     pub fn erase_characters(&mut self, n: u32) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
-        let end = screen.cells[self.cursor.y]
-            .len()
-            .min(self.cursor.x + n as usize);
+        let end = (self.cursor.x + n as usize)
+                  .min(screen.cells[self.cursor.y].len() - 1);
 
         screen.cells[self.cursor.y].drain(self.cursor.x..end);
+        for x in self.cursor.x..end {
+            screen.cells[self.cursor.y][x] = Cell::default();
+        }
     }
 
     pub fn handle_edit(&mut self, edit: Edit) {

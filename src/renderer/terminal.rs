@@ -1,11 +1,7 @@
 use super::cell::CellSpan;
 use crate::input::{Input, InputManager};
-
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use dioxus::prelude::*;
-
-
-
 
 pub struct FontInfo {
     pub size: u32,

@@ -3,6 +3,7 @@
 - [ ] Fancy Boxes
     - [ ] Shadows
 - [ ] Cursor Rendering
+- [ ] Fit more into span than one char
 
 # Processing
 - [ ] ANSI Codes
@@ -14,6 +15,9 @@
 # Terminal
 - [ ] Cursor setting
 - [ ] Scrolling
+- [ ] proper deletion
+- [ ] margins
+- [ ] clear alt screen
 
 # Input
 - [ ] More Keys

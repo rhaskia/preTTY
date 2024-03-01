@@ -1,0 +1,24 @@
+:root {
+    --fg-default: #ffffff;
+    --bg-default: #000000;
+
+    --palette-1: red; 
+    --palette-2: yellow; 
+    --palette-3: green; 
+
+    --palette-4: blue; 
+    --palette-5: cyan; 
+    --palette-6: purple; 
+
+    --palette-7: white;
+
+    --palette-8: grey;
+
+    --palette-9: red;
+    --palette-10: yellow; 
+    --palette-11: green; 
+
+    --palette-12: blue; 
+    --palette-12: cyan; 
+    --palette-14: #9900ff; 
+}

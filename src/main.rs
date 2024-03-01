@@ -6,14 +6,7 @@ mod renderer;
 mod terminal;
 
 use dioxus::prelude::*;
-
-
-
-
-
 use crate::renderer::TerminalSplit;
-
-
 
 #[component]
 pub fn App() -> Element {
@@ -23,6 +16,7 @@ pub fn App() -> Element {
             class: "app",
 
             style { {include_str!("style.css")} }
+            style { {include_str!("palette.css")} }
             //Header {}
             TerminalSplit {}
         }
