@@ -1,7 +1,9 @@
 use super::cell::CellSpan;
+use crate::input::use_js_input;
 use crate::input::{Input, InputManager};
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use dioxus::prelude::*;
+use tokio::runtime::Runtime;
 
 pub struct FontInfo {
     pub size: u32,
@@ -18,54 +20,54 @@ pub fn TerminalApp() -> Element {
 
     let input = use_signal(|| InputManager::new());
     let font_size = use_signal(|| 14);
+    let mut font_width = use_signal(|| 0);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
 
-    // let mut glyph_size = eval(r#"
-    //     let size = await dioxus.recv();
-    //     let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: "JetBrainsMono Nerd Font"});
-    //     dioxus.send(width);
-    //     "#);
-    //
-    // glyph_size.send(font_size.to_string().into()).unwrap();
-    //
-    // let future = use_future(move || async move { println!("Receieved glyph size"); glyph_size.recv().await.unwrap() });
-
-    let mut key_press = eval(
+    let mut glyph_size = eval(
         r#"
-        console.log("adding key listener");
-        window.addEventListener('keydown', function(event) {
-            let key_info = {"key": event.key,
-                            "ctrl": event.ctrlKey,
-                            "alt": event.altKey,
-                            "meta": event.metaKey,
-                            "shift": event.shiftKey,
-            };
-            dioxus.send(key_info);
-        });
-        //await dioxus.recv();
-    "#,
+        let size = await dioxus.recv();
+        let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: "JetBrainsMono Nerd Font"});
+        dioxus.send(width);
+        "#,
     );
 
-    // Writer future
     use_future(move || async move {
-        loop {
-            let key = key_press.recv().await.unwrap();
-
-            match input.read().handle_key(key) {
-                Input::String(text) => pty.write().writer.write_all(text.as_bytes()).unwrap(),
-                Input::Control(c) => match c.as_str() {
-                    "c" => pty.write().writer.write_all(b"\x03").unwrap(),
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
+        font_width.set(serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap());
+    });
+    use_effect(move || {
+        glyph_size.send(font_size.to_string().into()).unwrap();
     });
 
+    // Keyboard input
+    let mut js_input = eval(
+        r#"
+            console.log("adding key listener");
+            window.addEventListener('keydown', function(event) {
+                let key_info = {"key": event.key,
+                                "ctrl": event.ctrlKey,
+                                "alt": event.altKey,
+                                "meta": event.metaKey,
+                                "shift": event.shiftKey,
+                };
+                dioxus.send(key_info);
+            });
+            //await dioxus.recv();
+        "#,
+    );
+
+    use_future(move || async move {
+        let key: serde_json::Value = js_input.recv().await.unwrap();
+        pty.write().write_key_input(input.read().handle_key(key));
+    });
+
+    // ANSI code handler
     use_future(move || async move {
         loop {
             let action = rx.write().recv().await;
-            terminal.write().handle_action(action.unwrap());
+            match action {
+                Ok(ref a) => terminal.write().handle_action(a.clone()),
+                Err(err) => {}
+            }
         }
     });
 

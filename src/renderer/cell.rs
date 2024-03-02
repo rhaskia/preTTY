@@ -44,7 +44,6 @@ impl GetClasses for CellAttributes {
 pub fn CellSpan(cell: Cell) -> Element {
     let fg = cell.attr.fg.to_hex(String::from("var(--fg-default)"));
     let bg = cell.attr.bg.to_hex(String::from("var(--bg-default)"));
-    println!("{:?}", fg);
 
     rsx! {
         span {

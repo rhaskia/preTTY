@@ -93,7 +93,7 @@ impl Terminal {
             Down(amount) | NextLine(amount) => self.cursor.shift_down(amount),
             Right(amount) => self.cursor.shift_right(amount),
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
-            Position { line, col } => self.cursor.set(col.as_zero_based(), line.as_zero_based()),
+            Position { line, col } => self.cursor.set(col.as_one_based() - 1, line.as_one_based() - 1),
             CursorStyle(style) => self.cursor.set_style(style),
             _ => println!("{:?}", cursor),
         }
@@ -227,7 +227,6 @@ impl Terminal {
         let end = (self.cursor.x + n as usize)
                   .min(screen.cells[self.cursor.y].len() - 1);
 
-        screen.cells[self.cursor.y].drain(self.cursor.x..end);
         for x in self.cursor.x..end {
             screen.cells[self.cursor.y][x] = Cell::default();
         }

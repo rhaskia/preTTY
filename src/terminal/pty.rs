@@ -1,12 +1,13 @@
 use async_channel::{Sender};
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::{
-    io::Read,
-    io::Write,
+    io::{Read, Write, BufReader},
     thread::{self, JoinHandle},
 };
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
+
+use crate::input::Input;
 
 pub struct PseudoTerminal {
     pub pty_system: Box<dyn PtySystem + Send>,
@@ -53,16 +54,30 @@ impl PseudoTerminal {
             reader_thread,
         })
     }
+
+    pub fn write_key_input(&mut self, input: Input) {
+        match input {
+            Input::String(text) => self.writer.write_all(text.as_bytes()).unwrap(),
+            Input::Control(c) => match c.as_str() {
+                "c" => self.writer.write_all(b"\x03").unwrap(),
+                _ => {}
+            },
+            _ => {}
+        }
+    }
 }
 
 pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
-    let mut buffer = [0u8; 1]; // Buffer to hold a single character
+    let mut chunk = [0u8; 1024]; // Buffer to hold a single character
+    let mut buffer = Vec::new();
+
     let mut parser = termwiz::escape::parser::Parser::new();
     let rt = Runtime::new().unwrap();
 
     loop {
-        match reader.read(&mut buffer) {
-            Ok(_) => {
+        match reader.read(&mut chunk) {
+            Ok(n) => {
+                buffer.extend_from_slice(&chunk[..n]);
                 parser.parse(&buffer, |t| {
                     rt.block_on(async { tx.send(t.clone()).await });
                 });
