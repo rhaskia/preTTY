@@ -18,7 +18,6 @@ pub fn TerminalApp() -> Element {
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
     let mut pty = use_signal(|| PseudoTerminal::setup(tx).unwrap());
 
-    let input = use_signal(|| InputManager::new());
     let font_size = use_signal(|| 14);
     let mut font_width = use_signal(|| 0);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
@@ -34,31 +33,12 @@ pub fn TerminalApp() -> Element {
     use_future(move || async move {
         font_width.set(serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap());
     });
+
     use_effect(move || {
         glyph_size.send(font_size.to_string().into()).unwrap();
     });
 
-    // Keyboard input
-    let mut js_input = eval(
-        r#"
-            console.log("adding key listener");
-            window.addEventListener('keydown', function(event) {
-                let key_info = {"key": event.key,
-                                "ctrl": event.ctrlKey,
-                                "alt": event.altKey,
-                                "meta": event.metaKey,
-                                "shift": event.shiftKey,
-                };
-                dioxus.send(key_info);
-            });
-            //await dioxus.recv();
-        "#,
-    );
-
-    use_future(move || async move {
-        let key: serde_json::Value = js_input.recv().await.unwrap();
-        pty.write().write_key_input(input.read().handle_key(key));
-    });
+    
 
     // ANSI code handler
     use_future(move || async move {

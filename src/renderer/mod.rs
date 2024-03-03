@@ -7,6 +7,6 @@ mod palette;
 pub mod terminal;
 
 #[component]
-pub fn TerminalSplit() -> Element {
+pub fn TerminalSplit(EventHandler) -> Element {
     rsx!(TerminalApp {})
 }
