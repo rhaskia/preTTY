@@ -159,6 +159,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-option"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fc4e335945dc0bf8bcbc06f431c66b1fcf375ef78dcee2d4ca28c22085f695b"
+dependencies = [
+ "futures 0.1.31",
+ "tokio-sync",
+]
+
+[[package]]
 name = "async-process"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1357,6 +1367,12 @@ dependencies = [
  "mac",
  "new_debug_unreachable",
 ]
+
+[[package]]
+name = "futures"
+version = "0.1.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a471a38ef8ed83cd6e40aa59c1ffe17db6855c18e3604d9c4ed8c08ebc28678"
 
 [[package]]
 name = "futures"
@@ -3413,7 +3429,7 @@ dependencies = [
  "bytes",
  "const_format",
  "dashmap",
- "futures",
+ "futures 0.3.30",
  "gloo-net",
  "http 1.0.0",
  "js-sys",
@@ -3792,8 +3808,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-channel",
+ "async-option",
  "dioxus",
- "futures",
+ "futures 0.3.30",
  "portable-pty",
  "serde",
  "serde-wasm-bindgen",
@@ -3947,6 +3964,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.48",
+]
+
+[[package]]
+name = "tokio-sync"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edfe50152bc8164fcc456dab7891fa9bf8beaf01c5ee7e1dd43a397c3cf87dee"
+dependencies = [
+ "fnv",
+ "futures 0.1.31",
 ]
 
 [[package]]

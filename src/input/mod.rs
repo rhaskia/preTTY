@@ -12,6 +12,7 @@ pub struct Key {
     shift: bool,
 }
 
+#[derive(Debug)]
 pub enum Input {
     String(String),
     Control(String),

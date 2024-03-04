@@ -1,18 +1,14 @@
 use super::cell::CellSpan;
-use crate::input::use_js_input;
+use crate::input::{use_js_input, Key};
 use crate::input::{Input, InputManager};
 use crate::terminal::{pty::PseudoTerminal, Terminal};
+use async_channel::Receiver;
 use dioxus::prelude::*;
 use tokio::runtime::Runtime;
 
-pub struct FontInfo {
-    pub size: u32,
-    pub family: String,
-}
-
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp() -> Element {
+pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     let (tx, rx) = async_channel::unbounded();
     let mut rx = use_signal(|| rx);
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
@@ -22,23 +18,30 @@ pub fn TerminalApp() -> Element {
     let mut font_width = use_signal(|| 0);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
 
-    let mut glyph_size = eval(
-        r#"
-        let size = await dioxus.recv();
-        let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: "JetBrainsMono Nerd Font"});
-        dioxus.send(width);
-        "#,
-    );
+    // let mut glyph_size = eval(
+    //     r#"
+    //     let size = await dioxus.recv();
+    //     let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: "JetBrainsMono Nerd Font"});
+    //     dioxus.send(width);
+    //     "#,
+    // );
 
+    // use_future(move || async move {
+    //     font_width.set(serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap());
+    // });
+
+    // use_effect(move || {
+    //     glyph_size.send(font_size.to_string().into()).unwrap();
+    // });
+
+    // Key Input Writer
     use_future(move || async move {
-        font_width.set(serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap());
+        loop {
+            let key = input.write().recv().await.unwrap();
+            println!("{key:?}");
+            pty.write().write_key_input(key);
+        }
     });
-
-    use_effect(move || {
-        glyph_size.send(font_size.to_string().into()).unwrap();
-    });
-
-    
 
     // ANSI code handler
     use_future(move || async move {
@@ -62,11 +65,11 @@ pub fn TerminalApp() -> Element {
     rsx! {
         div {
             overflow_y: overflow,
+            "{terminal.read().title}" {
+                "test"
+            }
             script {
                 src: "/js/textsize.js"
-            }
-            pre {
-                "hi"
             }
             for l in terminal.read().get_cells() {
                 pre {

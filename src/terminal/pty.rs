@@ -56,6 +56,7 @@ impl PseudoTerminal {
     }
 
     pub fn write_key_input(&mut self, input: Input) {
+        println!("{input:?}");
         match input {
             Input::String(text) => self.writer.write_all(text.as_bytes()).unwrap(),
             Input::Control(c) => match c.as_str() {

@@ -1,10 +1,6 @@
-
 use crate::terminal::cell::{Cell, CellAttributes};
 use dioxus::prelude::*;
-use termwiz::{
-    cell::{Intensity},
-    color::ColorSpec,
-};
+use termwiz::{cell::Intensity, color::ColorSpec};
 
 pub trait ToHex {
     fn to_hex(&self, def: String) -> String;
