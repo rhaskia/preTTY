@@ -3,6 +3,7 @@ use crate::input::{use_js_input, Key};
 use crate::input::{Input, InputManager};
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use async_channel::Receiver;
+use dioxus::desktop::use_window;
 use dioxus::prelude::*;
 use tokio::runtime::Runtime;
 
@@ -15,16 +16,19 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     let mut pty = use_signal(|| PseudoTerminal::setup(tx).unwrap());
 
     let font_size = use_signal(|| 14);
-    let mut font_width = use_signal(|| 0);
+    let mut font_width = use_signal_sync(|| 0.0f64);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
+    let window = use_window();
 
-    // let mut glyph_size = eval(
-    //     r#"
-    //     let size = await dioxus.recv();
-    //     let width = textSize.getTextWidth({text: 'M', fontSize: size, fontName: "JetBrainsMono Nerd Font"});
-    //     dioxus.send(width);
-    //     "#,
-    // );
+    window.webview.evaluate_script_with_callback(
+        r#"
+        textSize.getTextWidth({text: 'M', fontSize: 14, fontName: "JetBrainsMono Nerd Font"})
+        "#,
+        move |width| match width.parse() {
+            Ok(w) => font_width.clone().set(w),
+            Err(_) => {}
+        },
+    );
 
     // use_future(move || async move {
     //     font_width.set(serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap());
@@ -65,9 +69,6 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     rsx! {
         div {
             overflow_y: overflow,
-            "{terminal.read().title}" {
-                "test"
-            }
             script {
                 src: "/js/textsize.js"
             }

@@ -18,6 +18,7 @@
 - [ ] proper deletion
 - [ ] margins
 - [ ] clear alt screen
+- [ ] Erase don't delete just empty
 
 # Input
 - [ ] More Keys

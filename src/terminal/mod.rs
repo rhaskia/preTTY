@@ -204,20 +204,23 @@ impl Terminal {
 
     pub fn erase_in_line(&mut self, edit: EraseInLine) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
-
         match edit {
             EraseInLine::EraseToEndOfLine => {
                 if screen.cells.len() > self.cursor.y {
-                    screen.cells[self.cursor.y].drain(self.cursor.x..);
+                    for i in self.cursor.x..screen.cells[self.cursor.y].len() {
+                        screen.cells[self.cursor.y][i] = Cell::default();
+                    }
                 }
             }
             EraseInLine::EraseToStartOfLine => {
-                screen.cells[self.cursor.y].truncate(self.cursor.x);
-                self.cursor.set_x(0);
+                // may go out of bounds. idk
+                for i in 0..self.cursor.x {
+                    screen.cells[self.cursor.y][i] = Cell::default();
+                }
             }
             EraseInLine::EraseLine => {
-                screen.cells.remove(self.cursor.y);
-                self.cursor.set_x(0);
+                screen.cells[self.cursor.y] = Vec::new();
+                //self.cursor.set_x(0);
             }
         }
     }
