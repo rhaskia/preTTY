@@ -1,11 +1,21 @@
 use super::cell::CellSpan;
+use super::cursor::Cursor;
+
 use crate::input::{use_js_input, Key};
 use crate::input::{Input, InputManager};
 use crate::terminal::{pty::PseudoTerminal, Terminal};
+
 use async_channel::Receiver;
 use dioxus::desktop::use_window;
 use dioxus::prelude::*;
+use serde::Deserialize;
 use tokio::runtime::Runtime;
+
+#[derive(Default, Deserialize)]
+pub struct CellSize {
+    width: usize,
+    height: usize,
+}
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
@@ -16,27 +26,24 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     let mut pty = use_signal(|| PseudoTerminal::setup(tx).unwrap());
 
     let font_size = use_signal(|| 14);
-    let mut font_width = use_signal_sync(|| 0.0f64);
+    let mut cell_size = use_signal_sync(|| CellSize::default());
     let font = use_signal(|| "JetBrainsMono Nerd Font");
     let window = use_window();
 
-    window.webview.evaluate_script_with_callback(
+    let mut glyph_size = eval(
         r#"
-        textSize.getTextWidth({text: 'M', fontSize: 14, fontName: "JetBrainsMono Nerd Font"})
+        let size = await dioxus.recv();
+        let width = getTextSize(size, "JetBrainsMono Nerd Font");
+        dioxus.send(width);
         "#,
-        move |width| match width.parse() {
-            Ok(w) => font_width.clone().set(w),
-            Err(_) => {}
-        },
     );
 
-    // use_future(move || async move {
-    //     font_width.set(serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap());
-    // });
+    use_future(move || async move {
+        let w = serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap();
+        cell_size.set(w);
+    });
 
-    // use_effect(move || {
-    //     glyph_size.send(font_size.to_string().into()).unwrap();
-    // });
+    glyph_size.send(font_size.to_string().into()).unwrap();
 
     // Key Input Writer
     use_future(move || async move {
@@ -69,15 +76,22 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     rsx! {
         div {
             overflow_y: overflow,
-            script {
-                src: "/js/textsize.js"
-            }
+            style: "--cell-width: {cell_size.read().width}px; --cell-height: {cell_size.read().height}px",
+
+            script { src: "/js/textsize.js" }
+
+            // Cells
             for l in terminal.read().get_cells() {
                 pre {
                     for cell in l {
                         CellSpan { cell: cell.clone() }
                     }
                 }
+            }
+
+            Cursor {
+                x: terminal.read().cursor.x,
+                y: terminal.read().cursor.y,
             }
         }
     }

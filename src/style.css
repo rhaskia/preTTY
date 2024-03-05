@@ -54,3 +54,8 @@ span {
     margin-right: auto;
     margin-left: 10px;
 }
+
+.cursor {
+    position: relative;
+    background: white;
+}

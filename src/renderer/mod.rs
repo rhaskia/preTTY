@@ -3,6 +3,7 @@ use async_channel::{Receiver, Sender};
 use dioxus::prelude::*;
 
 pub mod cell;
+pub mod cursor;
 pub mod header;
 mod palette;
 pub mod terminal;
