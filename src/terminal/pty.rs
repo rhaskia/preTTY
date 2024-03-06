@@ -1,7 +1,7 @@
-use async_channel::{Sender};
+use async_channel::Sender;
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::{
-    io::{Read, Write, BufReader},
+    io::{BufReader, Read, Write},
     thread::{self, JoinHandle},
 };
 use termwiz::escape::Action;
@@ -31,7 +31,7 @@ impl PseudoTerminal {
         })?;
 
         // Spawn a shell into the pty
-        let cmd = CommandBuilder::new(std::env::var("SHELL").unwrap());
+        let cmd = CommandBuilder::new(Self::default_shell());
         let child = pair.slave.spawn_command(cmd)?;
 
         // Read and parse output from the pty with reader
@@ -53,6 +53,17 @@ impl PseudoTerminal {
             writer,
             reader_thread,
         })
+    }
+
+    pub fn default_shell() -> String {
+        if cfg!(windows) {
+            String::from("cmd") // TODO: proper windows implementation
+        } else {
+            match std::env::var("SHELL") {
+                Ok(shell) => shell,
+                Err(_) => String::from("bash"), // apple should implement SHELL but if they don't too bad
+            }
+        }
     }
 
     pub fn write_key_input(&mut self, input: Input) {

@@ -13,8 +13,8 @@ use tokio::runtime::Runtime;
 
 #[derive(Default, Deserialize)]
 pub struct CellSize {
-    width: usize,
-    height: usize,
+    width: f32,
+    height: f32,
 }
 
 // TODO: split this up for the use of multiple ptys per terminal
@@ -75,16 +75,20 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
 
     rsx! {
         div {
-            overflow_y: overflow,
             style: "--cell-width: {cell_size.read().width}px; --cell-height: {cell_size.read().height}px",
-
+            class: "terminal-split",
             script { src: "/js/textsize.js" }
 
-            // Cells
-            for l in terminal.read().get_cells() {
-                pre {
-                    for cell in l {
-                        CellSpan { cell: cell.clone() }
+            div {
+                class: "cells",
+                overflow_y: overflow,
+
+                // Cells
+                for l in terminal.read().get_cells() {
+                    pre {
+                        for cell in l {
+                            CellSpan { cell: cell.clone() }
+                        }
                     }
                 }
             }

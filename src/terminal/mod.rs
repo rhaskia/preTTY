@@ -4,10 +4,10 @@ pub mod pty;
 pub mod screen;
 mod state;
 
+use self::{cell::Cell, cursor::TerminalCursor};
 use screen::TerminalRenderer;
 use state::TerminalState;
 use termwiz::escape::csi::DecPrivateMode;
-use self::{cell::Cell, cursor::TerminalCursor};
 
 use termwiz::escape::{
     csi::{
@@ -93,7 +93,9 @@ impl Terminal {
             Down(amount) | NextLine(amount) => self.cursor.shift_down(amount),
             Right(amount) => self.cursor.shift_right(amount),
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
-            Position { line, col } => self.cursor.set(col.as_one_based() - 1, line.as_one_based() - 1),
+            Position { line, col } => self
+                .cursor
+                .set(col.as_one_based() - 1, line.as_one_based() - 1),
             CursorStyle(style) => self.cursor.set_style(style),
             _ => println!("{:?}", cursor),
         }
@@ -227,8 +229,7 @@ impl Terminal {
 
     pub fn erase_characters(&mut self, n: u32) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
-        let end = (self.cursor.x + n as usize)
-                  .min(screen.cells[self.cursor.y].len() - 1);
+        let end = (self.cursor.x + n as usize).min(screen.cells[self.cursor.y].len() - 1);
 
         for x in self.cursor.x..end {
             screen.cells[self.cursor.y][x] = Cell::default();

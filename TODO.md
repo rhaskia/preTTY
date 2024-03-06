@@ -4,6 +4,7 @@
     - [ ] Shadows
 - [ ] Cursor Rendering
 - [ ] Fit more into span than one char
+- [ ] fix broken css stuff
 
 # Processing
 - [ ] ANSI Codes
