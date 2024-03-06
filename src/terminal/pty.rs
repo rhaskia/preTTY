@@ -31,7 +31,7 @@ impl PseudoTerminal {
         })?;
 
         // Spawn a shell into the pty
-        let cmd = CommandBuilder::new("bash");
+        let cmd = CommandBuilder::new(std::env::var("SHELL").unwrap());
         let child = pair.slave.spawn_command(cmd)?;
 
         // Read and parse output from the pty with reader
