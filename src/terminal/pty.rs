@@ -2,7 +2,7 @@ use async_channel::Sender;
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::{
     io::{BufReader, Read, Write},
-    thread::{self, JoinHandle},
+    thread::{self, JoinHandle}, cell,
 };
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
@@ -53,6 +53,20 @@ impl PseudoTerminal {
             writer,
             reader_thread,
         })
+    }
+
+    // Resizes how big the terminal thinks it is
+    // mostly useful for rendering tui applications
+    pub fn resize(&mut self, screen_width: u32, screen_height: u32, cell_width: f32, cell_height: f32) {
+        self.pair
+            .master
+            .resize(PtySize {
+                rows: (screen_height as f32 / cell_height) as u16,
+                cols: (screen_width as f32 / cell_width) as u16,
+                pixel_width: cell_width.round() as u16,
+                pixel_height: cell_height.round() as u16,
+            })
+            .unwrap();
     }
 
     pub fn default_shell() -> String {

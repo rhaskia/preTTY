@@ -44,8 +44,8 @@ pub fn CellSpan(cell: Cell) -> Element {
     rsx! {
         span {
             class: "{cell.attr.get_classes()}",
-            style: "--fg: {fg}; --bg: {bg};",
-            "{cell.char}"
+            style: "--fg: {fg}; --bg: {bg}; --len: {cell.text.len()}",
+            "{cell.text}"
         }
     }
 }

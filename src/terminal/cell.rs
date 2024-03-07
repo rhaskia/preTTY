@@ -1,7 +1,20 @@
 use termwiz::{
     cell::{Blink, Intensity, Underline},
-    color::ColorSpec,
+    color::ColorSpec, escape::osc::FinalTermPromptKind,
 };
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Until {
+    LineEnd,
+    SemanticMarker
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum PromptKind {
+    Output,
+    Input(Until),
+    Prompt(FinalTermPromptKind),
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct CellAttributes {
@@ -14,6 +27,8 @@ pub struct CellAttributes {
     pub strikethrough: bool,
     pub blink: Blink,
     pub underline_fg: ColorSpec,
+
+    pub prompt_kind: PromptKind,
 }
 
 impl CellAttributes {
@@ -27,6 +42,7 @@ impl CellAttributes {
             strikethrough: false,
             blink: Blink::None,
             underline_fg: ColorSpec::Default,
+            prompt_kind: PromptKind::Output,
         }
     }
 }
@@ -35,25 +51,18 @@ impl CellAttributes {
 use dioxus::prelude::*;
 #[derive(Clone, Debug, PartialEq, Props)]
 pub struct Cell {
-    pub char: char,
+    pub text: String,
     pub attr: CellAttributes,
 }
 
 impl Cell {
-    pub fn new(char: char, attr: CellAttributes) -> Cell {
-        Cell { char, attr }
+    pub fn new(text: String, attr: CellAttributes) -> Cell {
+        Cell { text, attr }
     }
 
     pub fn default() -> Cell {
         Cell {
-            char: ' ',
-            attr: CellAttributes::default(),
-        }
-    }
-
-    pub fn new_line() -> Cell {
-        Cell {
-            char: '\n',
+            text: String::from(" "),
             attr: CellAttributes::default(),
         }
     }

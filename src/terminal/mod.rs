@@ -4,11 +4,15 @@ pub mod pty;
 pub mod screen;
 mod state;
 
+use self::cell::{PromptKind, Until};
 use self::{cell::Cell, cursor::TerminalCursor};
+use dioxus::desktop::use_window;
+use notify_rust::Notification;
 use screen::TerminalRenderer;
 use state::TerminalState;
 use termwiz::escape::csi::DecPrivateMode;
 
+use termwiz::escape::osc::{FinalTermPromptKind, FinalTermSemanticPrompt};
 use termwiz::escape::{
     csi::{
         Cursor, Edit, EraseInDisplay, EraseInLine,
@@ -42,42 +46,6 @@ impl Terminal {
             title: "Terminal".into(),
         })
     }
-
-    // pub fn handle_actions(&mut self, actions: &mut dioxus::prelude::Write<Vec<Action>, SyncStorage>) {
-    //     while let Some(action) = actions.pop() {
-    //         self.handle_action(action);
-    //     }
-    // }
-
-    // pub fn write_str(&mut self, s: String) {
-    //     self.pty.writer.write_all(s.as_bytes());
-    // }
-
-    // Resizes how big the terminal thinks it is
-    // mostly useful for rendering tui applications
-    // pub fn resize(&mut self, md: &MountedData) {
-    //     println!("w");
-    //     println!("{:?}", md.get_raw_element().unwrap().downcast_ref::<web_sys::Element>());
-    //
-    //     // let screen_width = size.width.max(1);
-    //     // let screen_height = size.height.max(1);
-    //     //
-    //     // self.rows = (screen_height as f32 / glyph_size.1) as u16;
-    //     // self.cols = (screen_width as f32 / glyph_size.0) as u16;
-    //     //
-    //     // //println!("{}, {}, {:?}", self.rows, self.cols, glyph_size);
-    //     //
-    //     // self.pty
-    //     //     .pair
-    //     //     .master
-    //     //     .resize(PtySize {
-    //     //         rows: self.rows,
-    //     //         cols: self.cols,
-    //     //         pixel_width: glyph_size.0.round() as u16,
-    //     //         pixel_height: glyph_size.1.round() as u16,
-    //     //     })
-    //     //     .unwrap();
-    // }
 
     /// Gets all cells the renderer should be showing
     pub fn get_cells(&self) -> &Vec<Vec<Cell>> {
@@ -113,8 +81,29 @@ impl Terminal {
     }
 
     /// Pushes a cell onto the current screen
-    pub fn print(&mut self, text: char) {
+    pub fn print(&mut self, char: char) {
         let attr = self.renderer.attr.clone();
+
+        // shells don't automatically do wrapping for applications
+        // weird as hell
+        if self.cursor.x >= self.cols.into() {
+            self.cursor.x = 0;
+            self.cursor.y += 1;
+        }
+
+        self.renderer.mut_screen(self.state.alt_screen).push(
+            Cell::new(char.to_string(), attr),
+            self.cursor.x,
+            self.cursor.y,
+        );
+
+        self.cursor.x += 1;
+    }
+
+    // I don't believe this ever happens
+    pub fn print_str(&mut self, text: String) {
+        let attr = self.renderer.attr.clone();
+        let len = text.len();
 
         // shells don't automatically do wrapping for applications
         // weird as hell
@@ -129,24 +118,17 @@ impl Terminal {
             self.cursor.y,
         );
 
-        self.cursor.x += 1;
-    }
-
-    // I don't believe this ever happens
-    pub fn print_str(&mut self, text: String) {
-        println!("String {}", text);
+        self.cursor.x += len;
     }
 
     pub fn handle_action(&mut self, action: Action) {
-        //println!("{:?}, {:?}", action, self.cursor);
+        println!("{:?}, {:?}", action, self.cursor);
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
 
             Action::Control(control) => match control {
                 ControlCode::LineFeed => self.new_line(),
-                // Don't do anything for carriage return
-                // would be nice to but it breaks cursor movement
                 ControlCode::CarriageReturn => self.cursor.set_x(0),
                 ControlCode::Backspace => self.backspace(),
                 _ => println!("ControlCode({:?})", control),
@@ -155,8 +137,8 @@ impl Terminal {
             Action::CSI(csi) => match csi {
                 CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
                 CSI::Mode(mode) => match mode {
-                    SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
-                    ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
+                    SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
+                    ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
                     _ => println!("Mode({:?})", mode),
                 },
                 CSI::Cursor(cursor) => self.handle_cursor(cursor),
@@ -166,28 +148,70 @@ impl Terminal {
 
             Action::OperatingSystemCommand(command) => match *command {
                 OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
+                OperatingSystemCommand::FinalTermSemanticPrompt(ftsprompt) => {
+                    self.handle_fts_prompt(ftsprompt)
+                }
+                //OperatingSystemCommand::SystemNotification(notif) => Self::notify_window(notif),
                 _ => println!("OperatingSystemCommand({:?})", command),
             },
             _ => println!("{:?}", action),
         }
     }
 
-    pub fn set_dec_private_mode(&mut self, pmode: DecPrivateMode, active: bool) {
-        self.state.save_dec_private_mode(pmode, active);
+    // TODO: Replace this shitty thing with a more explicit system
+    // Ideally there would be a Command object, that has prompt, input and output fields
+    pub fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
+        use FinalTermSemanticPrompt::*;
+        match prompt {
+            FreshLine => self.fresh_line(),
+            FreshLineAndStartPrompt { aid, cl } => {
+                self.fresh_line();
+                self.renderer.attr.prompt_kind = PromptKind::Prompt(FinalTermPromptKind::Initial);
 
-        // let code = match mode {
-        //     DecPrivateMode::Code(c) => c,
-        //     DecPrivateMode::Unspecified(_) => return,
-        // };
+                if let Some(a) = aid { println!("AID {a}"); }
+                if let Some(c) = cl { println!("FINALCLICK {c}"); }
+            }
+            MarkEndOfCommandWithFreshLine { aid, cl } => {
+                self.fresh_line();
+                self.renderer.attr.prompt_kind = PromptKind::Prompt(FinalTermPromptKind::Initial);
 
-        // use termwiz::escape::csi::DecPrivateModeCode::*;
-        // match code {
-        //     EnableAlternateScreen | ClearAndEnableAlternateScreen => {
-        //         cursor.save_alt(active);
-        //         cursor.set(0, 0);
-        //     },
-        //     _ => println!("Code {:?}, set to {}", code, active),
-        // }
+                if let Some(a) = aid { println!("AID {a}"); }
+                if let Some(c) = cl { println!("FINALCLICK {c}"); }
+            }
+            StartPrompt(prompt_kind) => self.renderer.attr.prompt_kind = PromptKind::Prompt(prompt_kind),
+            MarkEndOfPromptAndStartOfInputUntilNextMarker => {
+                self.start_input(Until::SemanticMarker)
+            }
+            MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
+            MarkEndOfInputAndStartOfOutput { aid } => {
+                self.renderer.attr.prompt_kind = PromptKind::Output;
+
+                if let Some(a) = aid { println!("AID {a}"); }
+            }
+            CommandStatus { status, aid } => println!("COMMAND ENDED {status}, aid {aid:?}"),
+        }
+    }
+
+    pub fn fresh_line(&mut self) {
+        if self.cursor.x == 0 {
+            return;
+        }
+        self.cursor.set_x(0);
+        self.cursor.y += 1;
+    }
+
+    pub fn start_input(&mut self, until: Until) {
+        self.renderer.attr.prompt_kind = PromptKind::Input(until)
+        // TODO: Do some state management. maybe some sort of custom editor?
+    }
+
+    pub fn notify_window(notif: String) {
+        Notification::new()
+            .summary("Term")
+            .body(&notif)
+            .icon("firefox")
+            .show()
+            .unwrap();
     }
 
     pub fn erase_in_display(&mut self, edit: EraseInDisplay) {

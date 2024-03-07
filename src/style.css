@@ -11,8 +11,18 @@
     justify-content: space-between;
 }
 
+.app {
+    overflow: hidden;
+}
+
 .app:focus {
     outline: none;
+}
+
+/* flex? */
+.terminal-split {
+    height: 100%;
+    width: 100%;
 }
 
 body {
