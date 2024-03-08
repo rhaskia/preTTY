@@ -79,17 +79,23 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
             class: "terminal-split",
             script { src: "/js/textsize.js" }
 
-            div {
-                class: "cells",
-                overflow_y: overflow,
+            if terminal.read().state.alt_screen {
+                div {
+                    class: "cells",
+                    overflow_y: overflow,
 
-                // Cells
-                for l in terminal.read().get_cells() {
-                    pre {
-                        for cell in l {
-                            CellSpan { cell: cell.clone() }
+                    // Cells
+                    for l in terminal.read().renderer.screen.cells {
+                        pre {
+                            for cell in l {
+                                CellSpan { cell: cell.clone() }
+                            }
                         }
                     }
+                }
+            } else {
+                for command in terminal.read().renderer.screen.commands {
+
                 }
             }
 

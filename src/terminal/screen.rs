@@ -1,8 +1,8 @@
-use super::cell::{Cell, CellAttributes};
+mod cell;
+mod command;
 
-use termwiz::{
-    escape::csi::Sgr,
-};
+use cell::{Cell, CellAttributes};
+use termwiz::escape::csi::Sgr;
 
 #[derive(Debug)]
 pub struct TerminalRenderer {

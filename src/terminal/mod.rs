@@ -122,7 +122,7 @@ impl Terminal {
     }
 
     pub fn handle_action(&mut self, action: Action) {
-        println!("{:?}, {:?}", action, self.cursor);
+        //println!("{:?}, {:?}", action, self.cursor);
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
