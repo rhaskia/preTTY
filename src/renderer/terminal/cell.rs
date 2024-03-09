@@ -1,6 +1,29 @@
-use crate::terminal::cell::{Cell, CellAttributes};
+use crate::terminal::{
+    cell::{Cell, CellAttributes},
+    Terminal,
+};
 use dioxus::prelude::*;
 use termwiz::{cell::Intensity, color::ColorSpec};
+
+#[component]
+pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
+    let scrollback = use_signal(|| 0);
+
+    rsx! {
+        pre {
+            class: "cells",
+            overflow_y: "overflow",
+
+            // Cells
+            for y in terminal.read().screen().scroll_range(scrollback()) {
+                for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
+                    CellSpan { cell: cell.clone(), x, y }
+                }
+                br {}
+            }
+        }
+    }
+}
 
 pub trait ToHex {
     fn to_hex(&self, def: String) -> String;
@@ -14,10 +37,6 @@ impl ToHex for ColorSpec {
             ColorSpec::PaletteIndex(i) => format!("var(--palette-{i})"),
         }
     }
-}
-
-pub struct CellProps {
-    pub cell: Cell,
 }
 
 pub trait GetClasses {
@@ -37,7 +56,7 @@ impl GetClasses for CellAttributes {
 }
 
 #[component]
-pub fn CellSpan(cell: Cell) -> Element {
+pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
     let fg = cell.attr.fg.to_hex(String::from("var(--fg-default)"));
     let bg = cell.attr.bg.to_hex(String::from("var(--bg-default)"));
 
@@ -45,6 +64,7 @@ pub fn CellSpan(cell: Cell) -> Element {
         span {
             class: "{cell.attr.get_classes()}",
             style: "--fg: {fg}; --bg: {bg}; --len: {cell.text.len()}",
+            key: "{x}:{y}",
             "{cell.text}"
         }
     }

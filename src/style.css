@@ -33,8 +33,7 @@ body {
 pre {
     margin: 0;
     color: white;
-    font-size: 14px;
-    max-height: var(--cell-height);
+    font-size: 0px;
     overflow: hidden;
 }
 
@@ -46,6 +45,7 @@ span {
 .cellspan {
     max-width: var(--cell-width);
     max-height: var(--cell-height);
+    font-size: 14px;
     display: inline-block;
     overflow: hidden;
 }

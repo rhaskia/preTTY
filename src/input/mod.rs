@@ -46,7 +46,7 @@ impl InputManager {
             "Escape" => Input::str("\u{1b}"),
             "Delete" => Input::str("\u{7f}"),
             "Backspace" => Input::str("\u{8}"),
-            "Enter" => Input::str("\r\n"),
+            "Enter" => Input::str("\r"),
             "Tab" => Input::str("\t"),
 
             "ArrowRight" => Input::str("\x1b[C"),

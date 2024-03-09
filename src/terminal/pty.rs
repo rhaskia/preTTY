@@ -1,8 +1,8 @@
 use async_channel::Sender;
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
 use std::{
-    io::{BufReader, Read, Write},
-    thread::{self, JoinHandle}, cell,
+    io::{Read, Write},
+    thread::{self, JoinHandle},
 };
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
@@ -81,7 +81,6 @@ impl PseudoTerminal {
     }
 
     pub fn write_key_input(&mut self, input: Input) {
-        println!("{input:?}");
         match input {
             Input::String(text) => self.writer.write_all(text.as_bytes()).unwrap(),
             Input::Control(c) => match c.as_str() {

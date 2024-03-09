@@ -1,16 +1,20 @@
 pub mod cell;
+pub mod command;
 mod cursor;
 pub mod pty;
 pub mod screen;
 mod state;
 
-use self::cell::{PromptKind, Until};
-use self::{cell::Cell, cursor::TerminalCursor};
-use dioxus::desktop::use_window;
+use std::collections::VecDeque;
+
+use cell::{Cell, PromptKind, Until};
+use cursor::TerminalCursor;
+use screen::Screen;
+
 use notify_rust::Notification;
 use screen::TerminalRenderer;
 use state::TerminalState;
-use termwiz::escape::csi::DecPrivateMode;
+
 
 use termwiz::escape::osc::{FinalTermPromptKind, FinalTermSemanticPrompt};
 use termwiz::escape::{
@@ -47,11 +51,6 @@ impl Terminal {
         })
     }
 
-    /// Gets all cells the renderer should be showing
-    pub fn get_cells(&self) -> &Vec<Vec<Cell>> {
-        &self.renderer.get_screen(self.state.alt_screen).cells
-    }
-
     /// Handles cursor movements, etc
     // Really need to move this to the cursor object
     pub fn handle_cursor(&mut self, cursor: Cursor) {
@@ -65,19 +64,25 @@ impl Terminal {
                 .cursor
                 .set(col.as_one_based() - 1, line.as_one_based() - 1),
             CursorStyle(style) => self.cursor.set_style(style),
-            _ => println!("{:?}", cursor),
+            _ => println!("Cursor {cursor:?}"),
         }
     }
 
     /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
         self.cursor.x -= 1;
-        self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
+        //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default(); 
+        //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
     pub fn new_line(&mut self) {
-        self.cursor.shift_down(1);
-        self.cursor.set_x(0)
+        self.mut_screen().new_line();
+        println!("new line {:?}", self.screen().scrollback_len());
+
+        if !self.screen().is_filled() {
+            self.cursor.shift_down(1);
+            self.cursor.set_x(0);
+        }
     }
 
     /// Pushes a cell onto the current screen
@@ -100,7 +105,6 @@ impl Terminal {
         self.cursor.x += 1;
     }
 
-    // I don't believe this ever happens
     pub fn print_str(&mut self, text: String) {
         let attr = self.renderer.attr.clone();
         let len = text.len();
@@ -108,8 +112,7 @@ impl Terminal {
         // shells don't automatically do wrapping for applications
         // weird as hell
         if self.cursor.x >= self.cols.into() {
-            self.cursor.x = 0;
-            self.cursor.y += 1;
+            self.new_line();
         }
 
         self.renderer.mut_screen(self.state.alt_screen).push(
@@ -122,7 +125,6 @@ impl Terminal {
     }
 
     pub fn handle_action(&mut self, action: Action) {
-        //println!("{:?}, {:?}", action, self.cursor);
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
@@ -218,34 +220,34 @@ impl Terminal {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
 
         match edit {
-            EraseInDisplay::EraseToEndOfDisplay => {}
-            EraseInDisplay::EraseToStartOfDisplay => {}
             EraseInDisplay::EraseDisplay => {
-                screen.cells = Vec::new();
+                screen.erase_all();
                 self.cursor.set(0, 0);
             }
-            EraseInDisplay::EraseScrollback => {}
+            _ => println!("Erase {edit:?}"),
         }
     }
 
     pub fn erase_in_line(&mut self, edit: EraseInLine) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
+
         match edit {
             EraseInLine::EraseToEndOfLine => {
-                if screen.cells.len() > self.cursor.y {
-                    for i in self.cursor.x..screen.cells[self.cursor.y].len() {
-                        screen.cells[self.cursor.y][i] = Cell::default();
+                if screen.visible_len() > self.cursor.y {
+                    for x in self.cursor.x..screen.line(self.cursor.y).len() {
+                        println!("{}", screen.line(self.cursor.y).len());
+                        screen.set_cell(x, self.cursor.y, Cell::default());
                     }
                 }
             }
             EraseInLine::EraseToStartOfLine => {
                 // may go out of bounds. idk
-                for i in 0..self.cursor.x {
-                    screen.cells[self.cursor.y][i] = Cell::default();
+                for x in 0..self.cursor.x {
+                    screen.set_cell(x, self.cursor.y, Cell::default());
                 }
             }
             EraseInLine::EraseLine => {
-                screen.cells[self.cursor.y] = Vec::new();
+                screen.set_line(self.cursor.y, Vec::new());
                 //self.cursor.set_x(0);
             }
         }
@@ -253,10 +255,10 @@ impl Terminal {
 
     pub fn erase_characters(&mut self, n: u32) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
-        let end = (self.cursor.x + n as usize).min(screen.cells[self.cursor.y].len() - 1);
+        let end = (self.cursor.x + n as usize).min(screen.mut_line(self.cursor.y).len() - 1);
 
         for x in self.cursor.x..end {
-            screen.cells[self.cursor.y][x] = Cell::default();
+            screen.mut_line(self.cursor.y)[x] = Cell::default();
         }
     }
 
@@ -267,5 +269,13 @@ impl Terminal {
             Edit::EraseCharacter(n) => self.erase_characters(n),
             _ => println!("Edit {:?}", edit),
         }
+    }
+
+    pub fn screen(&self) -> &Screen {
+        self.renderer.get_screen(self.state.alt_screen)
+    }
+
+    pub fn mut_screen(&mut self) -> &mut Screen {
+        self.renderer.mut_screen(self.state.alt_screen)
     }
 }

@@ -1,9 +1,7 @@
 use crate::{input::Input, renderer::terminal::TerminalApp};
-use async_channel::{Receiver, Sender};
+use async_channel::{Receiver};
 use dioxus::prelude::*;
 
-pub mod cell;
-pub mod cursor;
 pub mod header;
 mod palette;
 pub mod terminal;

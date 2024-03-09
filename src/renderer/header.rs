@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn Header() -> Element {
     let mut fullscreen = use_signal(|| false);
-    let window = use_signal(|| use_window());
+    let window = use_signal(use_window);
 
     rsx! {
         header { class: "window-header", onmousedown: move |_| window().drag(),

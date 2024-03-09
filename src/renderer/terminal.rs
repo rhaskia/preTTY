@@ -1,15 +1,20 @@
-use super::cell::CellSpan;
-use super::cursor::Cursor;
+pub mod cell;
+pub mod commands;
+pub mod cursor;
 
-use crate::input::{use_js_input, Key};
-use crate::input::{Input, InputManager};
+use cell::{CellGrid};
+
+use cursor::Cursor;
+
+
+use crate::input::{Input};
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 
 use async_channel::Receiver;
 use dioxus::desktop::use_window;
 use dioxus::prelude::*;
 use serde::Deserialize;
-use tokio::runtime::Runtime;
+
 
 #[derive(Default, Deserialize)]
 pub struct CellSize {
@@ -26,7 +31,7 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     let mut pty = use_signal(|| PseudoTerminal::setup(tx).unwrap());
 
     let font_size = use_signal(|| 14);
-    let mut cell_size = use_signal_sync(|| CellSize::default());
+    let mut cell_size = use_signal_sync(CellSize::default);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
     let window = use_window();
 
@@ -49,7 +54,6 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
     use_future(move || async move {
         loop {
             let key = input.write().recv().await.unwrap();
-            println!("{key:?}");
             pty.write().write_key_input(key);
         }
     });
@@ -80,23 +84,10 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
             script { src: "/js/textsize.js" }
 
             if terminal.read().state.alt_screen {
-                div {
-                    class: "cells",
-                    overflow_y: overflow,
-
-                    // Cells
-                    for l in terminal.read().renderer.screen.cells {
-                        pre {
-                            for cell in l {
-                                CellSpan { cell: cell.clone() }
-                            }
-                        }
-                    }
-                }
+                CellGrid { terminal }
             } else {
-                for command in terminal.read().renderer.screen.commands {
-
-                }
+                CellGrid { terminal }
+                //CommandsSlice { terminal }
             }
 
             Cursor {

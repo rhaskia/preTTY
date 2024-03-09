@@ -31,6 +31,10 @@ pub struct CellAttributes {
     pub prompt_kind: PromptKind,
 }
 
+pub trait CellHash {
+    fn hash(&self) -> String;
+}
+
 impl CellAttributes {
     pub fn default() -> CellAttributes {
         CellAttributes {
@@ -49,7 +53,7 @@ impl CellAttributes {
 
 // Change to enum to allow for box drawing etc
 use dioxus::prelude::*;
-#[derive(Clone, Debug, PartialEq, Props)]
+#[derive(Clone, Debug, PartialEq,)]
 pub struct Cell {
     pub text: String,
     pub attr: CellAttributes,

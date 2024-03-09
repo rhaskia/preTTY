@@ -1,13 +1,17 @@
-mod cell;
-mod command;
+use std::collections::VecDeque;
+use std::ops::Range;
 
-use cell::{Cell, CellAttributes};
+use super::{
+    cell::{Cell, CellAttributes},
+    command::{CommandSlice, CommandSlicer},
+};
 use termwiz::escape::csi::Sgr;
 
 #[derive(Debug)]
 pub struct TerminalRenderer {
     pub screen: Screen,
     pub alt_screen: Screen,
+    pub commands: CommandSlicer,
 
     pub attr: CellAttributes,
 }
@@ -15,9 +19,10 @@ pub struct TerminalRenderer {
 impl TerminalRenderer {
     pub fn new() -> TerminalRenderer {
         TerminalRenderer {
-            screen: Screen::new(),
-            alt_screen: Screen::new(),
+            screen: Screen::new(24, 80, true),
+            alt_screen: Screen::new(24, 80, false),
             attr: CellAttributes::default(),
+            commands: CommandSlicer::new(),
         }
     }
 
@@ -57,13 +62,35 @@ impl TerminalRenderer {
     }
 }
 
+pub type Line = Vec<Cell>;
+
 #[derive(Debug)]
 pub struct Screen {
-    pub cells: Vec<Vec<Cell>>,
+    pub cells: VecDeque<Line>,
+    scrollback_size: usize,
+
+    physical_rows: usize,
+    physical_columns: usize,
+
+    scrollback_allowed: bool,
 }
 
 impl Screen {
+    pub fn new(rows: usize, columns: usize, sc_allow: bool) -> Screen {
+        Screen {
+            cells: VecDeque::new(),
+            scrollback_size: 0,
+            physical_rows: rows,
+            physical_columns: columns,
+            scrollback_allowed: sc_allow,
+        }
+    }
+
+    /// Pushes a cell at a certain cursor location
+    /// Manages any scrollback on its own
     pub fn push(&mut self, c: Cell, cursorx: usize, cursory: usize) {
+        let cursory = self.visible_start() + cursory;
+
         if cursory >= self.cells.len() {
             let extend_amount = cursory - &self.cells.len();
             self.cells
@@ -79,7 +106,76 @@ impl Screen {
         self.cells[cursory][cursorx] = c;
     }
 
-    pub fn new() -> Screen {
-        Screen { cells: Vec::new() }
+    pub fn scroll_range(&self, back: usize) -> Range<usize> {
+        self.visible_start()..self.visible_len()
+    }
+
+    /// Length of whole scrollback
+    pub fn scrollback_len(&self) -> usize {
+        self.cells.len()
+    }
+
+    /// Sets a cell at a position within the visible screen
+    pub fn set_cell(&mut self, x: usize, y: usize, cell: Cell) {
+        let vis_y = self.visible_start() + y;
+        println!("{x}, {vis_y}");
+        self.cells[vis_y][x] = cell;
+    }
+
+    /// Sets a cell at a position within the visible screen
+    pub fn cell(&self, x: usize, y: usize) -> Cell {
+        let vis_y = self.visible_start() + y;
+        self.cells[vis_y][x].clone()
+    }
+
+    /// Erases scrollback and visible screen
+    pub fn erase_all(&mut self) {
+        self.scrollback_size = 0;
+        self.cells = VecDeque::new();
+    }
+
+    /// Length of the visible screen
+    pub fn visible_len(&self) -> usize {
+        self.cells.len()
+    }
+
+    // Mutable reference to a line within the visible screen
+    pub fn mut_line(&mut self, index: usize) -> &mut Line {
+        let vis_index = self.visible_start() + index;
+        &mut self.cells[vis_index]
+    }
+
+    pub fn line(&self, index: usize) -> &Line {
+        let vis_index = self.visible_start() + index;
+        println!("{}, {}", self.cells.len(), vis_index);
+        &self.cells[index]
+    }
+
+    pub fn new_line(&mut self) {
+        self.cells.push_back(Vec::new());
+    } 
+
+    pub fn set_line(&mut self, index: usize, line: Line) {
+        let vis_index = self.visible_start() + index;
+        self.cells[vis_index] = line;
+    }
+
+    /// The index at which the visible screen starts in the scrollback buffer
+    pub fn visible_start(&self) -> usize {
+        let rows = self.cells.len();
+        if rows <= self.physical_rows {
+            return 0;
+        }
+        rows - self.physical_rows
+    }
+
+    /// Whether the visible screen is filled
+    /// Used for knowing whether to move the cursor or not
+    pub fn is_filled(&self) -> bool {
+        self.cells.len() > self.physical_rows
+    }
+
+    pub fn push_to_scrollback(&mut self) {
+        self.scrollback_size += 1;
     }
 }
