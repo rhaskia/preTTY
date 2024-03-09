@@ -7,14 +7,14 @@ mod state;
 
 use std::collections::VecDeque;
 
-use cell::{Cell, PromptKind, Until};
+use cell::{Cell, PromptKind, Until, SemanticType};
 use cursor::TerminalCursor;
 use screen::Screen;
+use std::any::Any;
 
 use notify_rust::Notification;
 use screen::TerminalRenderer;
 use state::TerminalState;
-
 
 use termwiz::escape::osc::{FinalTermPromptKind, FinalTermSemanticPrompt};
 use termwiz::escape::{
@@ -168,25 +168,25 @@ impl Terminal {
             FreshLine => self.fresh_line(),
             FreshLineAndStartPrompt { aid, cl } => {
                 self.fresh_line();
-                self.renderer.attr.prompt_kind = PromptKind::Prompt(FinalTermPromptKind::Initial);
+                self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
 
                 if let Some(a) = aid { println!("AID {a}"); }
                 if let Some(c) = cl { println!("FINALCLICK {c}"); }
             }
             MarkEndOfCommandWithFreshLine { aid, cl } => {
                 self.fresh_line();
-                self.renderer.attr.prompt_kind = PromptKind::Prompt(FinalTermPromptKind::Initial);
+                self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
 
                 if let Some(a) = aid { println!("AID {a}"); }
                 if let Some(c) = cl { println!("FINALCLICK {c}"); }
             }
-            StartPrompt(prompt_kind) => self.renderer.attr.prompt_kind = PromptKind::Prompt(prompt_kind),
+            StartPrompt(prompt_kind) => self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::from(prompt_kind)),
             MarkEndOfPromptAndStartOfInputUntilNextMarker => {
                 self.start_input(Until::SemanticMarker)
             }
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
-                self.renderer.attr.prompt_kind = PromptKind::Output;
+                self.renderer.attr.semantic_type = SemanticType::Output;
 
                 if let Some(a) = aid { println!("AID {a}"); }
             }
@@ -203,7 +203,7 @@ impl Terminal {
     }
 
     pub fn start_input(&mut self, until: Until) {
-        self.renderer.attr.prompt_kind = PromptKind::Input(until)
+        self.renderer.attr.semantic_type = SemanticType::Input(until)
         // TODO: Do some state management. maybe some sort of custom editor?
     }
 

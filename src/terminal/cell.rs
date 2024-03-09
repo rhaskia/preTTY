@@ -3,20 +3,44 @@ use termwiz::{
     color::ColorSpec, escape::osc::FinalTermPromptKind,
 };
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Until {
     LineEnd,
     SemanticMarker
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum PromptKind {
-    Output,
-    Input(Until),
-    Prompt(FinalTermPromptKind),
+impl PromptKind {
+    pub fn from(prompt_kind: FinalTermPromptKind) -> Self {
+        match prompt_kind {
+            FinalTermPromptKind::Initial => Self::Initial,
+            FinalTermPromptKind::RightSide => Self::RightSide,
+            FinalTermPromptKind::Continuation => Self::Continuation,
+            FinalTermPromptKind::Secondary => Self::Secondary,
+        }
+    }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+/// Copy of FinalTermPromptKind from termwiz with copy
+#[derive(Clone, Debug, PartialEq, Copy)]
+pub enum PromptKind {
+    /// A normal left side primary prompt
+    Initial,
+    /// A right-aligned prompt
+    RightSide,
+    /// A continuation prompt for an input that can be edited
+    Continuation,
+    /// A continuation prompt where the input cannot be edited
+    Secondary,
+}
+
+#[derive(Clone, Debug, PartialEq, Copy)]
+pub enum SemanticType {
+    Output,
+    Input(Until),
+    Prompt(PromptKind),
+}
+
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub struct CellAttributes {
     pub bg: ColorSpec,
     pub fg: ColorSpec,
@@ -28,7 +52,7 @@ pub struct CellAttributes {
     pub blink: Blink,
     pub underline_fg: ColorSpec,
 
-    pub prompt_kind: PromptKind,
+    pub semantic_type: SemanticType,
 }
 
 pub trait CellHash {
@@ -46,14 +70,14 @@ impl CellAttributes {
             strikethrough: false,
             blink: Blink::None,
             underline_fg: ColorSpec::Default,
-            prompt_kind: PromptKind::Output,
+            semantic_type: SemanticType::Output,
         }
     }
 }
 
 // Change to enum to allow for box drawing etc
 use dioxus::prelude::*;
-#[derive(Clone, Debug, PartialEq,)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Cell {
     pub text: String,
     pub attr: CellAttributes,
