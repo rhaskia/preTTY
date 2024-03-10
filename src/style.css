@@ -55,6 +55,10 @@ span {
   background: var(--fg);
 }
 
+.command-output {
+    font-weight: 100;
+}
+
 .window-header {
     display: flex;
     justify-content: flex-end;

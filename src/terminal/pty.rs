@@ -102,7 +102,9 @@ pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send
     loop {
         match reader.read(&mut chunk) {
             Ok(n) => {
+                buffer.clear();
                 buffer.extend_from_slice(&chunk[..n]);
+                println!("{:?}", String::from_utf8(buffer.clone()).unwrap());
                 parser.parse(&buffer, |t| {
                     rt.block_on(async { tx.send(t.clone()).await });
                 });

@@ -7,7 +7,7 @@ mod state;
 
 use std::collections::VecDeque;
 
-use cell::{Cell, PromptKind, Until, SemanticType};
+use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
 use screen::Screen;
 use std::any::Any;
@@ -26,6 +26,8 @@ use termwiz::escape::{
     Action, ControlCode, OperatingSystemCommand,
 };
 
+use self::command::CommandSlicer;
+
 /// Main terminal controller
 /// Holds a lot of sub-objects
 pub struct Terminal {
@@ -35,6 +37,7 @@ pub struct Terminal {
     pub renderer: TerminalRenderer,
     pub state: TerminalState,
     pub cursor: TerminalCursor,
+    pub commands: CommandSlicer,
 
     pub title: String,
 }
@@ -48,6 +51,7 @@ impl Terminal {
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
             title: "Terminal".into(),
+            commands: CommandSlicer::new(),
         })
     }
 
@@ -71,29 +75,25 @@ impl Terminal {
     /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
         self.cursor.x -= 1;
-        //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default(); 
+        //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default();
         //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
     pub fn new_line(&mut self) {
         self.mut_screen().new_line();
-        println!("new line {:?}", self.screen().scrollback_len());
-
-        if !self.screen().is_filled() {
-            self.cursor.shift_down(1);
-            self.cursor.set_x(0);
-        }
+        self.cursor.set_x(0);
+        self.cursor.shift_down(1);
+        self.cursor.y = self.cursor.y.min(self.rows as usize - 1);
     }
 
     /// Pushes a cell onto the current screen
     pub fn print(&mut self, char: char) {
         let attr = self.renderer.attr.clone();
 
-        // shells don't automatically do wrapping for applications
-        // weird as hell
+        //shells don't automatically do wrapping for applications
+        //weird as hell
         if self.cursor.x >= self.cols.into() {
-            self.cursor.x = 0;
-            self.cursor.y += 1;
+            self.new_line();
         }
 
         self.renderer.mut_screen(self.state.alt_screen).push(
@@ -106,22 +106,9 @@ impl Terminal {
     }
 
     pub fn print_str(&mut self, text: String) {
-        let attr = self.renderer.attr.clone();
-        let len = text.len();
-
-        // shells don't automatically do wrapping for applications
-        // weird as hell
-        if self.cursor.x >= self.cols.into() {
-            self.new_line();
+        for char in text.chars() {
+            self.print(char);
         }
-
-        self.renderer.mut_screen(self.state.alt_screen).push(
-            Cell::new(text, attr),
-            self.cursor.x,
-            self.cursor.y,
-        );
-
-        self.cursor.x += len;
     }
 
     pub fn handle_action(&mut self, action: Action) {
@@ -169,26 +156,40 @@ impl Terminal {
             FreshLineAndStartPrompt { aid, cl } => {
                 self.fresh_line();
                 self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
+                self.commands.start_new(self.cursor.x, self.cursor.y);
 
-                if let Some(a) = aid { println!("AID {a}"); }
-                if let Some(c) = cl { println!("FINALCLICK {c}"); }
+                if let Some(a) = aid {
+                    println!("AID {a}");
+                }
+                if let Some(c) = cl {
+                    println!("FINALCLICK {c}");
+                }
             }
             MarkEndOfCommandWithFreshLine { aid, cl } => {
                 self.fresh_line();
                 self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
+                self.commands.start_new(self.cursor.x, self.cursor.y);
 
-                if let Some(a) = aid { println!("AID {a}"); }
-                if let Some(c) = cl { println!("FINALCLICK {c}"); }
+                if let Some(a) = aid {
+                    println!("AID {a}");
+                }
+                if let Some(c) = cl {
+                    println!("FINALCLICK {c}");
+                }
             }
-            StartPrompt(prompt_kind) => self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::from(prompt_kind)),
-            MarkEndOfPromptAndStartOfInputUntilNextMarker => {
-                self.start_input(Until::SemanticMarker)
+            StartPrompt(prompt_kind) => {
+                self.renderer.attr.semantic_type =
+                    SemanticType::Prompt(PromptKind::from(prompt_kind))
             }
+            MarkEndOfPromptAndStartOfInputUntilNextMarker => self.start_input(Until::SemanticMarker),
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
                 self.renderer.attr.semantic_type = SemanticType::Output;
+                self.commands.start_output(self.cursor.x, self.cursor.y);
 
-                if let Some(a) = aid { println!("AID {a}"); }
+                if let Some(a) = aid {
+                    println!("AID {a}");
+                }
             }
             CommandStatus { status, aid } => println!("COMMAND ENDED {status}, aid {aid:?}"),
         }
@@ -198,12 +199,13 @@ impl Terminal {
         if self.cursor.x == 0 {
             return;
         }
-        self.cursor.set_x(0);
         self.cursor.y += 1;
+        self.cursor.x = 0;
     }
 
     pub fn start_input(&mut self, until: Until) {
-        self.renderer.attr.semantic_type = SemanticType::Input(until)
+        self.renderer.attr.semantic_type = SemanticType::Input(until);
+        self.commands.start_input(self.cursor.x, self.cursor.y);
         // TODO: Do some state management. maybe some sort of custom editor?
     }
 
@@ -235,7 +237,6 @@ impl Terminal {
             EraseInLine::EraseToEndOfLine => {
                 if screen.visible_len() > self.cursor.y {
                     for x in self.cursor.x..screen.line(self.cursor.y).len() {
-                        println!("{}", screen.line(self.cursor.y).len());
                         screen.set_cell(x, self.cursor.y, Cell::default());
                     }
                 }
@@ -255,7 +256,7 @@ impl Terminal {
 
     pub fn erase_characters(&mut self, n: u32) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
-        let end = (self.cursor.x + n as usize).min(screen.mut_line(self.cursor.y).len() - 1);
+        let end = (self.cursor.x + n as usize).min(screen.mut_line(self.cursor.y).len());
 
         for x in self.cursor.x..end {
             screen.mut_line(self.cursor.y)[x] = Cell::default();

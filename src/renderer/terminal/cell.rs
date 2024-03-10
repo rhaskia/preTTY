@@ -4,6 +4,7 @@ use crate::terminal::{
 };
 use dioxus::prelude::*;
 use termwiz::{cell::Intensity, color::ColorSpec};
+use crate::terminal::cell::SemanticType;
 
 #[component]
 pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
@@ -51,7 +52,13 @@ impl GetClasses for CellAttributes {
             Intensity::Half => "cell-dim",
         };
 
-        format!("cellspan {intensity}")
+        let sem_type = match self.semantic_type {
+            SemanticType::Output => "command-ouput",
+            SemanticType::Input(_) => "command-input",
+            SemanticType::Prompt(_) => "command-prompt",
+        };
+
+        format!("cellspan {intensity} {sem_type}")
     }
 }
 

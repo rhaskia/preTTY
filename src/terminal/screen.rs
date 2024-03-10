@@ -67,7 +67,7 @@ pub type Line = Vec<Cell>;
 #[derive(Debug)]
 pub struct Screen {
     pub cells: VecDeque<Line>,
-    scrollback_size: usize,
+    max_scrollback: usize,
 
     physical_rows: usize,
     physical_columns: usize,
@@ -79,31 +79,35 @@ impl Screen {
     pub fn new(rows: usize, columns: usize, sc_allow: bool) -> Screen {
         Screen {
             cells: VecDeque::new(),
-            scrollback_size: 0,
+            max_scrollback: 100,
             physical_rows: rows,
             physical_columns: columns,
             scrollback_allowed: sc_allow,
         }
     }
 
+    pub fn can_scroll(&self) -> bool {
+        self.scrollback_allowed
+    }
+
     /// Pushes a cell at a certain cursor location
     /// Manages any scrollback on its own
-    pub fn push(&mut self, c: Cell, cursorx: usize, cursory: usize) {
-        let cursory = self.visible_start() + cursory;
+    pub fn push(&mut self, cell: Cell, cursor_x: usize, cursor_y: usize) {
+        let cursor_y = self.visible_start() + cursor_y;
 
-        if cursory >= self.cells.len() {
-            let extend_amount = cursory - &self.cells.len();
+        if cursor_y >= self.cells.len() {
+            let extend_amount = cursor_y - &self.cells.len();
             self.cells
-                .extend(vec![vec![Cell::default()]; extend_amount + 1])
+                .extend(vec![vec![Cell::default()]; extend_amount + 1]);
         }
 
-        if cursorx >= self.cells[cursory].len() {
-            let extend_amount = cursorx - &self.cells[cursory].len();
-            self.cells[cursory].extend(vec![Cell::default(); extend_amount + 1])
+        if cursor_x >= self.cells[cursor_y].len() {
+            let extend_amount = cursor_x - &self.cells[cursor_y].len();
+            self.cells[cursor_y].extend(vec![Cell::default(); extend_amount + 1])
         }
 
         // TODO: add extra if cursor out of index
-        self.cells[cursory][cursorx] = c;
+        self.cells[cursor_y][cursor_x] = cell;
     }
 
     pub fn scroll_range(&self, back: usize) -> Range<usize> {
@@ -118,7 +122,7 @@ impl Screen {
     /// Sets a cell at a position within the visible screen
     pub fn set_cell(&mut self, x: usize, y: usize, cell: Cell) {
         let vis_y = self.visible_start() + y;
-        println!("{x}, {vis_y}");
+        if self.cells[vis_y].len() <= x { return; }
         self.cells[vis_y][x] = cell;
     }
 
@@ -130,7 +134,6 @@ impl Screen {
 
     /// Erases scrollback and visible screen
     pub fn erase_all(&mut self) {
-        self.scrollback_size = 0;
         self.cells = VecDeque::new();
     }
 
@@ -147,12 +150,15 @@ impl Screen {
 
     pub fn line(&self, index: usize) -> &Line {
         let vis_index = self.visible_start() + index;
-        println!("{}, {}", self.cells.len(), vis_index);
         &self.cells[index]
     }
 
     pub fn new_line(&mut self) {
-        self.cells.push_back(Vec::new());
+        self.cells.push_back(vec![Cell::default()]);
+        let len = self.cells.len();
+        if len > self.max_scrollback {
+            self.cells.drain(..len - self.max_scrollback);
+        }
     } 
 
     pub fn set_line(&mut self, index: usize, line: Line) {
@@ -173,9 +179,5 @@ impl Screen {
     /// Used for knowing whether to move the cursor or not
     pub fn is_filled(&self) -> bool {
         self.cells.len() > self.physical_rows
-    }
-
-    pub fn push_to_scrollback(&mut self) {
-        self.scrollback_size += 1;
     }
 }
