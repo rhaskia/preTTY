@@ -18,6 +18,8 @@ pub struct PseudoTerminal {
 }
 
 impl PseudoTerminal {
+    /// Creates a new PseudoTerminal object.
+    /// Requires a sender to pull data out of it
     pub fn setup(tx: Sender<Vec<Action>>) -> anyhow::Result<PseudoTerminal> {
         // Send data to the pty by writing to the master
         let pty_system = native_pty_system();
@@ -56,7 +58,6 @@ impl PseudoTerminal {
     }
 
     // Resizes how big the terminal thinks it is
-    // mostly useful for rendering tui applications
     pub fn resize(&mut self, screen_width: u32, screen_height: u32, cell_width: f32, cell_height: f32) {
         self.pair
             .master
@@ -69,6 +70,7 @@ impl PseudoTerminal {
             .unwrap();
     }
 
+    /// Default shell as per ENV vars or whatever is default for the platform
     pub fn default_shell() -> String {
         if cfg!(windows) {
             String::from("cmd") // TODO: proper windows implementation
@@ -80,6 +82,8 @@ impl PseudoTerminal {
         }
     }
 
+    /// Writes input directly into the pty
+    /// Need to make Input handle stringifying Input
     pub fn write_key_input(&mut self, input: Input) {
         match input {
             Input::String(text) => self.writer.write_all(text.as_bytes()).unwrap(),

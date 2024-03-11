@@ -88,10 +88,12 @@ impl Screen {
         }
     }
 
+    /// Scrolls a line out of the visible screen
     pub fn scrollback(&mut self) {
         self.scrollback_offset += 1;
     }
 
+    /// If the screen has the ability to use scrollback
     pub fn can_scroll(&self) -> bool {
         self.scrollback_allowed
     }
@@ -111,6 +113,7 @@ impl Screen {
         self.cells[cursor_y][cursor_x] = cell;
     }
 
+    /// Extends the cell lines if there are not enough
     pub fn ensure_lines(&mut self, index: usize) {
         if index >= self.cells.len() {
             let extend_amount = index - &self.cells.len();
@@ -119,6 +122,7 @@ impl Screen {
         }
     }
 
+    /// Bad bad bad bad
     pub fn scroll_range(&self, back: usize) -> Range<usize> {
         self.scrollback_offset..self.cells.len()
     }
@@ -151,11 +155,13 @@ impl Screen {
         &mut self.cells[vis_index]
     }
 
+    /// Reference to a line within the visible screen
     pub fn line(&self, index: usize) -> &Line {
         let vis_index = self.visible_start() + index;
         &self.cells[index]
     }
 
+    /// Pushes a new line onto the screen
     pub fn new_line(&mut self) {
         self.cells.push_back(vec![Cell::default()]);
         let len = self.cells.len();
@@ -164,6 +170,7 @@ impl Screen {
         }
     }
 
+    /// Sets the value of a Line on the visible screen
     pub fn set_line(&mut self, index: usize, line: Line) {
         let vis_index = self.visible_start() + index;
         self.cells[vis_index] = line;
