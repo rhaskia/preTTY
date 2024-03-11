@@ -111,6 +111,10 @@ impl Terminal {
         }
     }
 
+    pub fn handle_actions(&mut self, actions: Vec<Action>) {
+        for action in actions { self.handle_action(action); }
+    }
+
     pub fn handle_action(&mut self, action: Action) {
         match action {
             Action::Print(s) => self.print(s),

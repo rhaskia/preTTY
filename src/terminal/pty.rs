@@ -18,7 +18,7 @@ pub struct PseudoTerminal {
 }
 
 impl PseudoTerminal {
-    pub fn setup(tx: Sender<Action>) -> anyhow::Result<PseudoTerminal> {
+    pub fn setup(tx: Sender<Vec<Action>>) -> anyhow::Result<PseudoTerminal> {
         // Send data to the pty by writing to the master
         let pty_system = native_pty_system();
 
@@ -92,22 +92,30 @@ impl PseudoTerminal {
     }
 }
 
-pub fn parse_terminal_output(tx: Sender<Action>, mut reader: Box<dyn Read + Send>) {
-    let mut chunk = [0u8; 1024]; // Buffer to hold a single character
-    let mut buffer = Vec::new();
+pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {
+    let mut buffer = [0u8; 1024]; // Buffer to hold a single character
 
     let mut parser = termwiz::escape::parser::Parser::new();
     let rt = Runtime::new().unwrap();
 
     loop {
-        match reader.read(&mut chunk) {
+        match reader.read(&mut buffer) {
+            Ok(0) => {}
             Ok(n) => {
-                buffer.clear();
-                buffer.extend_from_slice(&chunk[..n]);
-                println!("{:?}", String::from_utf8(buffer.clone()).unwrap());
-                parser.parse(&buffer, |t| {
-                    rt.block_on(async { tx.send(t.clone()).await });
-                });
+                let mut actions = Vec::new();
+                let mut i = 0;
+
+                while i < n {
+                    match parser.parse_first(&buffer[i..n]) {
+                        Some((action, size)) => {
+                            actions.push(action);
+                            i += size;
+                        }
+                        None => break,
+                    }
+                }
+
+                rt.block_on(async { tx.send(actions.clone()).await });
             }
             Err(err) => {
                 eprintln!("Error reading from Read object: {}", err);

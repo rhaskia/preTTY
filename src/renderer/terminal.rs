@@ -64,7 +64,7 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
         loop {
             let action = rx.write().recv().await;
             match action {
-                Ok(ref a) => terminal.write().handle_action(a.clone()),
+                Ok(ref a) => terminal.write().handle_actions(a.clone()),
                 Err(err) => {}
             }
         }
