@@ -1,5 +1,5 @@
 use crate::{input::Input, renderer::terminal::TerminalApp};
-use async_channel::{Receiver};
+use async_channel::Receiver;
 use dioxus::prelude::*;
 
 pub mod header;

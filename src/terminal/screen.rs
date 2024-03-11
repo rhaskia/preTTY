@@ -17,10 +17,10 @@ pub struct TerminalRenderer {
 }
 
 impl TerminalRenderer {
-    pub fn new() -> TerminalRenderer {
+    pub fn new(rows: usize, cols: usize) -> TerminalRenderer {
         TerminalRenderer {
-            screen: Screen::new(24, 80, true),
-            alt_screen: Screen::new(24, 80, false),
+            screen: Screen::new(rows, cols, true),
+            alt_screen: Screen::new(rows, cols, false),
             attr: CellAttributes::default(),
             commands: CommandSlicer::new(),
         }
@@ -68,6 +68,7 @@ pub type Line = Vec<Cell>;
 pub struct Screen {
     pub cells: VecDeque<Line>,
     max_scrollback: usize,
+    scrollback_offset: usize,
 
     physical_rows: usize,
     physical_columns: usize,
@@ -83,7 +84,12 @@ impl Screen {
             physical_rows: rows,
             physical_columns: columns,
             scrollback_allowed: sc_allow,
+            scrollback_offset: 0,
         }
+    }
+
+    pub fn scrollback(&mut self) {
+        self.scrollback_offset += 1;
     }
 
     pub fn can_scroll(&self) -> bool {
@@ -94,12 +100,7 @@ impl Screen {
     /// Manages any scrollback on its own
     pub fn push(&mut self, cell: Cell, cursor_x: usize, cursor_y: usize) {
         let cursor_y = self.visible_start() + cursor_y;
-
-        if cursor_y >= self.cells.len() {
-            let extend_amount = cursor_y - &self.cells.len();
-            self.cells
-                .extend(vec![vec![Cell::default()]; extend_amount + 1]);
-        }
+        self.ensure_lines(cursor_y);
 
         if cursor_x >= self.cells[cursor_y].len() {
             let extend_amount = cursor_x - &self.cells[cursor_y].len();
@@ -110,20 +111,21 @@ impl Screen {
         self.cells[cursor_y][cursor_x] = cell;
     }
 
+    pub fn ensure_lines(&mut self, index: usize) {
+        if index >= self.cells.len() {
+            let extend_amount = index - &self.cells.len();
+            self.cells
+                .extend(vec![vec![Cell::default()]; extend_amount + 1]);
+        }
+    }
+
     pub fn scroll_range(&self, back: usize) -> Range<usize> {
-        self.visible_start()..self.visible_len()
+        self.scrollback_offset..self.cells.len()
     }
 
     /// Length of whole scrollback
     pub fn scrollback_len(&self) -> usize {
         self.cells.len()
-    }
-
-    /// Sets a cell at a position within the visible screen
-    pub fn set_cell(&mut self, x: usize, y: usize, cell: Cell) {
-        let vis_y = self.visible_start() + y;
-        if self.cells[vis_y].len() <= x { return; }
-        self.cells[vis_y][x] = cell;
     }
 
     /// Sets a cell at a position within the visible screen
@@ -145,6 +147,7 @@ impl Screen {
     // Mutable reference to a line within the visible screen
     pub fn mut_line(&mut self, index: usize) -> &mut Line {
         let vis_index = self.visible_start() + index;
+        self.ensure_lines(vis_index);
         &mut self.cells[vis_index]
     }
 
@@ -159,7 +162,7 @@ impl Screen {
         if len > self.max_scrollback {
             self.cells.drain(..len - self.max_scrollback);
         }
-    } 
+    }
 
     pub fn set_line(&mut self, index: usize, line: Line) {
         let vis_index = self.visible_start() + index;
@@ -168,11 +171,7 @@ impl Screen {
 
     /// The index at which the visible screen starts in the scrollback buffer
     pub fn visible_start(&self) -> usize {
-        let rows = self.cells.len();
-        if rows <= self.physical_rows {
-            return 0;
-        }
-        rows - self.physical_rows
+        self.scrollback_offset
     }
 
     /// Whether the visible screen is filled

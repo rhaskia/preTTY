@@ -6,8 +6,8 @@ function getTextSize(size, family) {
     hiddenDiv.style.cssText = "position: absolute; visibility: hidden;";
     hiddenDiv.style.fontSize = size;
     hiddenDiv.style.fontFamily = family;
-    hiddenDiv.style.maxHeight = "1vh";
-    hiddenDiv.style.maxWidth = "1vh";
+    hiddenDiv.style.maxHeight = "999vh";
+    hiddenDiv.style.maxWidth = "999vh";
     hiddenDiv.style.margin = 0;
     hiddenDiv.className = "cellspan";
     hiddenDiv.textContent = "M";

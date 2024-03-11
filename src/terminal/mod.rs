@@ -16,7 +16,7 @@ use notify_rust::Notification;
 use screen::TerminalRenderer;
 use state::TerminalState;
 
-use termwiz::escape::osc::{FinalTermPromptKind, FinalTermSemanticPrompt};
+use termwiz::escape::osc::FinalTermSemanticPrompt;
 use termwiz::escape::{
     csi::{
         Cursor, Edit, EraseInDisplay, EraseInLine,
@@ -47,7 +47,7 @@ impl Terminal {
         Ok(Terminal {
             rows: 24,
             cols: 80,
-            renderer: TerminalRenderer::new(),
+            renderer: TerminalRenderer::new(24, 80),
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
             title: "Terminal".into(),
@@ -80,10 +80,11 @@ impl Terminal {
     }
 
     pub fn new_line(&mut self) {
-        self.mut_screen().new_line();
-        self.cursor.set_x(0);
         self.cursor.shift_down(1);
-        self.cursor.y = self.cursor.y.min(self.rows as usize - 1);
+        if self.cursor.y == self.rows as usize {
+            self.cursor.y = self.rows as usize - 1;
+            self.mut_screen().scrollback();
+        }
     }
 
     /// Pushes a cell onto the current screen
@@ -93,7 +94,8 @@ impl Terminal {
         //shells don't automatically do wrapping for applications
         //weird as hell
         if self.cursor.x >= self.cols.into() {
-            self.new_line();
+            self.cursor.shift_down(1);
+            self.cursor.set_x(0);
         }
 
         self.renderer.mut_screen(self.state.alt_screen).push(
@@ -116,6 +118,7 @@ impl Terminal {
     }
 
     pub fn handle_action(&mut self, action: Action) {
+        println!("{action:?}, {}", self.cursor.y);
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
@@ -203,7 +206,7 @@ impl Terminal {
         if self.cursor.x == 0 {
             return;
         }
-        self.cursor.y += 1;
+        self.new_line();
         self.cursor.x = 0;
     }
 
@@ -241,14 +244,14 @@ impl Terminal {
             EraseInLine::EraseToEndOfLine => {
                 if screen.visible_len() > self.cursor.y {
                     for x in self.cursor.x..screen.line(self.cursor.y).len() {
-                        screen.set_cell(x, self.cursor.y, Cell::default());
+                        screen.push(Cell::default(), x, self.cursor.y);
                     }
                 }
             }
             EraseInLine::EraseToStartOfLine => {
                 // may go out of bounds. idk
                 for x in 0..self.cursor.x {
-                    screen.set_cell(x, self.cursor.y, Cell::default());
+                    screen.push(Cell::default(), x, self.cursor.y);
                 }
             }
             EraseInLine::EraseLine => {

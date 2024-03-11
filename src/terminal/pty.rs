@@ -102,19 +102,7 @@ pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read +
         match reader.read(&mut buffer) {
             Ok(0) => {}
             Ok(n) => {
-                let mut actions = Vec::new();
-                let mut i = 0;
-
-                while i < n {
-                    match parser.parse_first(&buffer[i..n]) {
-                        Some((action, size)) => {
-                            actions.push(action);
-                            i += size;
-                        }
-                        None => break,
-                    }
-                }
-
+                let mut actions = parser.parse_as_vec(&buffer[..n]);
                 rt.block_on(async { tx.send(actions.clone()).await });
             }
             Err(err) => {
