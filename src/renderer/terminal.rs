@@ -4,11 +4,7 @@ pub mod cursor;
 
 use cell::CellGrid;
 use cursor::Cursor;
-<<<<<<< HEAD
 use crate::input::Input;
-=======
-use crate::input::{Input};
->>>>>>> e619be2af2960f9a16dbb60c892db90502cd6993
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use commands::CommandsSlice;
 
@@ -87,13 +83,7 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
             if terminal.read().state.alt_screen {
                 CellGrid { terminal }
             } else {
-<<<<<<< HEAD
-                CellGrid { terminal }
-                // CommandsSlice { terminal }
-=======
-                //CellGrid { terminal }
                 CommandsSlice { terminal }
->>>>>>> e619be2af2960f9a16dbb60c892db90502cd6993
             }
 
             Cursor {
