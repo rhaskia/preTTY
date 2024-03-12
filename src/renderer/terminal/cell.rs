@@ -72,6 +72,7 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
             class: "{cell.attr.get_classes()}",
             style: "--fg: {fg}; --bg: {bg}; --len: {cell.text.len()}",
             key: "{x}:{y}",
+            id: "{x}:{y}",
             "{cell.text}"
         }
     }

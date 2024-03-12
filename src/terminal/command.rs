@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::ops::{RangeFrom, Range};
 
 #[derive(Debug)]
 pub struct CommandSlicer {
@@ -49,6 +49,12 @@ impl CommandSlicer {
     }
 }
 
+#[derive(Debug)]
+pub enum RangeOption {
+    Ended(Range<usize>),
+    Ongoing(RangeFrom<usize>),
+}
+
 impl CommandSlice {
     pub fn new(x: usize, y: usize) -> Self {
         CommandSlice {
@@ -59,10 +65,10 @@ impl CommandSlice {
         }
     }
 
-    pub fn lines_range(&self) -> Option<Range<usize>> {
+    pub fn range(&self) -> RangeOption {
         match self.end {
-            Some(end) => Some(self.prompt.y..end.y),
-            None => None,
+            Some(end) => RangeOption::Ended(self.prompt.y..end.y),
+            None => RangeOption::Ongoing(self.prompt.y..),
         }
     }
 
