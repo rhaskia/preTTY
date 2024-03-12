@@ -3,10 +3,7 @@ pub mod commands;
 pub mod cursor;
 
 use cell::CellGrid;
-
 use cursor::Cursor;
-
-
 use crate::input::{Input};
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use commands::CommandsSlice;
@@ -15,7 +12,6 @@ use async_channel::Receiver;
 use dioxus::desktop::use_window;
 use dioxus::prelude::*;
 use serde::Deserialize;
-
 
 #[derive(Default, Deserialize)]
 pub struct CellSize {
@@ -87,7 +83,7 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
             if terminal.read().state.alt_screen {
                 CellGrid { terminal }
             } else {
-                CellGrid { terminal }
+                //CellGrid { terminal }
                 CommandsSlice { terminal }
             }
 

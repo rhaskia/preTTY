@@ -9,7 +9,10 @@ pub fn CommandsSlice(terminal: Signal<Terminal>) -> Element {
     rsx! {
         for command in terminal.read().commands.get() {
             pre {
-                "{command:?}"
+                color: "white",
+                font_size: "14px",
+                
+                "{command.range():?}"
             }
         }
     }
