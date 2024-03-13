@@ -77,20 +77,20 @@ impl CellAttributes {
 
 // Change to enum to allow for box drawing etc
 use dioxus::prelude::*;
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub struct Cell {
-    pub text: String,
+    pub text: char,
     pub attr: CellAttributes,
 }
 
 impl Cell {
-    pub fn new(text: String, attr: CellAttributes) -> Cell {
+    pub fn new(text: char, attr: CellAttributes) -> Cell {
         Cell { text, attr }
     }
 
     pub fn default() -> Cell {
         Cell {
-            text: String::from(" "),
+            text: ' ',
             attr: CellAttributes::default(),
         }
     }

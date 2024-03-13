@@ -97,7 +97,7 @@ impl Terminal {
         }
 
         self.renderer.mut_screen(self.state.alt_screen).push(
-            Cell::new(char.to_string(), attr),
+            Cell::new(char, attr),
             self.cursor.x,
             self.cursor.y,
         );
@@ -239,7 +239,7 @@ impl Terminal {
 
         match edit {
             EraseInLine::EraseToEndOfLine => {
-                if screen.visible_len() > self.cursor.y {
+                if screen.len() > self.cursor.y {
                     for x in self.cursor.x..screen.line(self.cursor.y).len() {
                         screen.set_cell(x, self.cursor.y, Cell::default());
                     }

@@ -111,7 +111,7 @@ impl Screen {
     }
 
     pub fn scroll_range(&self, back: usize) -> Range<usize> {
-        self.visible_start()..self.visible_len()
+        self.visible_start()..self.len()
     }
 
     /// Length of whole scrollback
@@ -138,7 +138,7 @@ impl Screen {
     }
 
     /// Length of the visible screen
-    pub fn visible_len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.cells.len()
     }
 

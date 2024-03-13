@@ -5,13 +5,13 @@ pub struct CommandSlicer {
     commands: Vec<CommandSlice>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Position {
     x: usize,
     y: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CommandSlice {
     prompt: Position,
     input: Option<Position>,
@@ -49,12 +49,6 @@ impl CommandSlicer {
     }
 }
 
-#[derive(Debug)]
-pub enum RangeOption {
-    Ended(Range<usize>),
-    Ongoing(RangeFrom<usize>),
-}
-
 impl CommandSlice {
     pub fn new(x: usize, y: usize) -> Self {
         CommandSlice {
@@ -65,10 +59,10 @@ impl CommandSlice {
         }
     }
 
-    pub fn range(&self) -> RangeOption {
+    pub fn range(&self, end: usize) -> Range<usize> {
         match self.end {
-            Some(end) => RangeOption::Ended(self.prompt.y..end.y),
-            None => RangeOption::Ongoing(self.prompt.y..),
+            Some(end) => self.prompt.y..end.y,
+            None => self.prompt.y..end,
         }
     }
 

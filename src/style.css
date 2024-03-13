@@ -47,6 +47,12 @@ span {
     background-color: var(--bg);
 }
 
+.command-slice {
+    border: 1px white;
+    box-shadow: 1px 1px 0px 2px grey;
+    margin-bottom: 8px;
+}
+
 .cellspan {
     /* max-width: var(--cell-width); */
     /* max-height: var(--cell-height); */
