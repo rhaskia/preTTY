@@ -5,6 +5,7 @@ use crate::terminal::{
 use dioxus::prelude::*;
 use termwiz::{cell::Intensity, color::ColorSpec};
 use crate::terminal::cell::SemanticType;
+use crate::renderer::GetClasses;
 
 #[component]
 pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
@@ -38,10 +39,6 @@ impl ToHex for ColorSpec {
             ColorSpec::PaletteIndex(i) => format!("var(--palette-{i})"),
         }
     }
-}
-
-pub trait GetClasses {
-    fn get_classes(&self) -> String;
 }
 
 impl GetClasses for CellAttributes {

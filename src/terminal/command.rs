@@ -17,6 +17,32 @@ pub struct CommandSlice {
     input: Option<Position>,
     output: Option<Position>,
     end: Option<Position>,
+    status: CommandStatus
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CommandStatus {
+    Success,
+    Error, 
+    ShellCommandMisuse,
+    CannotExecute,
+    NotFound,
+    FatalError(i32),
+    None
+}
+
+impl CommandStatus {
+    pub fn from_int(n: i32) -> Self {
+        match n {
+            0 => CommandStatus::Success,
+            1 => CommandStatus::Error,
+            2 => CommandStatus::ShellCommandMisuse,
+            126 => CommandStatus::CannotExecute,
+            127 => CommandStatus::NotFound,
+            128..=255 => CommandStatus::FatalError(n - 128),
+            _ => CommandStatus::None,
+        }
+    }
 }
 
 impl CommandSlicer {
@@ -47,6 +73,10 @@ impl CommandSlicer {
         self.commands.last_mut().unwrap().output = Some(Position { x, y });
         println!("STARTED OUPUT");
     }
+
+    pub fn set_status(&mut self, status: i32) {
+        self.commands.last_mut().unwrap().status = CommandStatus::from_int(status);
+    }
 }
 
 impl CommandSlice {
@@ -56,7 +86,12 @@ impl CommandSlice {
             input: None,
             output: None,
             end: None,
+            status: CommandStatus::None,
         }
+    }
+
+    pub fn get_status(&self) -> CommandStatus {
+        self.status
     }
 
     pub fn range(&self, end: usize) -> Range<usize> {
@@ -70,3 +105,4 @@ impl CommandSlice {
         self.end.is_some()
     }
 }
+

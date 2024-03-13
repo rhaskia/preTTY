@@ -28,6 +28,7 @@
 .terminal-split {
     height: 100%;
     width: 100%;
+    padding: 8px;
 }
 
 body {
@@ -47,10 +48,10 @@ span {
     background-color: var(--bg);
 }
 
-.command-slice {
-    border: 1px white;
-    box-shadow: 1px 1px 0px 2px grey;
-    margin-bottom: 8px;
+.command {
+    border-bottom: 1px white solid;
+    margin-bottom: 4px;
+    padding-bottom: 2px;
 }
 
 .cellspan {

@@ -6,6 +6,10 @@ pub mod header;
 mod palette;
 pub mod terminal;
 
+pub trait GetClasses {
+    fn get_classes(&self) -> String;
+}
+
 #[component]
 pub fn TerminalSplit(input: Signal<Receiver<Input>>) -> Element {
     //let (send, recv) = async_channel::unbounded();

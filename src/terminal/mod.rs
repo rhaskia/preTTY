@@ -198,7 +198,7 @@ impl Terminal {
                     println!("AID {a}");
                 }
             }
-            CommandStatus { status, aid } => println!("COMMAND ENDED {status}, aid {aid:?}"),
+            CommandStatus { status, aid } => self.commands.set_status(status),
         }
     }
 
