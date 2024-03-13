@@ -70,7 +70,7 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
     rsx! {
         span {
             class: "{cell.attr.get_classes()}",
-            style: "--fg: {fg}; --bg: {bg}; --len: {cell.text.len()}",
+            style: "--fg: {fg}; --bg: {bg}",
             key: "{x}:{y}",
             id: "{x}:{y}",
             "{cell.text}"

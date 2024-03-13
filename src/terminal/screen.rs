@@ -144,7 +144,7 @@ impl Screen {
     }
 
     /// Length of the visible screen
-    pub fn visible_len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.cells.len()
     }
 
