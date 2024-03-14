@@ -17,11 +17,13 @@
 - [ ] Scrolling for commands
 - [ ] margins
 - [ ] clear alt screen
+- [ ] Commands break on reset screen
 
 # Input
 - [ ] More Keys
 - [ ] Modifier Specifics
 - [ ] Mouse
+- [ ] CSI kitty support
 
 # Config
 - [ ] option for decorations

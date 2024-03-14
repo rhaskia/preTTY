@@ -50,7 +50,7 @@ span {
     padding: 4px;
 }
 
-.command-fatal {
+.command-fatal, .command-not-found, .command-error {
     border-left: var(--light-red) 2px solid; 
 }
 

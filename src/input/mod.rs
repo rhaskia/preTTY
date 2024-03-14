@@ -27,6 +27,7 @@ impl InputManager {
                 match key_char {
                     // char magic that brings them down into the right range
                     'a'..='z' => return ((key_char as u8 - 96) as char).to_string(),
+                    'A'..='Z' => return ((key_char as u8 - 64) as char).to_string(),
                     '[' => return "\u{27}".to_string(),
                     '\\' => return "\u{28}".to_string(),
                     '}' => return "\u{29}".to_string(),
