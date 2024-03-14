@@ -28,14 +28,14 @@ pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
 }
 
 pub trait ToHex {
-    fn to_hex(&self, def: String) -> String;
+    fn to_hex(&self) -> String;
 }
 
 impl ToHex for ColorSpec {
-    fn to_hex(&self, def: String) -> String {
+    fn to_hex(&self) -> String {
         match self {
             ColorSpec::TrueColor(c) => c.to_string(),
-            ColorSpec::Default => def,
+            ColorSpec::Default => "inherit".to_string(),
             ColorSpec::PaletteIndex(i) => format!("var(--palette-{i})"),
         }
     }
@@ -61,8 +61,8 @@ impl GetClasses for CellAttributes {
 
 #[component]
 pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
-    let fg = cell.attr.fg.to_hex(String::from("var(--fg-default)"));
-    let bg = cell.attr.bg.to_hex(String::from("var(--bg-default)"));
+    let fg = cell.attr.fg.to_hex();
+    let bg = cell.attr.bg.to_hex();
 
     rsx! {
         span {

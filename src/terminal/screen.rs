@@ -155,6 +155,10 @@ impl Screen {
         &mut self.cells[vis_index]
     }
 
+    pub fn phys_line(&self, index: usize) -> usize {
+    self.visible_start() + index
+    }
+
     /// Reference to a line within the visible screen
     pub fn line(&self, index: usize) -> &Line {
         let vis_index = self.visible_start() + index;

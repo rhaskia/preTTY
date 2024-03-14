@@ -21,3 +21,5 @@ async-option = "0.1.1"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"]}
 notify-rust = "4.10.0"
+manganis = "0.2.1"
+tao = "0.26.1"

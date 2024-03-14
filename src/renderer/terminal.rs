@@ -78,7 +78,6 @@ pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
         div {
             style: "--cell-width: {cell_size.read().width}px; --cell-height: {cell_size.read().height}px",
             class: "terminal-split",
-            script { src: "/js/textsize.js" }
 
             if terminal.read().state.alt_screen {
                 CellGrid { terminal }

@@ -1,0 +1,24 @@
+:root {
+    --fg-default: var(--white);
+    --bg-default: var(--black);
+
+    --palette-1: var(--red); 
+    --palette-2: var(--green); 
+    --palette-3: var(--yellow); 
+
+    --palette-4: var(--blue); 
+    --palette-5: var(--cyan); 
+    --palette-6: var(--purple); 
+
+    --palette-7: var(--white);
+
+    --palette-8: var(--grey);
+
+    --palette-9: var(--light-red);
+    --palette-10: var(--light-yellow); 
+    --palette-11: var(--light-green); 
+
+    --palette-12: var(--light-blue); 
+    --palette-12: var(--light-cyan); 
+    --palette-14: var(--light-purple); 
+}

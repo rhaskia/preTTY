@@ -26,19 +26,16 @@
 
 /* flex? */
 .terminal-split {
-    height: 100%;
-    width: 100%;
-    padding: 8px;
 }
 
 body {
-    background-color: #000000;
-    margin:0;
+    background-color: var(--black);
+    margin: 0;
 }
 
 pre {
     margin: 0;
-    color: white;
+    color: var(--white);
     font-size: 0px;
     overflow: hidden;
 }
@@ -50,8 +47,11 @@ span {
 
 .command {
     border-bottom: 1px white solid;
-    margin-bottom: 4px;
-    padding-bottom: 2px;
+    padding: 4px;
+}
+
+.command-fatal {
+    border-left: var(--light-red) 2px solid; 
 }
 
 .cellspan {
@@ -62,10 +62,10 @@ span {
     overflow: hidden;
 }
 
-::selection {
-  color: var(--bg);
-  background: var(--fg);
-}
+/* ::selection { */
+/*   color: var(--bg); */
+/*   background: var(--fg); */
+/* } */
 
 .command-output {
     font-weight: 100;

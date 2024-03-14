@@ -114,7 +114,9 @@ impl Terminal {
     }
 
     pub fn handle_actions(&mut self, actions: Vec<Action>) {
-        for action in actions { self.handle_action(action); }
+        for action in actions {
+            self.handle_action(action);
+        }
     }
 
     pub fn handle_action(&mut self, action: Action) {
@@ -158,12 +160,14 @@ impl Terminal {
     // Ideally there would be a Command object, that has prompt, input and output fields
     pub fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
         use FinalTermSemanticPrompt::*;
+
+        let phys_y = self.screen().phys_line(self.cursor.y);
+
         match prompt {
             FreshLine => self.fresh_line(),
             FreshLineAndStartPrompt { aid, cl } => {
                 self.fresh_line();
-                self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
-                self.commands.start_new(self.cursor.x, self.cursor.y);
+                self.start_command();
 
                 if let Some(a) = aid {
                     println!("AID {a}");
@@ -174,8 +178,7 @@ impl Terminal {
             }
             MarkEndOfCommandWithFreshLine { aid, cl } => {
                 self.fresh_line();
-                self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
-                self.commands.start_new(self.cursor.x, self.cursor.y);
+                self.start_command();
 
                 if let Some(a) = aid {
                     println!("AID {a}");
@@ -188,11 +191,14 @@ impl Terminal {
                 self.renderer.attr.semantic_type =
                     SemanticType::Prompt(PromptKind::from(prompt_kind))
             }
-            MarkEndOfPromptAndStartOfInputUntilNextMarker => self.start_input(Until::SemanticMarker),
+            MarkEndOfPromptAndStartOfInputUntilNextMarker => {
+                self.start_input(Until::SemanticMarker)
+            }
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
                 self.renderer.attr.semantic_type = SemanticType::Output;
-                self.commands.start_output(self.cursor.x, self.cursor.y);
+                self.commands
+                    .start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
 
                 if let Some(a) = aid {
                     println!("AID {a}");
@@ -210,9 +216,16 @@ impl Terminal {
         self.cursor.x = 0;
     }
 
+    pub fn start_command(&mut self) {
+        self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
+        self.commands
+            .start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
+    }
+
     pub fn start_input(&mut self, until: Until) {
         self.renderer.attr.semantic_type = SemanticType::Input(until);
-        self.commands.start_input(self.cursor.x, self.cursor.y);
+        self.commands
+            .start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
         // TODO: Do some state management. maybe some sort of custom editor?
     }
 

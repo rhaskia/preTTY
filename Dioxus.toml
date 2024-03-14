@@ -1,0 +1,21 @@
+[application]
+name = "PreTTY"
+
+default_platform = "desktop"
+
+out_dir = "dist"
+asset_dir = "public"
+
+[web.app]
+
+[web.watcher]
+reload_html = true
+watch_path = ["src", "public", "css", "js"]
+
+[web.resource]
+style = [
+    "css/style.css",
+] 
+
+[web.resource.dev]
+

@@ -48,7 +48,7 @@ impl CommandStatus {
 impl CommandSlicer {
     pub fn new() -> Self {
         CommandSlicer {
-            commands: Vec::new(),
+            commands: vec![ CommandSlice::new(0, 0) ],
         }
     }
 
