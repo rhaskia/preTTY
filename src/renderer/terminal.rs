@@ -2,15 +2,16 @@ pub mod cell;
 pub mod commands;
 pub mod cursor;
 
-use cell::CellGrid;
-use cursor::Cursor;
-use crate::terminal::{pty::PseudoTerminal, Terminal};
-use commands::CommandsSlice;
-
 use async_channel::Receiver;
+use cell::CellGrid;
+use commands::CommandsSlice;
+use cursor::Cursor;
 use dioxus::desktop::use_window;
 use dioxus::prelude::*;
 use serde::Deserialize;
+
+use crate::terminal::pty::PseudoTerminal;
+use crate::terminal::Terminal;
 
 #[derive(Default, Deserialize)]
 pub struct CellSize {

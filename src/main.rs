@@ -5,11 +5,11 @@ mod input;
 mod renderer;
 mod terminal;
 
-use crate::input::InputManager;
-use crate::renderer::TerminalSplit;
-
 use dioxus::prelude::*;
 use manganis::mg;
+
+use crate::input::InputManager;
+use crate::renderer::TerminalSplit;
 
 #[component]
 pub fn App() -> Element {

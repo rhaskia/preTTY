@@ -5,27 +5,18 @@ pub mod pty;
 pub mod screen;
 mod state;
 
-use std::collections::{VecDeque, HashMap};
+use std::any::Any;
+use std::collections::{HashMap, VecDeque};
 
 use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
-use screen::Screen;
-use std::any::Any;
-
 use notify_rust::Notification;
-use screen::TerminalRenderer;
+use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
-
-use termwiz::escape::osc::FinalTermSemanticPrompt;
-use termwiz::escape::{
-    csi::{
-        Cursor, Edit, EraseInDisplay, EraseInLine,
-        Mode::{ResetDecPrivateMode, SetDecPrivateMode},
-        CSI,
-    },
-    Action, ControlCode, OperatingSystemCommand,
-};
-use termwiz::escape::osc::ITermProprietary;
+use termwiz::escape::csi::Mode::{ResetDecPrivateMode, SetDecPrivateMode};
+use termwiz::escape::csi::{Cursor, Edit, EraseInDisplay, EraseInLine, CSI};
+use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
+use termwiz::escape::{Action, ControlCode, OperatingSystemCommand};
 
 use self::command::CommandSlicer;
 
@@ -78,8 +69,8 @@ impl Terminal {
     /// Backspaces at the terminal cursor position
     pub fn backspace(&mut self) {
         self.cursor.x -= 1;
-        //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default();
-        //self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
+        // self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default();
+        // self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
     pub fn new_line(&mut self) {
@@ -94,8 +85,8 @@ impl Terminal {
     pub fn print(&mut self, char: char) {
         let attr = self.renderer.attr.clone();
 
-        //shells don't automatically do wrapping for applications
-        //weird as hell
+        // shells don't automatically do wrapping for applications
+        // weird as hell
         if self.cursor.x >= self.cols.into() {
             self.cursor.shift_down(1);
             self.cursor.set_x(0);
@@ -155,9 +146,13 @@ impl Terminal {
     pub fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
         match *command {
             OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
-            OperatingSystemCommand::FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
-            OperatingSystemCommand::ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
-            //OperatingSystemCommand::SystemNotification(notif) => Self::notify_window(notif),
+            OperatingSystemCommand::FinalTermSemanticPrompt(ftsprompt) => {
+                self.handle_fts_prompt(ftsprompt)
+            }
+            OperatingSystemCommand::ITermProprietary(iterm_command) => {
+                self.handle_iterm(iterm_command)
+            }
+            // OperatingSystemCommand::SystemNotification(notif) => Self::notify_window(notif),
             _ => println!("OperatingSystemCommand({:?})", command),
         };
     }
@@ -165,7 +160,9 @@ impl Terminal {
     /// Handling of all Iterm-based commands
     pub fn handle_iterm(&mut self, command: ITermProprietary) {
         match command {
-            ITermProprietary::SetUserVar { name, value } => { self.user_vars.insert(name, value); }
+            ITermProprietary::SetUserVar { name, value } => {
+                self.user_vars.insert(name, value);
+            }
 
             _ => println!("Iterm {command:?}"),
         }
@@ -284,7 +281,7 @@ impl Terminal {
             }
             EraseInLine::EraseLine => {
                 screen.set_line(self.cursor.y, Vec::new());
-                //self.cursor.set_x(0);
+                // self.cursor.set_x(0);
             }
         }
     }
@@ -307,11 +304,7 @@ impl Terminal {
         }
     }
 
-    pub fn screen(&self) -> &Screen {
-        self.renderer.get_screen(self.state.alt_screen)
-    }
+    pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
 
-    pub fn mut_screen(&mut self) -> &mut Screen {
-        self.renderer.mut_screen(self.state.alt_screen)
-    }
+    pub fn mut_screen(&mut self) -> &mut Screen { self.renderer.mut_screen(self.state.alt_screen) }
 }

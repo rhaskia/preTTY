@@ -1,9 +1,9 @@
 use dioxus::prelude::*;
 
-use crate::renderer::GetClasses;
-use crate::terminal::Terminal;
-use crate::terminal::command::{CommandSlice, CommandStatus};
 use super::cell::CellSpan;
+use crate::renderer::GetClasses;
+use crate::terminal::command::{CommandSlice, CommandStatus};
+use crate::terminal::Terminal;
 
 impl GetClasses for CommandSlice {
     fn get_classes(&self) -> String {
@@ -41,7 +41,7 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>) -> Element {
             pre {
                 for y in command.range(terminal.read().screen().len()) {
                     for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
-                        CellSpan { cell: *cell, x, y } 
+                        CellSpan { cell: *cell, x, y }
                     }
                     br {}
                 }

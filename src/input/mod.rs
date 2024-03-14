@@ -13,15 +13,27 @@ pub struct Key {
 }
 
 impl InputManager {
-    pub fn new() -> InputManager {
-        InputManager {}
-    }
+    pub fn new() -> InputManager { InputManager {} }
+
+    pub fn alt_key(&self, c: char) -> Option<String> {}
+
+    pub fn ctrl_key(&self, c: char) -> Option<String> {}
+
+    pub fn ctrl_alt_key(&self, c: char) -> Option<String> {}
 
     pub fn handle_key(&self, js_key: Value) -> String {
         let key: Key = from_value(js_key).unwrap();
-        
+
         if key.key.len() == 1 {
             let key_char = key.key.chars().next().unwrap();
+
+            if key.alt && key.ctrl {
+                if let Some(output) = self.ctrl_alt_key(key_char) {
+                    return ouput;
+                }
+            }
+
+            if key.alt {}
 
             if key.ctrl {
                 match key_char {
@@ -34,7 +46,6 @@ impl InputManager {
                     '^' => return "\u{30}".to_string(),
                     ' ' => return "\u{31}".to_string(),
                     _ => {}
-
                 }
             } else {
                 return key.key;
@@ -58,7 +69,8 @@ impl InputManager {
                 println!("{:?}", key.key);
                 ""
             }
-        }.to_string()
+        }
+        .to_string()
     }
 }
 

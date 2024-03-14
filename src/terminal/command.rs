@@ -1,4 +1,4 @@
-use std::ops::{RangeFrom, Range};
+use std::ops::{Range, RangeFrom};
 
 #[derive(Debug)]
 pub struct CommandSlicer {
@@ -17,18 +17,18 @@ pub struct CommandSlice {
     input: Option<Position>,
     output: Option<Position>,
     end: Option<Position>,
-    status: CommandStatus
+    status: CommandStatus,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CommandStatus {
     Success,
-    Error, 
+    Error,
     ShellCommandMisuse,
     CannotExecute,
     NotFound,
     FatalError(i32),
-    None
+    None,
 }
 
 impl CommandStatus {
@@ -48,13 +48,11 @@ impl CommandStatus {
 impl CommandSlicer {
     pub fn new() -> Self {
         CommandSlicer {
-            commands: vec![ CommandSlice::new(0, 0) ],
+            commands: vec![CommandSlice::new(0, 0)],
         }
     }
 
-    pub fn get(&self) -> &Vec<CommandSlice> {
-        &self.commands
-    }
+    pub fn get(&self) -> &Vec<CommandSlice> { &self.commands }
 
     pub fn start_new(&mut self, x: usize, y: usize) {
         if let Some(command) = self.commands.last_mut() {
@@ -90,9 +88,7 @@ impl CommandSlice {
         }
     }
 
-    pub fn get_status(&self) -> CommandStatus {
-        self.status
-    }
+    pub fn get_status(&self) -> CommandStatus { self.status }
 
     pub fn range(&self, end: usize) -> Range<usize> {
         match self.end {
@@ -101,8 +97,5 @@ impl CommandSlice {
         }
     }
 
-    pub fn finished(&self) -> bool {
-        self.end.is_some()
-    }
+    pub fn finished(&self) -> bool { self.end.is_some() }
 }
-

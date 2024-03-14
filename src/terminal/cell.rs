@@ -1,12 +1,11 @@
-use termwiz::{
-    cell::{Blink, Intensity, Underline},
-    color::ColorSpec, escape::osc::FinalTermPromptKind,
-};
+use termwiz::cell::{Blink, Intensity, Underline};
+use termwiz::color::ColorSpec;
+use termwiz::escape::osc::FinalTermPromptKind;
 
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Until {
     LineEnd,
-    SemanticMarker
+    SemanticMarker,
 }
 
 impl PromptKind {
@@ -84,9 +83,7 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub fn new(text: char, attr: CellAttributes) -> Cell {
-        Cell { text, attr }
-    }
+    pub fn new(text: char, attr: CellAttributes) -> Cell { Cell { text, attr } }
 
     pub fn default() -> Cell {
         Cell {

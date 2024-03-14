@@ -1,11 +1,10 @@
 use std::collections::VecDeque;
 use std::ops::Range;
 
-use super::{
-    cell::{Cell, CellAttributes},
-    command::{CommandSlice, CommandSlicer},
-};
 use termwiz::escape::csi::Sgr;
+
+use super::cell::{Cell, CellAttributes};
+use super::command::{CommandSlice, CommandSlicer};
 
 #[derive(Debug)]
 pub struct TerminalRenderer {
@@ -26,9 +25,7 @@ impl TerminalRenderer {
         }
     }
 
-    pub fn reset_attr(&mut self) {
-        self.attr = CellAttributes::default();
-    }
+    pub fn reset_attr(&mut self) { self.attr = CellAttributes::default(); }
 
     pub fn get_screen(&self, alt: bool) -> &Screen {
         if alt {
@@ -89,14 +86,10 @@ impl Screen {
     }
 
     /// Scrolls a line out of the visible screen
-    pub fn scrollback(&mut self) {
-        self.scrollback_offset += 1;
-    }
+    pub fn scrollback(&mut self) { self.scrollback_offset += 1; }
 
     /// If the screen has the ability to use scrollback
-    pub fn can_scroll(&self) -> bool {
-        self.scrollback_allowed
-    }
+    pub fn can_scroll(&self) -> bool { self.scrollback_allowed }
 
     /// Pushes a cell at a certain cursor location
     /// Manages any scrollback on its own
@@ -128,9 +121,7 @@ impl Screen {
     }
 
     /// Length of whole scrollback
-    pub fn scrollback_len(&self) -> usize {
-        self.cells.len()
-    }
+    pub fn scrollback_len(&self) -> usize { self.cells.len() }
 
     /// Sets a cell at a position within the visible screen
     pub fn cell(&self, x: usize, y: usize) -> Cell {
@@ -139,14 +130,10 @@ impl Screen {
     }
 
     /// Erases scrollback and visible screen
-    pub fn erase_all(&mut self) {
-        self.cells = VecDeque::new();
-    }
+    pub fn erase_all(&mut self) { self.cells = VecDeque::new(); }
 
     /// Length of the visible screen
-    pub fn len(&self) -> usize {
-        self.cells.len()
-    }
+    pub fn len(&self) -> usize { self.cells.len() }
 
     // Mutable reference to a line within the visible screen
     pub fn mut_line(&mut self, index: usize) -> &mut Line {
@@ -155,9 +142,7 @@ impl Screen {
         &mut self.cells[vis_index]
     }
 
-    pub fn phys_line(&self, index: usize) -> usize {
-    self.visible_start() + index
-    }
+    pub fn phys_line(&self, index: usize) -> usize { self.visible_start() + index }
 
     /// Reference to a line within the visible screen
     pub fn line(&self, index: usize) -> &Line {
@@ -181,13 +166,9 @@ impl Screen {
     }
 
     /// The index at which the visible screen starts in the scrollback buffer
-    pub fn visible_start(&self) -> usize {
-        self.scrollback_offset
-    }
+    pub fn visible_start(&self) -> usize { self.scrollback_offset }
 
     /// Whether the visible screen is filled
     /// Used for knowing whether to move the cursor or not
-    pub fn is_filled(&self) -> bool {
-        self.cells.len() > self.physical_rows
-    }
+    pub fn is_filled(&self) -> bool { self.cells.len() > self.physical_rows }
 }

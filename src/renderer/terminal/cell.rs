@@ -1,11 +1,10 @@
-use crate::terminal::{
-    cell::{Cell, CellAttributes},
-    Terminal,
-};
 use dioxus::prelude::*;
-use termwiz::{cell::Intensity, color::ColorSpec};
-use crate::terminal::cell::SemanticType;
+use termwiz::cell::Intensity;
+use termwiz::color::ColorSpec;
+
 use crate::renderer::GetClasses;
+use crate::terminal::cell::{Cell, CellAttributes, SemanticType};
+use crate::terminal::Terminal;
 
 #[component]
 pub fn CellGrid(terminal: Signal<Terminal>) -> Element {

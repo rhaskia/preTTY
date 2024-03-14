@@ -1,9 +1,8 @@
+use std::io::{Read, Write};
+use std::thread::{self, JoinHandle};
+
 use async_channel::Sender;
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
-use std::{
-    io::{Read, Write},
-    thread::{self, JoinHandle},
-};
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
 
@@ -56,7 +55,13 @@ impl PseudoTerminal {
     }
 
     // Resizes how big the terminal thinks it is
-    pub fn resize(&mut self, screen_width: u32, screen_height: u32, cell_width: f32, cell_height: f32) {
+    pub fn resize(
+        &mut self,
+        screen_width: u32,
+        screen_height: u32,
+        cell_width: f32,
+        cell_height: f32,
+    ) {
         self.pair
             .master
             .resize(PtySize {
@@ -75,7 +80,7 @@ impl PseudoTerminal {
         } else {
             match std::env::var("SHELL") {
                 Ok(shell) => shell,
-                Err(_) => String::from("bash"), // apple should implement SHELL but if they don't too bad
+                Err(_) => String::from("bash"), /* apple should implement SHELL but if they don't too bad */
             }
         }
     }

@@ -35,23 +35,15 @@ impl TerminalCursor {
         self.y = y as usize;
     }
 
-    pub fn set_x(&mut self, x: u32) {
-        self.x = x as usize
-    }
+    pub fn set_x(&mut self, x: u32) { self.x = x as usize }
 
-    pub fn set_y(&mut self, y: u32) {
-        self.y = y as usize
-    }
+    pub fn set_y(&mut self, y: u32) { self.y = y as usize }
 
     /// Shifts the cursor down
-    pub fn shift_down(&mut self, amount: u32) {
-        self.y += amount as usize;
-    }
+    pub fn shift_down(&mut self, amount: u32) { self.y += amount as usize; }
 
     /// Shifts the cursor right
-    pub fn shift_right(&mut self, amount: u32) {
-        self.x += amount as usize
-    }
+    pub fn shift_right(&mut self, amount: u32) { self.x += amount as usize }
 
     /// Shifts the cursor up
     pub fn shift_up(&mut self, amount: u32) {
@@ -69,7 +61,5 @@ impl TerminalCursor {
         }
     }
 
-    pub fn set_style(&mut self, style: CursorStyle) {
-        self.style = style;
-    }
+    pub fn set_style(&mut self, style: CursorStyle) { self.style = style; }
 }
