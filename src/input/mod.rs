@@ -12,53 +12,52 @@ pub struct Key {
     shift: bool,
 }
 
-#[derive(Debug)]
-pub enum Input {
-    String(String),
-    Control(String),
-    None,
-}
-
-impl Input {
-    pub fn str(s: &str) -> Input {
-        Input::String(s.to_string())
-    }
-}
-
 impl InputManager {
     pub fn new() -> InputManager {
         InputManager {}
     }
 
-    pub fn handle_key(&self, js_key: Value) -> Input {
+    pub fn handle_key(&self, js_key: Value) -> String {
         let key: Key = from_value(js_key).unwrap();
         
         if key.key.len() == 1 {
-            return if key.ctrl {
-                Input::Control(key.key)
+            let key_char = key.key.chars().next().unwrap();
+
+            if key.ctrl {
+                match key_char {
+                    // char magic that brings them down into the right range
+                    'a'..='z' => return ((key_char as u8 - 96) as char).to_string(),
+                    '[' => return "\u{27}".to_string(),
+                    '\\' => return "\u{28}".to_string(),
+                    '}' => return "\u{29}".to_string(),
+                    '^' => return "\u{30}".to_string(),
+                    ' ' => return "\u{31}".to_string(),
+                    _ => {}
+
+                }
             } else {
-                Input::String(key.key)
+                return key.key;
             };
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
         match key.key.as_str() {
-            "Escape" => Input::str("\u{1b}"),
-            "Delete" => Input::str("\u{7f}"),
-            "Backspace" => Input::str("\u{8}"),
-            "Enter" => Input::str("\r"),
-            "Tab" => Input::str("\t"),
+            "Escape" => "\u{1b}",
+            "Delete" => "\u{7f}",
+            "Backspace" => "\u{8}",
+            "Enter" => "\r",
+            "Tab" => "\t",
 
-            "ArrowRight" => Input::str("\x1b[C"),
-            "ArrowLeft" => Input::str("\x1b[D"),
-            "ArrowUp" => Input::str("\x1b[A"),
-            "ArrowDown" => Input::str("\x1b[B"),
+            "ArrowRight" => "\x1b[C",
+            "ArrowLeft" => "\x1b[D",
+            "ArrowUp" => "\x1b[A",
+            "ArrowDown" => "\x1b[B",
 
             _ => {
                 println!("{:?}", key.key);
-                Input::None
+                ""
             }
-        }
+        }.to_string()
     }
 }
 

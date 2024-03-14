@@ -7,8 +7,6 @@ use std::{
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
 
-use crate::input::Input;
-
 pub struct PseudoTerminal {
     pub pty_system: Box<dyn PtySystem + Send>,
     pub pair: PtyPair,
@@ -83,16 +81,8 @@ impl PseudoTerminal {
     }
 
     /// Writes input directly into the pty
-    /// Need to make Input handle stringifying Input
-    pub fn write_key_input(&mut self, input: Input) {
-        match input {
-            Input::String(text) => self.writer.write_all(text.as_bytes()).unwrap(),
-            Input::Control(c) => match c.as_str() {
-                "c" => self.writer.write_all(b"\x03").unwrap(),
-                _ => {}
-            },
-            _ => {}
-        }
+    pub fn write_key_input(&mut self, input: String) {
+        self.writer.write_all(input.as_bytes()).unwrap()
     }
 }
 

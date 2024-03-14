@@ -5,7 +5,7 @@ pub mod pty;
 pub mod screen;
 mod state;
 
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashMap};
 
 use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
@@ -25,6 +25,7 @@ use termwiz::escape::{
     },
     Action, ControlCode, OperatingSystemCommand,
 };
+use termwiz::escape::osc::ITermProprietary;
 
 use self::command::CommandSlicer;
 
@@ -38,6 +39,7 @@ pub struct Terminal {
     pub state: TerminalState,
     pub cursor: TerminalCursor,
     pub commands: CommandSlicer,
+    pub user_vars: HashMap<String, String>,
 
     pub title: String,
 }
@@ -52,6 +54,7 @@ impl Terminal {
             cursor: TerminalCursor::new(),
             title: "Terminal".into(),
             commands: CommandSlicer::new(),
+            user_vars: HashMap::new(),
         })
     }
 
@@ -120,7 +123,6 @@ impl Terminal {
     }
 
     pub fn handle_action(&mut self, action: Action) {
-        println!("{action:?}, {}", self.cursor.y);
         match action {
             Action::Print(s) => self.print(s),
             Action::PrintString(s) => self.print_str(s),
@@ -144,15 +146,28 @@ impl Terminal {
                 _ => println!("CSI({:?})", csi),
             },
 
-            Action::OperatingSystemCommand(command) => match *command {
-                OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
-                OperatingSystemCommand::FinalTermSemanticPrompt(ftsprompt) => {
-                    self.handle_fts_prompt(ftsprompt)
-                }
-                //OperatingSystemCommand::SystemNotification(notif) => Self::notify_window(notif),
-                _ => println!("OperatingSystemCommand({:?})", command),
-            },
+            Action::OperatingSystemCommand(command) => self.handle_os_command(command),
+
             _ => println!("{:?}", action),
+        }
+    }
+
+    pub fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
+        match *command {
+            OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
+            OperatingSystemCommand::FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
+            OperatingSystemCommand::ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
+            //OperatingSystemCommand::SystemNotification(notif) => Self::notify_window(notif),
+            _ => println!("OperatingSystemCommand({:?})", command),
+        };
+    }
+
+    /// Handling of all Iterm-based commands
+    pub fn handle_iterm(&mut self, command: ITermProprietary) {
+        match command {
+            ITermProprietary::SetUserVar { name, value } => { self.user_vars.insert(name, value); }
+
+            _ => println!("Iterm {command:?}"),
         }
     }
 

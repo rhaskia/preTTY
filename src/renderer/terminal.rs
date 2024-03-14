@@ -4,7 +4,6 @@ pub mod cursor;
 
 use cell::CellGrid;
 use cursor::Cursor;
-use crate::input::Input;
 use crate::terminal::{pty::PseudoTerminal, Terminal};
 use commands::CommandsSlice;
 
@@ -21,7 +20,7 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(input: Signal<Receiver<Input>>) -> Element {
+pub fn TerminalApp(input: Signal<Receiver<String>>) -> Element {
     let (tx, rx) = async_channel::unbounded();
     let mut rx = use_signal(|| rx);
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
