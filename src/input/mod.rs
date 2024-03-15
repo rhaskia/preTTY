@@ -1,7 +1,9 @@
 use serde::Deserialize;
 use serde_json::{from_value, Value};
 
-pub struct InputManager {}
+pub struct InputManager {
+    kitty_mode: bool,
+}
 
 #[derive(Deserialize)]
 pub struct Key {
@@ -13,13 +15,42 @@ pub struct Key {
 }
 
 impl InputManager {
-    pub fn new() -> InputManager { InputManager {} }
+    pub fn new() -> InputManager { InputManager { kitty_mode: false } }
 
-    pub fn alt_key(&self, c: char) -> Option<String> {}
+    pub fn ctrl_key(&self, key: char) -> Option<char> {
+        // https://sw.kovidgoyal.net/kitty/keyboard-protocol/#ctrl-mapping
+        match key {
+            // char magic that brings them down into the right range
+            ' ' | '2' => Some('\u{0}'),
+            'a'..='z' => return Some((key as u8 - 96) as char),
+            //'A'..='Z'=> return [(key_char as u8 - 64) as char],
+            '[' | '3' => Some('\u{27}'),
+            '\\' | '4' => Some('\u{28}'),
+            ']' | '5' => Some('\u{29}'),
+            '^' | '6' => Some('\u{30}'),
+            '/' | '7' => Some('\u{31}'),
+            '0' => Some('\u{48}'),
+            '1' => Some('\u{49}'),
+            '?' | '8' => Some('\u{127}'),
+            _ => None,
+        }
+    }
 
-    pub fn ctrl_key(&self, c: char) -> Option<String> {}
+    pub fn handle_mod_key(&self, key: char, alt: bool, ctrl: bool) -> String {
+        let mut key = key;
+        if ctrl {
+            if let Some(k) = self.ctrl_key(key) {
+                key = k;
+                println!("{key}");
+            }
+        }
 
-    pub fn ctrl_alt_key(&self, c: char) -> Option<String> {}
+        if alt {
+            format!("\u{1b}{key}")
+        } else {
+            format!("{key}")
+        }
+    }
 
     pub fn handle_key(&self, js_key: Value) -> String {
         let key: Key = from_value(js_key).unwrap();
@@ -27,29 +58,7 @@ impl InputManager {
         if key.key.len() == 1 {
             let key_char = key.key.chars().next().unwrap();
 
-            if key.alt && key.ctrl {
-                if let Some(output) = self.ctrl_alt_key(key_char) {
-                    return ouput;
-                }
-            }
-
-            if key.alt {}
-
-            if key.ctrl {
-                match key_char {
-                    // char magic that brings them down into the right range
-                    'a'..='z' => return ((key_char as u8 - 96) as char).to_string(),
-                    'A'..='Z' => return ((key_char as u8 - 64) as char).to_string(),
-                    '[' => return "\u{27}".to_string(),
-                    '\\' => return "\u{28}".to_string(),
-                    '}' => return "\u{29}".to_string(),
-                    '^' => return "\u{30}".to_string(),
-                    ' ' => return "\u{31}".to_string(),
-                    _ => {}
-                }
-            } else {
-                return key.key;
-            };
+            return self.handle_mod_key(key_char, key.alt, key.ctrl);
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
