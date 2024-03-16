@@ -26,6 +26,7 @@
 
 /* flex? */
 .terminal-split {
+    --padding: 4px;
 }
 
 body {
@@ -47,7 +48,7 @@ span {
 
 .command {
     border-bottom: 1px white solid;
-    padding: 4px;
+    padding: var(--padding);
 }
 
 .command-fatal, .command-not-found, .command-error {
@@ -92,4 +93,5 @@ span {
 .cursor {
     position: absolute; /* BAD */
     background: white;
+    transition: left 0.1s ease-out, top 0.1s ease-out;
 }

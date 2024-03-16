@@ -15,13 +15,22 @@ pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
             class: "cells",
             overflow_y: "overflow",
 
-            // Cells
             for y in terminal.read().screen().scroll_range(scrollback()) {
-                for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
-                    CellSpan { cell: cell.clone(), x, y }
-                }
-                br {}
+                CellLine { terminal, y }
             }
+        }
+    }
+}
+
+#[component]
+pub fn CellLine (terminal: Signal<Terminal>, y: usize) -> Element {
+    rsx! {
+        span {
+            id: "line_{y}",
+            for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
+                CellSpan { cell: cell.clone(), x, y }
+            }
+            br {}
         }
     }
 }

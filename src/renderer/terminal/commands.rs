@@ -40,10 +40,13 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>) -> Element {
 
             pre {
                 for y in command.range(terminal.read().screen().len()) {
-                    for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
-                        CellSpan { cell: *cell, x, y }
+                    span { 
+                        id: "line_{y}",
+                        for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
+                            CellSpan { cell: *cell, x, y }
+                        }
+                        br {}
                     }
-                    br {}
                 }
             }
         }
