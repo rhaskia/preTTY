@@ -87,7 +87,7 @@ pub fn TerminalApp(input: Signal<Receiver<String>>) -> Element {
 
             Cursor {
                 x: terminal.read().cursor.x,
-                y: terminal.read().cursor.y,
+                y: terminal.read().phys_cursor_y(),
             }
         }
     }

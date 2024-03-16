@@ -46,6 +46,11 @@ span {
     background-color: var(--bg);
 }
 
+.invert {
+    color: var(--bg);
+    background: var(--fg);
+}
+
 .command {
     border-bottom: 1px white solid;
     padding: var(--padding);
@@ -56,8 +61,8 @@ span {
 }
 
 .cellspan {
-    /* max-width: var(--cell-width); */
-    /* max-height: var(--cell-height); */
+    max-width: var(--cell-width);
+    max-height: var(--cell-height);
     font-size: 14px;
     display: inline-block;
     overflow: hidden;
@@ -93,5 +98,5 @@ span {
 .cursor {
     position: absolute; /* BAD */
     background: white;
-    transition: left 0.1s ease-out, top 0.1s ease-out;
+    /*transition: left 0.1s ease-out, top 0.1s ease-out*/;
 }

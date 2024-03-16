@@ -50,6 +50,7 @@ pub struct CellAttributes {
     pub strikethrough: bool,
     pub blink: Blink,
     pub underline_fg: ColorSpec,
+    pub invert: bool,
 
     pub semantic_type: SemanticType,
 }
@@ -70,6 +71,7 @@ impl CellAttributes {
             blink: Blink::None,
             underline_fg: ColorSpec::Default,
             semantic_type: SemanticType::Output,
+            invert: false,
         }
     }
 }

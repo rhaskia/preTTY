@@ -36,14 +36,14 @@ pub fn CellLine (terminal: Signal<Terminal>, y: usize) -> Element {
 }
 
 pub trait ToHex {
-    fn to_hex(&self) -> String;
+    fn to_hex(&self, def: String) -> String;
 }
 
 impl ToHex for ColorSpec {
-    fn to_hex(&self) -> String {
+    fn to_hex(&self, def: String) -> String {
         match self {
             ColorSpec::TrueColor(c) => c.to_string(),
-            ColorSpec::Default => "inherit".to_string(),
+            ColorSpec::Default => def,
             ColorSpec::PaletteIndex(i) => format!("var(--palette-{i})"),
         }
     }
@@ -63,14 +63,16 @@ impl GetClasses for CellAttributes {
             SemanticType::Prompt(_) => "command-prompt",
         };
 
-        format!("cellspan {intensity} {sem_type}")
+        let invert = if self.invert { "invert" } else { "" };
+
+        format!("cellspan {intensity} {sem_type} {invert}")
     }
 }
 
 #[component]
 pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
-    let fg = cell.attr.fg.to_hex();
-    let bg = cell.attr.bg.to_hex();
+    let fg = cell.attr.fg.to_hex("var(--fg-default)".to_string());
+    let bg = cell.attr.bg.to_hex("var(--bg-default)".to_string());
 
     rsx! {
         span {

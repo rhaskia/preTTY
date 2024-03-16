@@ -54,6 +54,7 @@ impl TerminalRenderer {
             Sgr::UnderlineColor(colour) => self.attr.underline_fg = colour,
             Sgr::Italic(i) => self.attr.italic = i,
             Sgr::StrikeThrough(s) => self.attr.strikethrough = s,
+            Sgr::Inverse(invert) => self.attr.invert = invert,
             _ => println!("{:?}", sgr),
         }
     }

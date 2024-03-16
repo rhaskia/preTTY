@@ -76,7 +76,7 @@ impl PseudoTerminal {
     /// Default shell as per ENV vars or whatever is default for the platform
     pub fn default_shell() -> String {
         if cfg!(windows) {
-            String::from("cmd") // TODO: proper windows implementation
+            String::from("pwsh.exe") // TODO: proper windows implementation
         } else {
             match std::env::var("SHELL") {
                 Ok(shell) => shell,

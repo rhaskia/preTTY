@@ -14,7 +14,7 @@ use notify_rust::Notification;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
 use termwiz::escape::csi::Mode::{ResetDecPrivateMode, SetDecPrivateMode};
-use termwiz::escape::csi::{Cursor, Edit, EraseInDisplay, EraseInLine, CSI};
+use termwiz::escape::csi::{Cursor, Edit, EraseInDisplay, EraseInLine, CSI, Keyboard, Device};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand};
 
@@ -81,6 +81,8 @@ impl Terminal {
         }
     }
 
+    pub fn phys_cursor_y(&self) -> usize { self.screen().phys_line(self.cursor.y) }
+
     /// Pushes a cell onto the current screen
     pub fn print(&mut self, char: char) {
         let attr = self.renderer.attr.clone();
@@ -134,6 +136,8 @@ impl Terminal {
                 },
                 CSI::Cursor(cursor) => self.handle_cursor(cursor),
                 CSI::Edit(edit) => self.handle_edit(edit),
+                CSI::Device(device) => self.handle_device(device),
+                CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
                 _ => println!("CSI({:?})", csi),
             },
 
@@ -143,16 +147,19 @@ impl Terminal {
         }
     }
 
+    pub fn handle_kitty_keyboard(&mut self, command: Keyboard) {}
+
+    pub fn handle_device(&mut self, device_command: Box<Device>) {}
+
     pub fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
+        use OperatingSystemCommand::*;
         match *command {
-            OperatingSystemCommand::SetIconNameAndWindowTitle(title) => self.title = title,
-            OperatingSystemCommand::FinalTermSemanticPrompt(ftsprompt) => {
-                self.handle_fts_prompt(ftsprompt)
-            }
-            OperatingSystemCommand::ITermProprietary(iterm_command) => {
-                self.handle_iterm(iterm_command)
-            }
-            // OperatingSystemCommand::SystemNotification(notif) => Self::notify_window(notif),
+            SetWindowTitle(title) => self.title = title,
+            SetIconNameAndWindowTitle(title) => self.title = title,
+            FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
+            ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
+            SystemNotification(notif) => Self::notify_window(notif),
+
             _ => println!("OperatingSystemCommand({:?})", command),
         };
     }
