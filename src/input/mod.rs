@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::rc::Rc;
 use serde_json::{from_value, Value};
 
 pub struct InputManager {
@@ -36,12 +37,13 @@ impl InputManager {
         }
     }
 
-    pub fn handle_mod_key(&self, key: char, alt: bool, ctrl: bool) -> String {
+    pub fn handle_mod_key(&self, key: String, alt: bool, ctrl: bool) -> String {
         let mut key = key;
+        let char = key.chars().next().unwrap();
+
         if ctrl {
-            if let Some(k) = self.ctrl_key(key) {
-                key = k;
-                println!("{key}");
+            if let Some(k) = self.ctrl_key(char) {
+                key = k.to_string();
             }
         }
 
@@ -52,34 +54,28 @@ impl InputManager {
         }
     }
 
-    pub fn handle_key(&self, js_key: Value) -> String {
-        let key: Key = from_value(js_key).unwrap();
 
-        if key.key.len() == 1 {
-            let key_char = key.key.chars().next().unwrap();
+    pub fn handle_key(&self, keyboard_data: Rc<KeyboardData>) -> String {
+        use keyboard_types::Key::*;
+        let modifiers = keyboard_data.modifiers();
+        let ctrl = modifiers.ctrl();
+        let alt = modifiers.alt();
 
-            return self.handle_mod_key(key_char, key.alt, key.ctrl);
+        match keyboard_data.key() {
+            Character(char) => self.handle_mod_key(char, alt, ctrl),
+            Enter => String::from("\r"),
+            Tab => String::from("\t"),
+            Escape => String::from("\u{1b}"),
+            Delete => String::from("\u{8}"),
+            Backspace => String::from("\u{7f}"),
+
+            ArrowRight => String::from("\x1b[C"),
+            ArrowLeft => String::from("\x1b[D"),
+            ArrowUp => String::from("\x1b[A"),
+            ArrowDown => String::from("\x1b[B"),
+
+            _ => { println!("{keyboard_data:?}"); String::new() },
         }
-
-        // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
-        match key.key.as_str() {
-            "Escape" => "\u{1b}",
-            "Delete" => "\u{7f}",
-            "Backspace" => "\u{8}",
-            "Enter" => "\r",
-            "Tab" => "\t",
-
-            "ArrowRight" => "\x1b[C",
-            "ArrowLeft" => "\x1b[D",
-            "ArrowUp" => "\x1b[A",
-            "ArrowDown" => "\x1b[B",
-
-            _ => {
-                println!("{:?}", key.key);
-                ""
-            }
-        }
-        .to_string()
     }
 }
 

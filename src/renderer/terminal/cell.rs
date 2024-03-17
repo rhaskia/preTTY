@@ -6,8 +6,10 @@ use crate::renderer::GetClasses;
 use crate::terminal::cell::{Cell, CellAttributes, SemanticType};
 use crate::terminal::Terminal;
 
+pub type CellClick = (Event<MouseData>, usize, usize);
+
 #[component]
-pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
+pub fn CellGrid(terminal: Signal<Terminal>, cell_click: EventHandler<CellClick>) -> Element {
     let scrollback = use_signal(|| 0);
 
     rsx! {
@@ -16,19 +18,19 @@ pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
             overflow_y: "overflow",
 
             for y in terminal.read().screen().scroll_range(scrollback()) {
-                CellLine { terminal, y }
+                CellLine { terminal, y, cell_click: cell_click.clone() }
             }
         }
     }
 }
 
 #[component]
-pub fn CellLine (terminal: Signal<Terminal>, y: usize) -> Element {
+pub fn CellLine (terminal: Signal<Terminal>, y: usize, cell_click: EventHandler<CellClick>) -> Element {
     rsx! {
         span {
             id: "line_{y}",
             for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
-                CellSpan { cell: cell.clone(), x, y }
+                CellSpan { cell: cell.clone(), x, y, cell_click: cell_click.clone() }
             }
             br {}
         }
@@ -70,7 +72,7 @@ impl GetClasses for CellAttributes {
 }
 
 #[component]
-pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
+pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: EventHandler<CellClick>) -> Element {
     let fg = cell.attr.fg.to_hex("var(--fg-default)".to_string());
     let bg = cell.attr.bg.to_hex("var(--bg-default)".to_string());
 
@@ -78,6 +80,7 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize) -> Element {
         span {
             class: "{cell.attr.get_classes()}",
             style: "--fg: {fg}; --bg: {bg}",
+            onmouseup: move |e| cell_click.call((e, x, y)),
             key: "{x}:{y}",
             id: "{x}:{y}",
             "{cell.text}"

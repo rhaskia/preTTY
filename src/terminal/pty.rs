@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use std::rc::Rc;
 use std::thread::{self, JoinHandle};
 
 use async_channel::Sender;
@@ -6,23 +7,27 @@ use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, P
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
 
-pub struct PseudoTerminal {
+pub struct PseudoTerminalSystem {
     pub pty_system: Box<dyn PtySystem + Send>,
+}
+
+pub struct PseudoTerminal {
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
     pub writer: Box<dyn Write + Send>,
     pub reader_thread: JoinHandle<()>,
 }
 
-impl PseudoTerminal {
+impl PseudoTerminalSystem {
     /// Creates a new PseudoTerminal object.
-    /// Requires a sender to pull data out of it
-    pub fn setup(tx: Sender<Vec<Action>>) -> anyhow::Result<PseudoTerminal> {
-        // Send data to the pty by writing to the master
-        let pty_system = native_pty_system();
+    pub fn setup() -> PseudoTerminalSystem {
+        PseudoTerminalSystem { pty_system: native_pty_system() }
+    }
 
+    /// Requires a sender to pull data out of it
+    pub fn spawn_new(&mut self, tx: Sender<Vec<Action>>) -> anyhow::Result<PseudoTerminal> {
         // Create a new pty
-        let pair = pty_system.openpty(PtySize {
+        let pair = self.pty_system.openpty(PtySize {
             rows: 24,
             cols: 80,
             pixel_width: 0,
@@ -46,7 +51,6 @@ impl PseudoTerminal {
         // else drop gets called on the terminal, causing the
         // program to hang on windows
         Ok(PseudoTerminal {
-            pty_system,
             pair,
             child,
             writer,
@@ -54,6 +58,20 @@ impl PseudoTerminal {
         })
     }
 
+    /// Default shell as per ENV vars or whatever is default for the platform
+    pub fn default_shell() -> String {
+        if cfg!(windows) {
+            String::from("pwsh.exe") // TODO: proper windows implementation
+        } else {
+            match std::env::var("SHELL") {
+                Ok(shell) => shell,
+                Err(_) => String::from("bash"), /* apple should implement SHELL but if they don't too bad */
+            }
+        }
+    }
+}
+
+impl PseudoTerminal {
     // Resizes how big the terminal thinks it is
     pub fn resize(
         &mut self,
@@ -73,20 +91,8 @@ impl PseudoTerminal {
             .unwrap();
     }
 
-    /// Default shell as per ENV vars or whatever is default for the platform
-    pub fn default_shell() -> String {
-        if cfg!(windows) {
-            String::from("pwsh.exe") // TODO: proper windows implementation
-        } else {
-            match std::env::var("SHELL") {
-                Ok(shell) => shell,
-                Err(_) => String::from("bash"), /* apple should implement SHELL but if they don't too bad */
-            }
-        }
-    }
-
     /// Writes input directly into the pty
-    pub fn write_key_input(&mut self, input: String) {
+    pub fn write(&mut self, input: String) {
         self.writer.write_all(input.as_bytes()).unwrap()
     }
 }

@@ -3,15 +3,18 @@ pub mod commands;
 pub mod cursor;
 
 use async_channel::Receiver;
-use cell::CellGrid;
+use termwiz::escape::Action;
+use std::rc::Rc;
+use cell::{CellGrid, CellClick};
 use commands::CommandsSlice;
 use cursor::Cursor;
 use dioxus::desktop::use_window;
 use dioxus::prelude::*;
 use serde::Deserialize;
 
-use crate::terminal::pty::PseudoTerminal;
+use crate::terminal::pty::{PseudoTerminal, PseudoTerminalSystem};
 use crate::terminal::Terminal;
+use crate::InputManager;
 
 #[derive(Default, Deserialize)]
 pub struct CellSize {
@@ -21,12 +24,15 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(input: Signal<Receiver<String>>) -> Element {
+pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> Element {
+    let mut input = use_signal(InputManager::new);
+    let mut terminal = use_signal(|| Terminal::setup().unwrap());
+
     let (tx, rx) = async_channel::unbounded();
     let mut rx = use_signal(|| rx);
-    let mut terminal = use_signal(|| Terminal::setup().unwrap());
-    let mut pty = use_signal(|| PseudoTerminal::setup(tx).unwrap());
+    let mut pty = use_signal(|| pty_system.write().spawn_new(tx).unwrap());
 
+    // Shift this into a config signal
     let font_size = use_signal(|| 14);
     let mut cell_size = use_signal_sync(CellSize::default);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
@@ -47,13 +53,10 @@ pub fn TerminalApp(input: Signal<Receiver<String>>) -> Element {
 
     glyph_size.send(font_size.to_string().into()).unwrap();
 
-    // Key Input Writer
-    use_future(move || async move {
-        loop {
-            let key = input.write().recv().await.unwrap();
-            pty.write().write_key_input(key);
-        }
-    });
+    let key_press = move |e: Event<KeyboardData>| async move {
+        let key = input.write().handle_key(e.data);
+        pty.write().write(key);
+    };
 
     // ANSI code handler
     use_future(move || async move {
@@ -74,20 +77,32 @@ pub fn TerminalApp(input: Signal<Receiver<String>>) -> Element {
         }
     });
 
+    let cell_click = EventHandler::new(move |e: CellClick | {
+        let (mouse, x, y) = e;
+        pty.write().write(format!("\x1b[1006<0;{x};{y}M"));
+    });
+
     rsx! {
         div {
             style: "--cell-width: {cell_size.read().width}px; --cell-height: {cell_size.read().height}px",
             class: "terminal-split",
+            id: "split-{index}",
+            key: "split-{index}",
+            autofocus: true,
+            tabindex: index.to_string(),
+
+            onkeydown: key_press, 
 
             if terminal.read().state.alt_screen {
-                CellGrid { terminal }
+                CellGrid { terminal, cell_click: cell_click.clone() }
             } else {
-                CommandsSlice { terminal }
+                CommandsSlice { terminal, cell_click  }
             }
 
             Cursor {
                 x: terminal.read().cursor.x,
                 y: terminal.read().phys_cursor_y(),
+                index,
             }
         }
     }

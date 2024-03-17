@@ -18,6 +18,8 @@
 
 .app {
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
 }
 
 .app:focus {
@@ -27,6 +29,12 @@
 /* flex? */
 .terminal-split {
     --padding: 4px;
+    flex: 1 1 0;
+    position: relative;
+}
+
+.terminal-split:focus {
+    outline: none;
 }
 
 body {

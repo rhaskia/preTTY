@@ -1,7 +1,7 @@
 use async_channel::Receiver;
 use dioxus::prelude::*;
 
-use crate::renderer::terminal::TerminalApp;
+use crate::{renderer::terminal::TerminalApp, terminal::pty::PseudoTerminalSystem};
 
 pub mod header;
 mod palette;
@@ -12,8 +12,12 @@ pub trait GetClasses {
 }
 
 #[component]
-pub fn TerminalSplit(input: Signal<Receiver<String>>) -> Element {
-    // let (send, recv) = async_channel::unbounded();
+pub fn TerminalSplit() -> Element {
+    // Set up vector arrangement
+    let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
 
-    rsx!(TerminalApp { input })
+    rsx!{
+        TerminalApp { index: 0, pty_system },
+        TerminalApp { index: 1, pty_system },
+    }
 }
