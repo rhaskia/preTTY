@@ -1,19 +1,26 @@
 use dioxus::prelude::*;
+use serde::Serialize;
+use serde_json::to_value;
+
+#[derive(Serialize)]
+pub struct CursorInfo {
+    pub y: usize,
+    pub index: usize,
+}
 
 #[component]
 pub fn Cursor(x: usize, y: usize, index: usize) -> Element {
     let mut line_eval = eval(
         r#"
-        let y = await dioxus.recv();
+        let { y, index} = await dioxus.recv();
         let line = document.getElementById("line_" + y);
-        let index = await dioxus.recv();
+        console.log(line);
         let cursor = document.getElementById("cursor-" + index);
         cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
         "#,
     );
 
-    line_eval.send(y.to_string().into()).unwrap();
-    line_eval.send(index.to_string().into()).unwrap();
+    line_eval.send(to_value(CursorInfo { y, index }).unwrap()).unwrap();
 
     rsx! {
         div {
