@@ -10,6 +10,9 @@
 - [ ] Boxes
     - [ ] box drawing characters
     - [ ] Brackets
+- [ ] Size detection
+    - [ ] Line Sizing
+    - [ ] Screen Height 
 
 # Terminal
 - [ ] Cursor setting
