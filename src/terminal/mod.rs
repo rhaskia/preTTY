@@ -14,7 +14,7 @@ use notify_rust::Notification;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
 use termwiz::escape::csi::Mode::{ResetDecPrivateMode, SetDecPrivateMode};
-use termwiz::escape::csi::{Cursor, Edit, EraseInDisplay, EraseInLine, CSI, Keyboard, Device};
+use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{Action, ControlCode, OperatingSystemCommand};
 
@@ -58,9 +58,7 @@ impl Terminal {
             Down(amount) | NextLine(amount) => self.cursor.shift_down(amount),
             Right(amount) => self.cursor.shift_right(amount),
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
-            Position { line, col } => self
-                .cursor
-                .set(col.as_one_based() - 1, line.as_one_based() - 1),
+            Position { line, col } => self.cursor.set(col.as_one_based() - 1, line.as_one_based() - 1),
             CursorStyle(style) => self.cursor.set_style(style),
             _ => println!("Cursor {cursor:?}"),
         }
@@ -94,11 +92,7 @@ impl Terminal {
             self.cursor.set_x(0);
         }
 
-        self.renderer.mut_screen(self.state.alt_screen).push(
-            Cell::new(char, attr),
-            self.cursor.x,
-            self.cursor.y,
-        );
+        self.renderer.mut_screen(self.state.alt_screen).push(Cell::new(char, attr), self.cursor.x, self.cursor.y);
 
         self.cursor.x += 1;
     }
@@ -206,18 +200,12 @@ impl Terminal {
                     println!("FINALCLICK {c}");
                 }
             }
-            StartPrompt(prompt_kind) => {
-                self.renderer.attr.semantic_type =
-                    SemanticType::Prompt(PromptKind::from(prompt_kind))
-            }
-            MarkEndOfPromptAndStartOfInputUntilNextMarker => {
-                self.start_input(Until::SemanticMarker)
-            }
+            StartPrompt(prompt_kind) => self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::from(prompt_kind)),
+            MarkEndOfPromptAndStartOfInputUntilNextMarker => self.start_input(Until::SemanticMarker),
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
                 self.renderer.attr.semantic_type = SemanticType::Output;
-                self.commands
-                    .start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
+                self.commands.start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
 
                 if let Some(a) = aid {
                     println!("AID {a}");
@@ -237,25 +225,16 @@ impl Terminal {
 
     pub fn start_command(&mut self) {
         self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
-        self.commands
-            .start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
+        self.commands.start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
     }
 
     pub fn start_input(&mut self, until: Until) {
         self.renderer.attr.semantic_type = SemanticType::Input(until);
-        self.commands
-            .start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
+        self.commands.start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
         // TODO: Do some state management. maybe some sort of custom editor?
     }
 
-    pub fn notify_window(notif: String) {
-        Notification::new()
-            .summary("Term")
-            .body(&notif)
-            .icon("firefox")
-            .show()
-            .unwrap();
-    }
+    pub fn notify_window(notif: String) { Notification::new().summary("Term").body(&notif).icon("firefox").show().unwrap(); }
 
     pub fn erase_in_display(&mut self, edit: EraseInDisplay) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);

@@ -1,5 +1,6 @@
-use serde::Deserialize;
 use std::rc::Rc;
+
+use serde::Deserialize;
 use serde_json::{from_value, Value};
 
 pub struct InputManager {
@@ -54,7 +55,6 @@ impl InputManager {
         }
     }
 
-
     pub fn handle_key(&self, keyboard_data: Rc<KeyboardData>) -> String {
         use keyboard_types::Key::*;
         let modifiers = keyboard_data.modifiers();
@@ -74,7 +74,10 @@ impl InputManager {
             ArrowUp => String::from("\x1b[A"),
             ArrowDown => String::from("\x1b[B"),
 
-            _ => { println!("{keyboard_data:?}"); String::new() },
+            _ => {
+                println!("{keyboard_data:?}");
+                String::new()
+            }
         }
     }
 }

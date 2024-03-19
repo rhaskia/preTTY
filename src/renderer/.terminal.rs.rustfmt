@@ -73,7 +73,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             "hidden"
         } else {
             "auto"
-        }
+        };
     });
 
     let cell_click = EventHandler::new(move |e: CellClick| {

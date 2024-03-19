@@ -20,19 +20,12 @@ pub struct PseudoTerminal {
 
 impl PseudoTerminalSystem {
     /// Creates a new PseudoTerminal object.
-    pub fn setup() -> PseudoTerminalSystem {
-        PseudoTerminalSystem { pty_system: native_pty_system() }
-    }
+    pub fn setup() -> PseudoTerminalSystem { PseudoTerminalSystem { pty_system: native_pty_system() } }
 
     /// Requires a sender to pull data out of it
     pub fn spawn_new(&mut self, tx: Sender<Vec<Action>>) -> anyhow::Result<PseudoTerminal> {
         // Create a new pty
-        let pair = self.pty_system.openpty(PtySize {
-            rows: 24,
-            cols: 80,
-            pixel_width: 0,
-            pixel_height: 0,
-        })?;
+        let pair = self.pty_system.openpty(PtySize { rows: 24, cols: 80, pixel_width: 0, pixel_height: 0 })?;
 
         // Spawn a shell into the pty
         let cmd = CommandBuilder::new(Self::default_shell());
@@ -50,12 +43,7 @@ impl PseudoTerminalSystem {
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
         // program to hang on windows
-        Ok(PseudoTerminal {
-            pair,
-            child,
-            writer,
-            reader_thread,
-        })
+        Ok(PseudoTerminal { pair, child, writer, reader_thread })
     }
 
     /// Default shell as per ENV vars or whatever is default for the platform
@@ -65,7 +53,7 @@ impl PseudoTerminalSystem {
         } else {
             match std::env::var("SHELL") {
                 Ok(shell) => shell,
-                Err(_) => String::from("bash"), /* apple should implement SHELL but if they don't too bad */
+                Err(_) => String::from("bash"), // apple should implement SHELL but if they don't too bad
             }
         }
     }
@@ -73,13 +61,7 @@ impl PseudoTerminalSystem {
 
 impl PseudoTerminal {
     // Resizes how big the terminal thinks it is
-    pub fn resize(
-        &mut self,
-        screen_width: u32,
-        screen_height: u32,
-        cell_width: f32,
-        cell_height: f32,
-    ) {
+    pub fn resize(&mut self, screen_width: u32, screen_height: u32, cell_width: f32, cell_height: f32) {
         self.pair
             .master
             .resize(PtySize {
@@ -92,9 +74,7 @@ impl PseudoTerminal {
     }
 
     /// Writes input directly into the pty
-    pub fn write(&mut self, input: String) {
-        self.writer.write_all(input.as_bytes()).unwrap()
-    }
+    pub fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
 }
 
 pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {

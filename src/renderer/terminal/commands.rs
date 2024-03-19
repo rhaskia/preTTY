@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use super::cell::{CellSpan, CellClick};
+use super::cell::{CellClick, CellSpan};
 use crate::renderer::GetClasses;
 use crate::terminal::command::{CommandSlice, CommandStatus};
 use crate::terminal::Terminal;
@@ -28,6 +28,7 @@ pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: EventHandler<CellCl
     rsx! {
         for command in terminal.read().commands.get() {
             Command { command: *command, terminal, cell_click: cell_click.clone() }
+            hr { class: "command-sep" }
         }
     }
 }
@@ -40,7 +41,7 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: Ev
 
             pre {
                 for y in command.range(terminal.read().screen().len()) {
-                    span { 
+                    span {
                         id: "line_{y}",
                         for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
                             CellSpan { cell: *cell, x, y, cell_click: cell_click.clone() }

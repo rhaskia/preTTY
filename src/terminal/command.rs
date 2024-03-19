@@ -46,11 +46,7 @@ impl CommandStatus {
 }
 
 impl CommandSlicer {
-    pub fn new() -> Self {
-        CommandSlicer {
-            commands: vec![CommandSlice::new(0, 0)],
-        }
-    }
+    pub fn new() -> Self { CommandSlicer { commands: vec![CommandSlice::new(0, 0)] } }
 
     pub fn get(&self) -> &Vec<CommandSlice> { &self.commands }
 
@@ -72,21 +68,11 @@ impl CommandSlicer {
         println!("STARTED OUPUT");
     }
 
-    pub fn set_status(&mut self, status: i32) {
-        self.commands.last_mut().unwrap().status = CommandStatus::from_int(status);
-    }
+    pub fn set_status(&mut self, status: i32) { self.commands.last_mut().unwrap().status = CommandStatus::from_int(status); }
 }
 
 impl CommandSlice {
-    pub fn new(x: usize, y: usize) -> Self {
-        CommandSlice {
-            prompt: Position { x, y },
-            input: None,
-            output: None,
-            end: None,
-            status: CommandStatus::None,
-        }
-    }
+    pub fn new(x: usize, y: usize) -> Self { CommandSlice { prompt: Position { x, y }, input: None, output: None, end: None, status: CommandStatus::None } }
 
     pub fn get_status(&self) -> CommandStatus { self.status }
 

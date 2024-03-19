@@ -14,15 +14,7 @@ pub struct TerminalCursor {
 }
 
 impl TerminalCursor {
-    pub fn new() -> TerminalCursor {
-        TerminalCursor {
-            x: 0,
-            y: 0,
-            saved_x: 0,
-            saved_y: 0,
-            style: CursorStyle::Default,
-        }
-    }
+    pub fn new() -> TerminalCursor { TerminalCursor { x: 0, y: 0, saved_x: 0, saved_y: 0, style: CursorStyle::Default } }
 
     /// Sets the cursor position
     pub fn set(&mut self, x: u32, y: u32) {

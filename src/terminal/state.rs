@@ -8,11 +8,7 @@ pub struct TerminalState {
 }
 
 impl TerminalState {
-    pub fn new() -> TerminalState {
-        TerminalState {
-            ..Default::default()
-        }
-    }
+    pub fn new() -> TerminalState { TerminalState { ..Default::default() } }
 
     /// Switches dec private modes on or off
     /// Useful stuff like alt_screen, bracketed_paste etc

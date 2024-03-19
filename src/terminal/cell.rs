@@ -87,10 +87,5 @@ pub struct Cell {
 impl Cell {
     pub fn new(text: char, attr: CellAttributes) -> Cell { Cell { text, attr } }
 
-    pub fn default() -> Cell {
-        Cell {
-            text: ' ',
-            attr: CellAttributes::default(),
-        }
-    }
+    pub fn default() -> Cell { Cell { text: ' ', attr: CellAttributes::default() } }
 }

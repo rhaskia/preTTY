@@ -17,12 +17,7 @@ pub struct TerminalRenderer {
 
 impl TerminalRenderer {
     pub fn new(rows: usize, cols: usize) -> TerminalRenderer {
-        TerminalRenderer {
-            screen: Screen::new(rows, cols, true),
-            alt_screen: Screen::new(rows, cols, false),
-            attr: CellAttributes::default(),
-            commands: CommandSlicer::new(),
-        }
+        TerminalRenderer { screen: Screen::new(rows, cols, true), alt_screen: Screen::new(rows, cols, false), attr: CellAttributes::default(), commands: CommandSlicer::new() }
     }
 
     pub fn reset_attr(&mut self) { self.attr = CellAttributes::default(); }
@@ -76,14 +71,7 @@ pub struct Screen {
 
 impl Screen {
     pub fn new(rows: usize, columns: usize, sc_allow: bool) -> Screen {
-        Screen {
-            cells: VecDeque::new(),
-            max_scrollback: 100,
-            physical_rows: rows,
-            physical_columns: columns,
-            scrollback_allowed: sc_allow,
-            scrollback_offset: 0,
-        }
+        Screen { cells: VecDeque::new(), max_scrollback: 100, physical_rows: rows, physical_columns: columns, scrollback_allowed: sc_allow, scrollback_offset: 0 }
     }
 
     /// Scrolls a line out of the visible screen
@@ -111,15 +99,12 @@ impl Screen {
     pub fn ensure_lines(&mut self, index: usize) {
         if index >= self.cells.len() {
             let extend_amount = index - &self.cells.len();
-            self.cells
-                .extend(vec![vec![Cell::default()]; extend_amount + 1]);
+            self.cells.extend(vec![vec![Cell::default()]; extend_amount + 1]);
         }
     }
 
     /// Bad bad bad bad
-    pub fn scroll_range(&self, back: usize) -> Range<usize> {
-        self.scrollback_offset..self.cells.len()
-    }
+    pub fn scroll_range(&self, back: usize) -> Range<usize> { self.scrollback_offset..self.cells.len() }
 
     /// Length of whole scrollback
     pub fn scrollback_len(&self) -> usize { self.cells.len() }

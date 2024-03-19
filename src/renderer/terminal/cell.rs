@@ -25,7 +25,7 @@ pub fn CellGrid(terminal: Signal<Terminal>, cell_click: EventHandler<CellClick>)
 }
 
 #[component]
-pub fn CellLine (terminal: Signal<Terminal>, y: usize, cell_click: EventHandler<CellClick>) -> Element {
+pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: EventHandler<CellClick>) -> Element {
     rsx! {
         span {
             id: "line_{y}",
