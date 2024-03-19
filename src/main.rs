@@ -4,6 +4,7 @@
 mod input;
 mod renderer;
 mod terminal;
+mod hooks;
 
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;

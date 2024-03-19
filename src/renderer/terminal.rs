@@ -13,6 +13,7 @@ use dioxus::prelude::*;
 use serde::Deserialize;
 use termwiz::escape::Action;
 
+use crate::hooks::use_div_size;
 use crate::terminal::pty::{PseudoTerminal, PseudoTerminalSystem};
 use crate::terminal::Terminal;
 use crate::InputManager;
@@ -37,6 +38,8 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     let font_size = use_signal(|| 14);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
     let window = use_window();
+
+    let size = use_div_size(format!("split-{index}"));
 
     let cell_size = use_resource(move || async move {
         let mut glyph_size = eval(
@@ -83,7 +86,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     rsx! {
         div {
-            style: cell_size.read().clone().unwrap_or_default(),
+            style: "{cell_size.read().clone().unwrap_or_default()}",
             class: "terminal-split",
             id: "split-{index}",
             key: "split-{index}",
@@ -91,6 +94,8 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             tabindex: index.to_string(),
 
             onkeydown: key_press,
+
+            "{size.value():?}"
 
             if terminal.read().state.alt_screen {
                 CellGrid { terminal, cell_click: cell_click.clone() }
@@ -103,6 +108,8 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
                 y: terminal.read().phys_cursor_y(),
                 index,
             }
+
+
         }
     }
 }

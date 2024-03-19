@@ -14,7 +14,6 @@ pub fn Cursor(x: usize, y: usize, index: usize) -> Element {
         r#"
         let { y, index} = await dioxus.recv();
         let line = document.getElementById("line_" + y);
-        console.log(line);
         let cursor = document.getElementById("cursor-" + index);
         cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
         "#,
