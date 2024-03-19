@@ -34,24 +34,22 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     // Shift this into a config signal
     let font_size = use_signal(|| 14);
-    let mut cell_size = use_signal_sync(CellSize::default);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
     let window = use_window();
 
-    let mut glyph_size = eval(
-        r#"
-        let size = await dioxus.recv();
-        let width = getTextSize(size, "JetBrainsMono Nerd Font");
-        dioxus.send(width);
-        "#,
-    );
+    let cell_size = use_resource(move || async move { 
+        let mut glyph_size = eval(
+            r#"
+            let size = await dioxus.recv();
+            let width = getTextSize(size, "JetBrainsMono Nerd Font");
+            dioxus.send(width);
+            "#,
+        );
 
-    use_future(move || async move {
-        let w = serde_json::from_value(glyph_size.recv().await.unwrap()).unwrap();
-        cell_size.set(w);
+        glyph_size.send(font_size.to_string().into()).unwrap(); 
+        let CellSize { width, height } = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();
+        format!("--cell-width: {width}px; --cell-height: {height}px")
     });
-
-    glyph_size.send(font_size.to_string().into()).unwrap();
 
     let key_press = move |e: Event<KeyboardData>| async move {
         let key = input.write().handle_key(e.data);
@@ -84,7 +82,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     rsx! {
         div {
-            style: "--cell-width: {cell_size.read().width}px; --cell-height: {cell_size.read().height}px",
+            style: cell_size.read().clone().unwrap_or_default(),
             class: "terminal-split",
             id: "split-{index}",
             key: "split-{index}",

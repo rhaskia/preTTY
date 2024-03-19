@@ -6,8 +6,8 @@ function getTextSize(size, family) {
     hiddenDiv.style.cssText = "position: absolute; visibility: hidden;";
     hiddenDiv.style.fontSize = size;
     hiddenDiv.style.fontFamily = family;
-    hiddenDiv.style.maxHeight = "999vh";
-    hiddenDiv.style.maxWidth = "999vh";
+    hiddenDiv.style.maxHeight = "999px";
+    hiddenDiv.style.maxWidth = "999px";
     hiddenDiv.style.margin = 0;
     hiddenDiv.className = "cellspan";
     hiddenDiv.textContent = "M";
@@ -20,6 +20,8 @@ function getTextSize(size, family) {
 
     // Remove the hidden div
     document.body.removeChild(hiddenDiv);
+
+    console.log(width, height);
 
     // Return the size as an object
     return { width, height };
