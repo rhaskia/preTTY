@@ -81,7 +81,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     let cell_click = EventHandler::new(move |e: CellClick| {
         let (mouse, x, y) = e;
-        pty.write().write(format!("\x1b[1006<0;{x};{y}M"));
+        pty.write().write(format!("\u{1b}[1006<0;{x};{y}M"));
     });
 
     rsx! {

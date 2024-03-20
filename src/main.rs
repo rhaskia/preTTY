@@ -28,6 +28,7 @@ pub fn App() -> Element {
             // link { href: mg!(file("css/gruvbox.css")) }
 
             script { src: "/js/textsize.js" }
+            script { src: "/js/waitfor.js" }
 
             //Header {}
             TerminalSplit { }

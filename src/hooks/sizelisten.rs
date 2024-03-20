@@ -5,10 +5,8 @@ use std::fmt::Debug;
 
 #[derive(Deserialize, Clone, Copy, Debug)]
 pub struct DomRect {
-    pub x: f32, 
-    pub y: f32,
-    pub width: f32,
-    pub height: f32,
+    pub border_box: f32, 
+    pub content_box: f32,
 }
 
 pub struct DomRectSignal {
@@ -24,28 +22,56 @@ impl DomRectSignal {
 }
 
 pub fn use_div_size(id: String) -> DomRectSignal {
-    let mut signal = use_signal(|| DomRect { x: 0.0, y: 0.0, width: 0.0, height: 0.0 });
+    let mut signal = use_signal(|| DomRect { border_box: 0.0, content_box: 0.0 });
 
     let mut js = eval(
         r#"
-        let id = await dioxus.recv();
-        let div = document.getElementById(id);
-        console.log("Listening to resize of: ", div);
-        const ro = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                dioxus.send({ borderBox: entry.borderBoxSize,
-                              contentBox: entry.contentBoxSize });      
+        function waitForElm(selector) {
+            return new Promise(resolve => {
+                if (document.getElementById(selector)) {
+                return resolve(document.getElementById(selector));
             }
+
+            const observer = new MutationObserver(mutations => {
+                if (document.getElementById(selector)) {
+                    observer.disconnect();
+                    resolve(document.querySelector(selector));
+                }
+            });
+
+            // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
         });
-        ro.observe(div);
+        }
+
+        let id = await dioxus.recv();
+        
+        waitForElm('split-0').then((el) => {
+            console.log('Element is ready');
+            console.log(el);
+            let div = document.getElementById(id);
+            const ro = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    dioxus.send({ border_box: entry.borderBoxSize,
+                                  content_box: entry.contentBoxSize });      
+                }
+            });
+            ro.observe(div);
+        });
+
         "#,
     );
 
     js.send(id.into()).unwrap();
 
     let collector = use_future(move || async move {
+        println!("what the hell");
         loop {
             let div_info = js.recv().await.unwrap();
+            println!("{div_info:?}");
             let parsed = serde_json::from_value::<DomRect>(div_info).unwrap();
             *signal.write() = parsed;
         }
