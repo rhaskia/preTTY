@@ -1,10 +1,27 @@
 use std::rc::Rc;
-
+use dioxus::hooks::Resource;
 use serde::Deserialize;
 use serde_json::{from_value, Value};
+use dioxus::prelude::{MouseData, KeyboardData};
+use dioxus::events::{PointerInteraction, ModifiersInteraction};
+use dioxus::html::input_data::MouseButton;
+use crate::renderer::terminal::CellSize;
 
 pub struct InputManager {
-    kitty_mode: bool,
+    key_mode: KeyMode,
+    mouse_mode: MouseMode,
+}
+
+pub enum KeyMode {
+    Kitty,
+    Legacy,
+}
+
+pub enum MouseMode {
+    SGR,
+    RVXT,
+    Normal,
+    None
 }
 
 #[derive(Deserialize)]
@@ -17,7 +34,40 @@ pub struct Key {
 }
 
 impl InputManager {
-    pub fn new() -> InputManager { InputManager { kitty_mode: false } }
+    pub fn new() -> InputManager { InputManager { key_mode: KeyMode::Legacy, mouse_mode: MouseMode::None } }
+
+    pub fn sgr_mouse(&mut self,  mouse_info: Rc<MouseData>, x: usize, y: usize, is_press: bool) -> String {
+        let trail = if is_press { "M" } else { "m" };
+        let button = mouse_info.trigger_button().unwrap_or(MouseButton::Unknown);
+        let mods = mouse_info.modifiers();
+        println!("{:?}", mods.bits());
+
+        let code = match button {
+            MouseButton::Primary => 0,
+            MouseButton::Secondary => 1,
+            MouseButton::Auxiliary => 2,
+            MouseButton::Fourth => 3, // Both of these do not have a proper number rn
+            MouseButton::Fifth => 3,  // which is probably fixable but idk what they r
+            MouseButton::Unknown => 3,
+        };
+
+        format!("\x1b[<{code};{x};{y}{trail}")
+    }
+
+    pub fn handle_mouse(&mut self,  mouse_info: Rc<MouseData>, x: usize, y: usize, is_press: bool) -> String {
+        match self.mouse_mode {
+            MouseMode::SGR => self.sgr_mouse(mouse_info, x, y, is_press),
+            MouseMode::RVXT => todo!(),
+            MouseMode::Normal => format!(""),
+            MouseMode::None => String::new(),
+        }
+    }
+
+    pub fn cell_pos(&mut self, mouse_info: Rc<MouseData>, cell: CellSize) -> (usize, usize) { 
+        
+
+        todo!()
+    }
 
     pub fn ctrl_key(&self, key: char) -> Option<char> {
         // https://sw.kovidgoyal.net/kitty/keyboard-protocol/#ctrl-mapping
@@ -56,11 +106,11 @@ impl InputManager {
     }
 
     pub fn handle_key(&self, keyboard_data: Rc<KeyboardData>) -> String {
-        use keyboard_types::Key::*;
         let modifiers = keyboard_data.modifiers();
         let ctrl = modifiers.ctrl();
         let alt = modifiers.alt();
 
+        use dioxus::events::Key::*;
         match keyboard_data.key() {
             Character(char) => self.handle_mod_key(char, alt, ctrl),
             Enter => String::from("\r"),
@@ -80,24 +130,4 @@ impl InputManager {
             }
         }
     }
-}
-
-use dioxus::prelude::*;
-
-pub fn use_js_input() -> UseEval {
-    eval(
-        r#"
-            console.log("adding key listener");
-            window.addEventListener('keydown', function(event) {
-                let key_info = {"key": event.key,
-                                "ctrl": event.ctrlKey,
-                                "alt": event.altKey,
-                                "meta": event.metaKey,
-                                "shift": event.shiftKey,
-                };
-                dioxus.send(key_info);
-            });
-            //await dioxus.recv();
-        "#,
-    )
 }
