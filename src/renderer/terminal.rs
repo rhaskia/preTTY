@@ -20,8 +20,8 @@ use crate::InputManager;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
-    width: f32,
-    height: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
 // TODO: split this up for the use of multiple ptys per terminal
@@ -73,18 +73,18 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
         }
     });
 
-    let overflow = use_memo(move || {
-        if terminal.read().state.alt_screen {
-            "hidden"
-        } else {
-            "auto"
-        }
-    });
+    let overflow =
+        use_memo(move || if terminal.read().state.alt_screen { "hidden" } else { "auto" });
 
     let press = EventHandler::new(move |e: (Event<MouseData>, bool)| {
         let (mouse, is_press) = e;
-        let (x, y) = input.write().cell_pos(mouse.data, cell_size.read().clone().unwrap());
-        pty.write().write(input.write().handle_mouse(mouse.data, x, y, is_press));
+        if let Some(size) = cell_size.read().clone() {
+            pty.write().write(input.write().handle_mouse(
+                mouse.data,
+                size,
+                is_press,
+            ));
+        }
     });
 
     let release = press.clone();
@@ -98,8 +98,8 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             autofocus: true,
             tabindex: index.to_string(),
 
-            onmouseup: move |e| press.call((e, false)), 
-            onmousedown: move |e| release.call((e, true)), 
+            onmouseup: move |e| press.call((e, false)),
+            onmousedown: move |e| release.call((e, true)),
             onkeydown: key_press,
 
             if terminal.read().state.alt_screen {

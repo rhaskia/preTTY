@@ -1,10 +1,12 @@
 use std::rc::Rc;
+
+use dioxus::events::{InteractionElementOffset, ModifiersInteraction, PointerInteraction};
 use dioxus::hooks::Resource;
+use dioxus::html::input_data::MouseButton;
+use dioxus::prelude::{KeyboardData, MouseData};
 use serde::Deserialize;
 use serde_json::{from_value, Value};
-use dioxus::prelude::{MouseData, KeyboardData};
-use dioxus::events::{PointerInteraction, ModifiersInteraction};
-use dioxus::html::input_data::MouseButton;
+
 use crate::renderer::terminal::CellSize;
 
 pub struct InputManager {
@@ -21,7 +23,7 @@ pub enum MouseMode {
     SGR,
     RVXT,
     Normal,
-    None
+    None,
 }
 
 #[derive(Deserialize)]
@@ -34,9 +36,20 @@ pub struct Key {
 }
 
 impl InputManager {
-    pub fn new() -> InputManager { InputManager { key_mode: KeyMode::Legacy, mouse_mode: MouseMode::None } }
+    pub fn new() -> InputManager {
+        InputManager {
+            key_mode: KeyMode::Legacy,
+            mouse_mode: MouseMode::None,
+        }
+    }
 
-    pub fn sgr_mouse(&mut self,  mouse_info: Rc<MouseData>, x: usize, y: usize, is_press: bool) -> String {
+    pub fn sgr_mouse(
+        &mut self,
+        mouse_info: Rc<MouseData>,
+        x: usize,
+        y: usize,
+        is_press: bool,
+    ) -> String {
         let trail = if is_press { "M" } else { "m" };
         let button = mouse_info.trigger_button().unwrap_or(MouseButton::Unknown);
         let mods = mouse_info.modifiers();
@@ -54,7 +67,17 @@ impl InputManager {
         format!("\x1b[<{code};{x};{y}{trail}")
     }
 
-    pub fn handle_mouse(&mut self,  mouse_info: Rc<MouseData>, x: usize, y: usize, is_press: bool) -> String {
+    pub fn handle_mouse(
+        &mut self,
+        mouse_info: Rc<MouseData>,
+        cell_size: CellSize,
+        is_press: bool,
+    ) -> String {
+        let CellSize { width, height } = cell_size;
+        let click_pos = mouse_info.element_coordinates();
+        let x = (click_pos.x / width as f64).round() as usize;
+        let y = (click_pos.y / height as f64).round() as usize;
+
         match self.mouse_mode {
             MouseMode::SGR => self.sgr_mouse(mouse_info, x, y, is_press),
             MouseMode::RVXT => todo!(),
@@ -63,9 +86,7 @@ impl InputManager {
         }
     }
 
-    pub fn cell_pos(&mut self, mouse_info: Rc<MouseData>, cell: CellSize) -> (usize, usize) { 
-        
-
+    pub fn cell_pos(&mut self, mouse_info: Rc<MouseData>, cell: CellSize) -> (usize, usize) {
         todo!()
     }
 
