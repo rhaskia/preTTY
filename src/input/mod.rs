@@ -23,7 +23,7 @@ pub enum MouseMode {
     SGR,
     RVXT,
     Normal,
-    None,
+    Unknown,
 }
 
 #[derive(Deserialize)]
@@ -39,7 +39,7 @@ impl InputManager {
     pub fn new() -> InputManager {
         InputManager {
             key_mode: KeyMode::Legacy,
-            mouse_mode: MouseMode::None,
+            mouse_mode: MouseMode::SGR,
         }
     }
 
@@ -63,31 +63,24 @@ impl InputManager {
             MouseButton::Fifth => 3,  // which is probably fixable but idk what they r
             MouseButton::Unknown => 3,
         };
+        println!("{:?}", format!("\x1b[<{code};{y};{x}{trail}"));
 
-        format!("\x1b[<{code};{x};{y}{trail}")
+        format!("\x1b[<{code};{y};{x}{trail}")
     }
 
     pub fn handle_mouse(
         &mut self,
         mouse_info: Rc<MouseData>,
-        cell_size: CellSize,
+        x: usize,
+        y: usize,
         is_press: bool,
     ) -> String {
-        let CellSize { width, height } = cell_size;
-        let click_pos = mouse_info.element_coordinates();
-        let x = (click_pos.x / width as f64).round() as usize;
-        let y = (click_pos.y / height as f64).round() as usize;
-
         match self.mouse_mode {
             MouseMode::SGR => self.sgr_mouse(mouse_info, x, y, is_press),
             MouseMode::RVXT => todo!(),
             MouseMode::Normal => format!(""),
-            MouseMode::None => String::new(),
+            MouseMode::Unknown => String::new(),
         }
-    }
-
-    pub fn cell_pos(&mut self, mouse_info: Rc<MouseData>, cell: CellSize) -> (usize, usize) {
-        todo!()
     }
 
     pub fn ctrl_key(&self, key: char) -> Option<char> {

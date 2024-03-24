@@ -5,6 +5,8 @@ use crate::renderer::GetClasses;
 use crate::terminal::command::{CommandSlice, CommandStatus};
 use crate::terminal::Terminal;
 
+use super::cell::ClickEvent;
+
 impl GetClasses for CommandSlice {
     fn get_classes(&self) -> String {
         let status = match self.get_status() {
@@ -22,19 +24,19 @@ impl GetClasses for CommandSlice {
 }
 
 #[component]
-pub fn CommandsSlice(terminal: Signal<Terminal>) -> Element {
+pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
     to_owned![terminal];
 
     rsx! {
         for command in terminal.read().commands.get() {
-            Command { command: *command, terminal}
+            Command { command: *command, terminal, cell_click: cell_click.clone() }
             hr { class: "command-sep" }
         }
     }
 }
 
 #[component]
-pub fn Command(command: CommandSlice, terminal: Signal<Terminal>) -> Element {
+pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
     rsx! {
         div {
             class: command.get_classes(),
@@ -44,7 +46,7 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>) -> Element {
                     span {
                         id: "line_{y}",
                         for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
-                            CellSpan { cell: *cell, x, y }
+                            CellSpan { cell: *cell, x, y, cell_click: cell_click.clone() }
                         }
                         br {}
                     }

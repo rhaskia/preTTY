@@ -3,6 +3,59 @@
     overflow-x:hidden;
 }
 
+/* SPLIT STYLES */
+.terminal-split {
+    --padding: 4px;
+    flex: 1 1 0;
+    position: relative;
+}
+
+.terminal-split:focus {
+    outline: none;
+}
+
+/* COMMAND STYLES */
+.command {
+    padding: var(--padding);
+    padding-top: calc(var(--padding) * 2);
+    padding-bottom: calc(var(--padding) * 2);
+}
+
+.command-fatal, .command-not-found, .command-error {
+    border-left: var(--light-red) 2px solid; 
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #333;
+    margin: auto;
+    width: calc(100% - 15px);
+}
+
+/* WINDOW STYLES */
+.window-header {
+    display: flex;
+    justify-content: flex-end;
+}
+
+body {
+    background-color: var(--black);
+    margin: 0;
+}
+
+.header-button {
+    background: black;
+    color: #ffffff;
+    border: none;
+    margin-left: 5px;
+}
+
+.window-title {
+    margin-top: 2px;
+    margin-right: auto;
+    margin-left: 10px;
+}
+
 .app, #main, html, body {
     width: 100%;
     height: 100%;
@@ -21,20 +74,26 @@
     outline: none;
 }
 
-/* flex? */
-.terminal-split {
-    --padding: 4px;
-    flex: 1 1 0;
-    position: relative;
+/* CURSOR STYLE */
+.cursor {
+    position: absolute; /* BAD */
+    background: white;
+    /*transition: left 0.1s ease-out, top 0.1s ease-out*/;
 }
 
-.terminal-split:focus {
-    outline: none;
+/* TEXT STYLES */
+.superscript {
+    vertical-align: top;
+    font-size: 10px;
+    text-align: center;
 }
 
-body {
-    background-color: var(--black);
-    margin: 0;
+.cellspan {
+    max-width: var(--cell-width);
+    max-height: var(--cell-height);
+    font-size: 14px;
+    display: inline-block;
+    overflow: hidden;
 }
 
 pre {
@@ -54,60 +113,7 @@ span {
     background: var(--fg);
 }
 
-.command {
-    padding: var(--padding);
-    padding-top: calc(var(--padding) * 2);
-    padding-bottom: calc(var(--padding) * 2);
-}
-
-hr {
-    border: none;
-    border-top: 1px solid #333;
-    margin: auto;
-    width: calc(100% - 15px);
-}
-
-.command-fatal, .command-not-found, .command-error {
-    border-left: var(--light-red) 2px solid; 
-}
-
-.cellspan {
-    max-width: var(--cell-width);
-    max-height: var(--cell-height);
-    font-size: 14px;
-    display: inline-block;
-    overflow: hidden;
-}
-
 /* ::selection { */
 /*   color: var(--bg); */
 /*   background: var(--fg); */
 /* } */
-
-.command-output {
-    font-weight: 100;
-}
-
-.window-header {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.header-button {
-    background: black;
-    color: #ffffff;
-    border: none;
-    margin-left: 5px;
-}
-
-.window-title {
-    margin-top: 2px;
-    margin-right: auto;
-    margin-left: 10px;
-}
-
-.cursor {
-    position: absolute; /* BAD */
-    background: white;
-    /*transition: left 0.1s ease-out, top 0.1s ease-out*/;
-}

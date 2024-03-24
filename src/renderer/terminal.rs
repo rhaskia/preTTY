@@ -53,7 +53,10 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
         glyph_size.send(font_size.to_string().into()).unwrap();
         let size = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();
-        size_style.set(format!("--cell-width: {}px; --cell-height: {}px", size.width, size.height));
+        size_style.set(format!(
+            "--cell-width: {}px; --cell-height: {}px",
+            size.width, size.height
+        ));
         size
     });
 
@@ -76,18 +79,13 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     let overflow =
         use_memo(move || if terminal.read().state.alt_screen { "hidden" } else { "auto" });
 
-    let press = EventHandler::new(move |e: (Event<MouseData>, bool)| {
-        let (mouse, is_press) = e;
+    let cell_click = EventHandler::new(move |e: (Event<MouseData>, usize, usize, bool)| {
+        let (mouse, x, y, is_press) = e;
         if let Some(size) = cell_size.read().clone() {
-            pty.write().write(input.write().handle_mouse(
-                mouse.data,
-                size,
-                is_press,
-            ));
+            pty.write()
+                .write(input.write().handle_mouse(mouse.data, x, y, is_press));
         }
     });
-
-    let release = press.clone();
 
     rsx! {
         div {
@@ -98,14 +96,12 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             autofocus: true,
             tabindex: index.to_string(),
 
-            onmouseup: move |e| press.call((e, false)),
-            onmousedown: move |e| release.call((e, true)),
             onkeydown: key_press,
 
             if terminal.read().state.alt_screen {
-                CellGrid { terminal }
+                CellGrid { terminal, cell_click }
             } else {
-                CommandsSlice { terminal }
+                CommandsSlice { terminal, cell_click }
             }
 
             Cursor {
