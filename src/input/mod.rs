@@ -1,12 +1,9 @@
 use std::rc::Rc;
 
-use dioxus::events::{InteractionElementOffset, ModifiersInteraction, PointerInteraction};
-use dioxus::hooks::Resource;
+use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{KeyboardData, MouseData};
 use serde::Deserialize;
-use serde_json::{from_value, Value};
-
 use crate::renderer::terminal::CellSize;
 
 pub struct InputManager {

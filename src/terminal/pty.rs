@@ -88,7 +88,7 @@ pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read +
             Ok(0) => {}
             Ok(n) => {
                 let mut actions = parser.parse_as_vec(&buffer[..n]);
-                rt.block_on(async { tx.send(actions.clone()).await });
+                rt.block_on(async { tx.send(actions.clone()).await }).unwrap();
             }
             Err(err) => {
                 eprintln!("Error reading from Read object: {}", err);
