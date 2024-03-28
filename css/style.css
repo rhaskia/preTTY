@@ -27,7 +27,7 @@
 
 hr {
     border: none;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--grey);
     margin: auto;
     width: calc(100% - 15px);
 }

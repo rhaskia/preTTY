@@ -36,6 +36,7 @@ pub struct Terminal {
 }
 
 impl Terminal {
+    // TODO: pty box
     pub fn setup() -> anyhow::Result<Terminal> {
         Ok(Terminal {
             rows: 24,
@@ -164,12 +165,11 @@ impl Terminal {
             ITermProprietary::SetUserVar { name, value } => {
                 self.user_vars.insert(name, value);
             }
-
             _ => println!("Iterm {command:?}"),
         }
     }
 
-    // TODO: Replace this shitty thing with a more explicit system
+    // TODO: Replace this with a more explicit system
     // Ideally there would be a Command object, that has prompt, input and output fields
     pub fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
         use FinalTermSemanticPrompt::*;
@@ -201,6 +201,7 @@ impl Terminal {
                 }
             }
             StartPrompt(prompt_kind) => self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::from(prompt_kind)),
+            // why are these so long :sob:
             MarkEndOfPromptAndStartOfInputUntilNextMarker => self.start_input(Until::SemanticMarker),
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
@@ -293,4 +294,17 @@ impl Terminal {
     pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
 
     pub fn mut_screen(&mut self) -> &mut Screen { self.renderer.mut_screen(self.state.alt_screen) }
+}
+
+mod tests {
+    use super::*;
+    use termwiz::escape::csi::{Mode, DecPrivateModeCode::EnableAlternateScreen};
+
+    #[cfg(test)]
+    pub fn alt_screen() {
+        let terminal = Terminal::setup().unwrap();
+
+        terminal.handle_action(Action::CSI(CSI::Mode(Mode::SetDecPrivateMode(EnableAlternateScreen))));
+        assert!(terminal.state.alt_screen)
+    }
 }
