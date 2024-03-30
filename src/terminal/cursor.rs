@@ -22,6 +22,10 @@ impl TerminalCursor {
         self.y = y as usize;
     }
 
+    pub fn get(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+
     pub fn set_x(&mut self, x: u32) { self.x = x as usize }
 
     pub fn set_y(&mut self, y: u32) { self.y = y as usize }

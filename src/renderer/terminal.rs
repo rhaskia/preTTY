@@ -29,6 +29,7 @@ pub struct CellSize {
 pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> Element {
     let mut input = use_signal(InputManager::new);
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
+    let cursor_pos = use_memo(move || terminal.read().cursor_pos());
 
     let (tx, rx) = async_channel::unbounded();
     let mut rx = use_signal(|| rx);
@@ -37,7 +38,6 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     // Shift this into a config signal
     let font_size = use_signal(|| 14);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
-    let window = use_window();
 
     let size = use_div_size(format!("split-{index}"));
 
@@ -108,12 +108,9 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             }
 
             Cursor {
-                x: terminal.read().cursor.x,
-                y: terminal.read().phys_cursor_y(),
+                cursor_pos,
                 index,
             }
-
-            "{size.read():?}"
         }
     }
 }

@@ -9,31 +9,32 @@ pub struct CursorInfo {
 }
 
 #[component]
-pub fn Cursor(x: usize, y: usize, index: usize) -> Element {
+pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
     use_future(move || async move {
-        wait_for_next_render().await;
-        println!("cursor rendered");
+        loop {
+            wait_for_next_render().await;
 
-        let mut line_eval = eval(
-            r#"
-            let { y, index} = await dioxus.recv();
-            let line = document.getElementById("line_" + y);
-            console.log(line, y);
-            let cursor = document.getElementById("cursor-" + index);
-            if (line) {
-                cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
-            }
-            "#,
-        );
+            let mut line_eval = eval(
+                r#"
+                let { y, index} = await dioxus.recv();
+                let line = document.getElementById("line_" + y);
+                console.log(line, y);
+                let cursor = document.getElementById("cursor-" + index);
+                if (line) {
+                    cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
+                }
+                "#,
+            );
 
-        line_eval.send(to_value(CursorInfo { y, index }).unwrap()).unwrap();
+            line_eval.send(to_value(CursorInfo { y: cursor_pos.read().1, index }).unwrap()).unwrap();
+        }
     });
 
     rsx! {
         div {
             class: "cursor",
             id: "cursor-{index}",
-            left: "calc({x} * var(--cell-width) + var(--padding))",
+            left: "calc({cursor_pos().0} * var(--cell-width) + var(--padding))",
             height: "var(--cell-height)",
             width: "var(--cell-width)",
         }
