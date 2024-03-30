@@ -29,6 +29,7 @@ pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) ->
     rsx! {
         span {
             id: "line_{y}",
+            class: "cellline",
             for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
                 CellSpan { cell: cell.clone(), x, y, cell_click: cell_click.clone() }
             }

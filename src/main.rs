@@ -37,7 +37,11 @@ pub fn App() -> Element {
 }
 
 fn main() {
-    let cfg = dioxus::desktop::Config::new().with_default_menu_bar(false).with_background_color((0, 0, 0, 0)).with_window(WindowBuilder::new().with_title("PreTTY"));
+    let cfg = dioxus::desktop::Config::new()
+        .with_disable_context_menu(true)
+        .with_background_color((0, 0, 0, 0))
+        .with_window(WindowBuilder::new().with_title("PreTTY"))
+        .with_menu(None);
 
     LaunchBuilder::new().with_cfg(cfg).launch(App);
 }

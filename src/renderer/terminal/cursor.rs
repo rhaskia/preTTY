@@ -10,16 +10,24 @@ pub struct CursorInfo {
 
 #[component]
 pub fn Cursor(x: usize, y: usize, index: usize) -> Element {
-    let mut line_eval = eval(
-        r#"
-        let { y, index} = await dioxus.recv();
-        let line = document.getElementById("line_" + y);
-        let cursor = document.getElementById("cursor-" + index);
-        cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
-        "#,
-    );
+    use_future(move || async move {
+        wait_for_next_render().await;
+        println!("cursor rendered");
 
-    line_eval.send(to_value(CursorInfo { y, index }).unwrap()).unwrap();
+        let mut line_eval = eval(
+            r#"
+            let { y, index} = await dioxus.recv();
+            let line = document.getElementById("line_" + y);
+            console.log(line, y);
+            let cursor = document.getElementById("cursor-" + index);
+            if (line) {
+                cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
+            }
+            "#,
+        );
+
+        line_eval.send(to_value(CursorInfo { y, index }).unwrap()).unwrap();
+    });
 
     rsx! {
         div {

@@ -174,8 +174,6 @@ impl Terminal {
     pub fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
         use FinalTermSemanticPrompt::*;
 
-        let phys_y = self.screen().phys_line(self.cursor.y);
-
         match prompt {
             FreshLine => self.fresh_line(),
             FreshLineAndStartPrompt { aid, cl } => {
@@ -212,7 +210,7 @@ impl Terminal {
                     println!("AID {a}");
                 }
             }
-            CommandStatus { status, aid } => self.commands.set_status(status),
+            CommandStatus { status, aid: _ } => self.commands.set_status(status),
         }
     }
 

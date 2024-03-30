@@ -60,9 +60,10 @@ impl InputManager {
             MouseButton::Fifth => 3,  // which is probably fixable but idk what they r
             MouseButton::Unknown => 3,
         };
-        println!("{:?}", format!("\x1b[<{code};{y};{x}{trail}"));
+        println!("{:?}", format!("\x1b[<{code};{x};{y}{trail}"));
+        let (x, y) = (x + 1, y + 1);
 
-        format!("\x1b[<{code};{y};{x}{trail}")
+        format!("\x1b[<{code};{x};{y}{trail}")
     }
 
     pub fn handle_mouse(

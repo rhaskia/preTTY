@@ -43,6 +43,8 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     let mut size_style = use_signal(|| String::new());
     let cell_size = use_resource(move || async move {
+        wait_for_next_render().await;
+
         let mut glyph_size = eval(
             r#"
             let size = await dioxus.recv();
@@ -91,6 +93,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
         div {
             style: "{size_style.read()}",
             class: "terminal-split",
+            class: if terminal.read().state.alt_screen { "alt-screen" },
             id: "split-{index}",
             key: "split-{index}",
             autofocus: true,
@@ -109,6 +112,8 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
                 y: terminal.read().phys_cursor_y(),
                 index,
             }
+
+            "{size.read():?}"
         }
     }
 }

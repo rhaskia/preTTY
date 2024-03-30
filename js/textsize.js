@@ -1,6 +1,4 @@
 function getTextSize(size, family) {
-    console.log(size, family);
-
     // Create a hidden div with the letter "M"
     const hiddenDiv = document.createElement("pre");
     hiddenDiv.style.cssText = "position: absolute; visibility: hidden;";
@@ -20,8 +18,6 @@ function getTextSize(size, family) {
 
     // Remove the hidden div
     document.body.removeChild(hiddenDiv);
-
-    console.log(width, height);
 
     // Return the size as an object
     return { width, height };
