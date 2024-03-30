@@ -1,12 +1,12 @@
 pub mod cell;
+mod line;
 pub mod command;
 mod cursor;
 pub mod pty;
 pub mod screen;
 mod state;
 
-
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
@@ -59,7 +59,9 @@ impl Terminal {
             Down(amount) | NextLine(amount) => self.cursor.shift_down(amount),
             Right(amount) => self.cursor.shift_right(amount),
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
-            Position { line, col } => self.cursor.set(col.as_one_based() - 1, line.as_one_based() - 1),
+            Position { line, col } => self
+                .cursor
+                .set(col.as_one_based() - 1, line.as_one_based() - 1),
             CursorStyle(style) => self.cursor.set_style(style),
             _ => println!("Cursor {cursor:?}"),
         }
@@ -93,7 +95,11 @@ impl Terminal {
             self.cursor.set_x(0);
         }
 
-        self.renderer.mut_screen(self.state.alt_screen).push(Cell::new(char, attr), self.cursor.x, self.cursor.y);
+        self.renderer.mut_screen(self.state.alt_screen).push(
+            Cell::new(char, attr),
+            self.cursor.x,
+            self.cursor.y,
+        );
 
         self.cursor.x += 1;
     }
@@ -176,44 +182,29 @@ impl Terminal {
 
         match prompt {
             FreshLine => self.fresh_line(),
-            FreshLineAndStartPrompt { aid, cl } => {
+            FreshLineAndStartPrompt { .. } | MarkEndOfCommandWithFreshLine { .. } => {
                 self.fresh_line();
                 self.start_command();
-
-                if let Some(a) = aid {
-                    println!("AID {a}");
-                }
-                if let Some(c) = cl {
-                    println!("FINALCLICK {c}");
-                }
             }
-            MarkEndOfCommandWithFreshLine { aid, cl } => {
-                self.fresh_line();
-                self.start_command();
-
-                if let Some(a) = aid {
-                    println!("AID {a}");
-                }
-                if let Some(c) = cl {
-                    println!("FINALCLICK {c}");
-                }
+            StartPrompt(prompt_kind) => {
+                self.renderer.attr.semantic_type =
+                    SemanticType::Prompt(PromptKind::from(prompt_kind))
             }
-            StartPrompt(prompt_kind) => self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::from(prompt_kind)),
             // why are these so long :sob:
-            MarkEndOfPromptAndStartOfInputUntilNextMarker => self.start_input(Until::SemanticMarker),
+            MarkEndOfPromptAndStartOfInputUntilNextMarker => {
+                self.start_input(Until::SemanticMarker)
+            }
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
                 self.renderer.attr.semantic_type = SemanticType::Output;
-                self.commands.start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
-
-                if let Some(a) = aid {
-                    println!("AID {a}");
-                }
+                self.commands
+                    .start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
             }
             CommandStatus { status, aid: _ } => self.commands.set_status(status),
         }
     }
 
+    /// Creates a 'Fresh Line' as described by the FinalTermSemanticPrompt protocol
     pub fn fresh_line(&mut self) {
         if self.cursor.x == 0 {
             return;
@@ -224,16 +215,25 @@ impl Terminal {
 
     pub fn start_command(&mut self) {
         self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
-        self.commands.start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
+        self.commands
+            .start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
     }
 
     pub fn start_input(&mut self, until: Until) {
         self.renderer.attr.semantic_type = SemanticType::Input(until);
-        self.commands.start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
+        self.commands
+            .start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
         // TODO: Do some state management. maybe some sort of custom editor?
     }
 
-    pub fn notify_window(notif: String) { Notification::new().summary("Term").body(&notif).icon("firefox").show().unwrap(); }
+    pub fn notify_window(notif: String) {
+        Notification::new()
+            .summary("Term")
+            .body(&notif)
+            .icon("firefox")
+            .show()
+            .unwrap();
+    }
 
     pub fn erase_in_display(&mut self, edit: EraseInDisplay) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
@@ -295,18 +295,41 @@ impl Terminal {
 
     pub fn cursor_pos(&self) -> (usize, usize) { (self.cursor.x, self.phys_cursor_y()) }
 
-    pub fn resize(&mut self, rows: u16, cols: u16) { self.rows = rows.into(); self.cols = cols.into() } 
+    pub fn resize(&mut self, rows: u16, cols: u16) {
+        self.rows = rows.into();
+        self.cols = cols.into()
+    }
 }
 
 mod tests {
-    
-    
+    use termwiz::escape::csi::DecPrivateModeCode::EnableAlternateScreen;
+    use termwiz::escape::csi::{DecPrivateMode, Mode};
+    use termwiz::escape::{Action, CSI};
+
+    use super::*;
 
     #[cfg(test)]
     pub fn alt_screen() {
-        let terminal = Terminal::setup().unwrap();
+        let mut terminal = Terminal::setup().unwrap();
 
-        terminal.handle_action(Action::CSI(CSI::Mode(Mode::SetDecPrivateMode(EnableAlternateScreen))));
+        terminal.handle_action(Action::CSI(CSI::Mode(Mode::SetDecPrivateMode(
+            DecPrivateMode::Code(EnableAlternateScreen),
+        ))));
         assert!(terminal.state.alt_screen)
+    }
+
+    #[cfg(test)]
+    pub fn disable_alt_screen() {
+        let mut terminal = Terminal::setup().unwrap();
+
+        terminal.handle_action(Action::CSI(CSI::Mode(Mode::ResetDecPrivateMode(
+            DecPrivateMode::Code(EnableAlternateScreen),
+        ))));
+        assert!(terminal.state.alt_screen)
+    }
+
+    #[cfg(test)]
+    pub fn clear_line() {
+        // No clue how I'm gonna do this
     }
 }

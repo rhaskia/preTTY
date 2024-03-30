@@ -54,8 +54,8 @@ impl InputManager {
 
         let code = match button {
             MouseButton::Primary => 0,
-            MouseButton::Secondary => 1,
-            MouseButton::Auxiliary => 2,
+            MouseButton::Secondary => 2,
+            MouseButton::Auxiliary => 1,
             MouseButton::Fourth => 3, // Both of these do not have a proper number rn
             MouseButton::Fifth => 3,  // which is probably fixable but idk what they r
             MouseButton::Unknown => 3,

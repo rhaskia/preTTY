@@ -113,9 +113,11 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
                 CommandsSlice { terminal, cell_click }
             }
 
-            Cursor {
-                cursor_pos,
-                index,
+            if terminal.read().state.show_cursor {
+                Cursor {
+                    cursor_pos,
+                    index,
+                }
             }
         }
     }

@@ -1,10 +1,12 @@
 use std::collections::VecDeque;
 use std::ops::Range;
+use std::ops::Index;
 
 use termwiz::escape::csi::Sgr;
 
 use super::cell::{Cell, CellAttributes};
-use super::command::{CommandSlicer};
+use super::command::CommandSlicer;
+use super::line::Line;
 
 #[derive(Debug)]
 pub struct TerminalRenderer {
@@ -55,8 +57,6 @@ impl TerminalRenderer {
     }
 }
 
-pub type Line = Vec<Cell>;
-
 #[derive(Debug)]
 pub struct Screen {
     pub cells: VecDeque<Line>,
@@ -99,7 +99,7 @@ impl Screen {
     pub fn ensure_lines(&mut self, index: usize) {
         if index >= self.cells.len() {
             let extend_amount = index - &self.cells.len();
-            self.cells.extend(vec![vec![Cell::default()]; extend_amount + 1]);
+            self.cells.extend(vec![Line::with_one(); extend_amount + 1]);
         }
     }
 
@@ -139,7 +139,7 @@ impl Screen {
 
     /// Pushes a new line onto the screen
     pub fn new_line(&mut self) {
-        self.cells.push_back(vec![Cell::default()]);
+        self.cells.push_back(Line::with_one());
         let len = self.cells.len();
         if len > self.max_scrollback {
             self.cells.drain(..len - self.max_scrollback);
@@ -147,9 +147,9 @@ impl Screen {
     }
 
     /// Sets the value of a Line on the visible screen
-    pub fn set_line(&mut self, index: usize, line: Line) {
+    pub fn set_line(&mut self, index: usize, line: Vec<Cell>) {
         let vis_index = self.visible_start() + index;
-        self.cells[vis_index] = line;
+        self.cells[vis_index].set(line);
     }
 
     /// The index at which the visible screen starts in the scrollback buffer
