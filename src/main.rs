@@ -1,4 +1,5 @@
 #![feature(if_let_guard)]
+#![feature(fn_traits)]
 
 // crate imports
 mod input;
@@ -8,7 +9,7 @@ mod hooks;
 
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
-use manganis::mg;
+
 
 use crate::input::InputManager;
 use crate::renderer::TerminalSplit;

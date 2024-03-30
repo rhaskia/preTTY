@@ -1,4 +1,4 @@
-use async_channel::Receiver;
+
 use dioxus::prelude::*;
 
 use crate::renderer::terminal::TerminalApp;
@@ -15,7 +15,7 @@ pub trait GetClasses {
 #[component]
 pub fn TerminalSplit() -> Element {
     // Set up vector arrangement
-    let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
+    let pty_system = use_signal(|| PseudoTerminalSystem::setup());
 
     rsx! {
         TerminalApp { index: 0, pty_system },

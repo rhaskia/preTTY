@@ -4,7 +4,7 @@ use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{KeyboardData, MouseData};
 use serde::Deserialize;
-use crate::renderer::terminal::CellSize;
+
 
 pub struct InputManager {
     key_mode: KeyMode,

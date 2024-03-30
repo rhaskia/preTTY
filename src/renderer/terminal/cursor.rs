@@ -14,7 +14,7 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
         loop {
             wait_for_next_render().await;
 
-            let mut line_eval = eval(
+            let line_eval = eval(
                 r#"
                 let { y, index} = await dioxus.recv();
                 let line = document.getElementById("line_" + y);

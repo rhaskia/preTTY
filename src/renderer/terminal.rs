@@ -2,19 +2,19 @@ pub mod cell;
 pub mod commands;
 pub mod cursor;
 
-use std::rc::Rc;
 
-use async_channel::Receiver;
+
+
 use cell::CellGrid;
 use commands::CommandsSlice;
 use cursor::Cursor;
-use dioxus::desktop::use_window;
+
 use dioxus::prelude::*;
 use serde::Deserialize;
-use termwiz::escape::Action;
 
-use crate::hooks::use_div_size;
-use crate::terminal::pty::{PseudoTerminal, PseudoTerminalSystem};
+
+use crate::hooks::on_resize;
+use crate::terminal::pty::{PseudoTerminalSystem};
 use crate::terminal::Terminal;
 use crate::InputManager;
 
@@ -39,7 +39,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     let font_size = use_signal(|| 14);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
 
-    let size = use_div_size(format!("split-{index}"));
+    on_resize(format!("split-{index}"), |size| println!("{:?}", size));
 
     let mut size_style = use_signal(|| String::new());
     let cell_size = use_resource(move || async move {

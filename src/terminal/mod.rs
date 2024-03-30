@@ -5,8 +5,8 @@ pub mod pty;
 pub mod screen;
 mod state;
 
-use std::any::Any;
-use std::collections::{HashMap, VecDeque};
+
+use std::collections::{HashMap};
 
 use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
@@ -297,8 +297,8 @@ impl Terminal {
 }
 
 mod tests {
-    use super::*;
-    use termwiz::escape::csi::{Mode, DecPrivateModeCode::EnableAlternateScreen};
+    
+    
 
     #[cfg(test)]
     pub fn alt_screen() {

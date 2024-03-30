@@ -81,6 +81,7 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Eleme
     rsx! {
         span {
             class: "{cell.attr.get_classes()}",
+            class: match cell.intensity {  "" }
             style: "--fg: {fg}; --bg: {bg}",
             key: "{x}:{y}",
             id: "{x}:{y}",

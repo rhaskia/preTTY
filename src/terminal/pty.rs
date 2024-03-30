@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use std::rc::Rc;
+
 use std::thread::{self, JoinHandle};
 
 use async_channel::Sender;
@@ -87,7 +87,7 @@ pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read +
         match reader.read(&mut buffer) {
             Ok(0) => {}
             Ok(n) => {
-                let mut actions = parser.parse_as_vec(&buffer[..n]);
+                let actions = parser.parse_as_vec(&buffer[..n]);
                 rt.block_on(async { tx.send(actions.clone()).await }).unwrap();
             }
             Err(err) => {

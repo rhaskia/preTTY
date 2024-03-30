@@ -4,7 +4,7 @@ use std::ops::Range;
 use termwiz::escape::csi::Sgr;
 
 use super::cell::{Cell, CellAttributes};
-use super::command::{CommandSlice, CommandSlicer};
+use super::command::{CommandSlicer};
 
 #[derive(Debug)]
 pub struct TerminalRenderer {

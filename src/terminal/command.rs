@@ -1,4 +1,4 @@
-use std::ops::{Range, RangeFrom};
+use std::ops::{Range};
 
 #[derive(Debug)]
 pub struct CommandSlicer {
