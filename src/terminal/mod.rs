@@ -294,6 +294,8 @@ impl Terminal {
     pub fn mut_screen(&mut self) -> &mut Screen { self.renderer.mut_screen(self.state.alt_screen) }
 
     pub fn cursor_pos(&self) -> (usize, usize) { (self.cursor.x, self.phys_cursor_y()) }
+
+    pub fn resize(&mut self, rows: u16, cols: u16) { self.rows = rows.into(); self.cols = cols.into() } 
 }
 
 mod tests {

@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
 
-use crate::renderer::GetClasses;
 use crate::terminal::cell::{Cell, CellAttributes, SemanticType};
 use crate::terminal::Terminal;
 
@@ -52,26 +51,6 @@ impl ToHex for ColorSpec {
     }
 }
 
-impl GetClasses for CellAttributes {
-    fn get_classes(&self) -> String {
-        let intensity = match self.intensity {
-            Intensity::Normal => "",
-            Intensity::Bold => "cell-bold",
-            Intensity::Half => "cell-dim",
-        };
-
-        let sem_type = match self.semantic_type {
-            SemanticType::Output => "command-ouput",
-            SemanticType::Input(_) => "command-input",
-            SemanticType::Prompt(_) => "command-prompt",
-        };
-
-        let invert = if self.invert { "invert" } else { "" };
-
-        format!("cellspan {intensity} {sem_type} {invert}")
-    }
-}
-
 #[component]
 pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Element {
     let fg = cell.attr.fg.to_hex("var(--fg-default)".to_string());
@@ -80,8 +59,19 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Eleme
 
     rsx! {
         span {
-            class: "{cell.attr.get_classes()}",
-            class: match cell.intensity {  "" }
+            class: "cellspan",
+            class: match cell.attr.intensity { 
+                Intensity::Bold => "cell-bold",
+                Intensity::Half => "cell-dim",
+                _ => ""
+            },
+            class: match cell.attr.semantic_type {
+                SemanticType::Output => "command-ouput",
+                SemanticType::Input(_) => "command-input",
+                SemanticType::Prompt(_) => "command-prompt",
+            },
+            class: if cell.attr.invert { "invert" },
+
             style: "--fg: {fg}; --bg: {bg}",
             key: "{x}:{y}",
             id: "{x}:{y}",

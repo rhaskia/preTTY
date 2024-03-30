@@ -2,9 +2,6 @@ pub mod cell;
 pub mod commands;
 pub mod cursor;
 
-
-
-
 use cell::CellGrid;
 use commands::CommandsSlice;
 use cursor::Cursor;
@@ -12,9 +9,8 @@ use cursor::Cursor;
 use dioxus::prelude::*;
 use serde::Deserialize;
 
-
-use crate::hooks::on_resize;
-use crate::terminal::pty::{PseudoTerminalSystem};
+use crate::hooks::{on_resize, DOMRectReadOnly};
+use crate::terminal::pty::PseudoTerminalSystem;
 use crate::terminal::Terminal;
 use crate::InputManager;
 
@@ -31,6 +27,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
 
+    // Pseudoterminal Stuff
     let (tx, rx) = async_channel::unbounded();
     let mut rx = use_signal(|| rx);
     let mut pty = use_signal(|| pty_system.write().spawn_new(tx).unwrap());
@@ -39,8 +36,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     let font_size = use_signal(|| 14);
     let font = use_signal(|| "JetBrainsMono Nerd Font");
 
-    on_resize(format!("split-{index}"), |size| println!("{:?}", size));
-
+    // Cell Size Reader
     let mut size_style = use_signal(|| String::new());
     let cell_size = use_resource(move || async move {
         wait_for_next_render().await;
@@ -62,6 +58,16 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
         size
     });
 
+    // Window Resize Event
+    on_resize(format!("split-{index}"), move |size| {
+        let DOMRectReadOnly { width, height, .. } = size.content_rect;
+        if let Some(cell) = &*cell_size.read() {
+            let (rows, cols) = pty.write().resize(width, height, cell.width, cell.height);
+            terminal.write().resize(rows, cols);
+        }
+    });
+
+    // Any Keyboard Events
     let key_press = move |e: Event<KeyboardData>| async move {
         let key = input.write().handle_key(e.data);
         pty.write().write(key);

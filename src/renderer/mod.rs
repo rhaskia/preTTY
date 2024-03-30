@@ -1,4 +1,3 @@
-
 use dioxus::prelude::*;
 
 use crate::renderer::terminal::TerminalApp;
@@ -7,10 +6,6 @@ use crate::terminal::pty::PseudoTerminalSystem;
 pub mod header;
 mod palette;
 pub mod terminal;
-
-pub trait GetClasses {
-    fn get_classes(&self) -> String;
-}
 
 #[component]
 pub fn TerminalSplit() -> Element {
