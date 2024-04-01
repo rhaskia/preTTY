@@ -39,7 +39,6 @@ impl InputManager {
         let trail = if is_press { "M" } else { "m" };
         let button = mouse_info.trigger_button().unwrap_or(MouseButton::Unknown);
         let mods = mouse_info.modifiers();
-        println!("{:?}", mods.bits());
 
         let code = match button {
             MouseButton::Primary => 0,
@@ -49,7 +48,6 @@ impl InputManager {
             MouseButton::Fifth => 3,  // which is probably fixable but idk what they r
             MouseButton::Unknown => 3,
         };
-        println!("{:?}", format!("\x1b[<{code};{x};{y}{trail}"));
         let (x, y) = (x + 1, y + 1);
 
         format!("\x1b[<{code};{x};{y}{trail}")
