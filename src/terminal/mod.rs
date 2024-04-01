@@ -16,7 +16,9 @@ use state::TerminalState;
 use termwiz::escape::csi::Mode::{ResetDecPrivateMode, SetDecPrivateMode};
 use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
-use termwiz::escape::{Action, ControlCode, OperatingSystemCommand};
+use termwiz::escape::{
+    Action, ControlCode, DeviceControlMode, Esc, KittyImage, OperatingSystemCommand, Sixel,
+};
 
 use self::command::CommandSlicer;
 
@@ -49,6 +51,62 @@ impl Terminal {
             user_vars: HashMap::new(),
         })
     }
+
+    pub fn handle_action(&mut self, action: Action) {
+        match action {
+            Action::Print(s) => self.print(s),
+            Action::PrintString(s) => self.print_str(s),
+            Action::Control(control) => self.handle_control(control),
+            Action::CSI(csi) => self.handle_csi(csi),
+            Action::OperatingSystemCommand(command) => self.handle_os_command(command),
+            Action::DeviceControl(control) => self.device_control(control),
+            Action::Esc(code) => self.handle_esc(code),
+            Action::Sixel(sixel) => self.handle_sixel(sixel),
+            Action::XtGetTcap(terminfo) => println!("TERMINFO {terminfo:?}"),
+            Action::KittyImage(image) => self.kitty_image(image),
+        }
+    }
+
+    pub fn handle_control(&mut self, control_code: ControlCode) {
+        match control_code {
+            ControlCode::LineFeed => self.new_line(),
+            ControlCode::CarriageReturn => self.cursor.set_x(0),
+            ControlCode::Backspace => self.backspace(),
+            _ => println!("ControlCode({:?})", control_code),
+        }
+    }
+
+    pub fn handle_csi(&mut self, csi: CSI) {
+        match csi {
+            CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
+            CSI::Mode(mode) => match mode {
+                SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
+                ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
+                _ => println!("Mode({:?})", mode),
+            },
+            CSI::Cursor(cursor) => self.handle_cursor(cursor),
+            CSI::Edit(edit) => self.handle_edit(edit),
+            CSI::Device(device) => self.handle_device(device),
+            CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
+            _ => println!("CSI({:?})", csi),
+        }
+    }
+
+    pub fn device_control(&mut self, device_command: DeviceControlMode) {
+        match device_command {
+            _ => println!("{:?}", device_command),
+        }
+    }
+
+    pub fn kitty_image(&mut self, image: Box<KittyImage>) { println!("Kitty Image") }
+
+    pub fn handle_esc(&mut self, esc: Esc) {
+        match esc {
+            _ => println!("{:?}", esc),
+        }
+    }
+
+    pub fn handle_sixel(&mut self, sixel: Box<Sixel>) { println!("Sixel Image") }
 
     /// Handles cursor movements, etc
     // Really need to move this to the cursor object
@@ -113,38 +171,6 @@ impl Terminal {
     pub fn handle_actions(&mut self, actions: Vec<Action>) {
         for action in actions {
             self.handle_action(action);
-        }
-    }
-
-    pub fn handle_action(&mut self, action: Action) {
-        match action {
-            Action::Print(s) => self.print(s),
-            Action::PrintString(s) => self.print_str(s),
-
-            Action::Control(control) => match control {
-                ControlCode::LineFeed => self.new_line(),
-                ControlCode::CarriageReturn => self.cursor.set_x(0),
-                ControlCode::Backspace => self.backspace(),
-                _ => println!("ControlCode({:?})", control),
-            },
-
-            Action::CSI(csi) => match csi {
-                CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
-                CSI::Mode(mode) => match mode {
-                    SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
-                    ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
-                    _ => println!("Mode({:?})", mode),
-                },
-                CSI::Cursor(cursor) => self.handle_cursor(cursor),
-                CSI::Edit(edit) => self.handle_edit(edit),
-                CSI::Device(device) => self.handle_device(device),
-                CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
-                _ => println!("CSI({:?})", csi),
-            },
-
-            Action::OperatingSystemCommand(command) => self.handle_os_command(command),
-
-            _ => println!("{:?}", action),
         }
     }
 
