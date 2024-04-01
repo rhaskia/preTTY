@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use dioxus::desktop::{Config, use_window};
 
 use super::cell::CellSpan;
 use crate::terminal::command::{CommandSlice, CommandStatus};
@@ -44,8 +43,8 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: Cl
                 CommandStatus::FatalError(_) => "command-fatal",
                 CommandStatus::None => "",
             },
-            onmouseover: move |info| hovering.set(true),
-            onmouseleave: move  |info| hovering.set(false),
+            onmouseover: move |_| hovering.set(true),
+            onmouseleave: move  |_| hovering.set(false),
 
             pre {
                 for y in command.range(terminal.read().screen().len()) {
@@ -63,7 +62,7 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: Cl
                 class: "command-bar",
                 button {
                     class: "command-button copy",
-                    onclick: |info| println!("copied to system"),
+                    onclick: |_| println!("copied to system"),
                     hidden: !command.finished() || !hovering(),
                     ""
                 }

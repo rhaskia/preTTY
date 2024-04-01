@@ -14,7 +14,7 @@ pub struct PseudoTerminal {
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
     pub writer: Box<dyn Write + Send>,
-    pub reader_thread: JoinHandle<()>,
+    _reader_thread: JoinHandle<()>,
 }
 
 impl PseudoTerminalSystem {
@@ -44,7 +44,7 @@ impl PseudoTerminalSystem {
         let writer = master.take_writer().unwrap();
         let reader = master.try_clone_reader().unwrap();
 
-        let reader_thread = thread::spawn(move || {
+        let _reader_thread = thread::spawn(move || {
             parse_terminal_output(tx, reader);
         });
 
@@ -55,7 +55,7 @@ impl PseudoTerminalSystem {
             pair,
             child,
             writer,
-            reader_thread,
+            _reader_thread,
         })
     }
 

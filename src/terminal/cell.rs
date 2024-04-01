@@ -55,10 +55,6 @@ pub struct CellAttributes {
     pub semantic_type: SemanticType,
 }
 
-pub trait CellHash {
-    fn hash(&self) -> String;
-}
-
 impl CellAttributes {
     pub fn default() -> CellAttributes {
         CellAttributes {
@@ -77,7 +73,6 @@ impl CellAttributes {
 }
 
 // Change to enum to allow for box drawing etc
-use dioxus::prelude::*;
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub struct Cell {
     pub text: char,

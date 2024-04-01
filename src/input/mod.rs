@@ -3,8 +3,6 @@ use std::rc::Rc;
 use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{KeyboardData, MouseData};
-use serde::Deserialize;
-
 
 pub struct InputManager {
     key_mode: KeyMode,
@@ -21,15 +19,6 @@ pub enum MouseMode {
     RVXT,
     Normal,
     Unknown,
-}
-
-#[derive(Deserialize)]
-pub struct Key {
-    key: String,
-    alt: bool,
-    ctrl: bool,
-    meta: bool,
-    shift: bool,
 }
 
 impl InputManager {

@@ -327,14 +327,14 @@ impl Terminal {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use termwiz::escape::csi::DecPrivateModeCode::EnableAlternateScreen;
     use termwiz::escape::csi::{DecPrivateMode, Mode};
-    use termwiz::escape::{Action, CSI};
 
     use super::*;
 
-    #[cfg(test)]
+    #[test]
     pub fn alt_screen() {
         let mut terminal = Terminal::setup().unwrap();
 
@@ -344,17 +344,17 @@ mod tests {
         assert!(terminal.state.alt_screen)
     }
 
-    #[cfg(test)]
+    #[test]
     pub fn disable_alt_screen() {
         let mut terminal = Terminal::setup().unwrap();
 
         terminal.handle_action(Action::CSI(CSI::Mode(Mode::ResetDecPrivateMode(
             DecPrivateMode::Code(EnableAlternateScreen),
         ))));
-        assert!(terminal.state.alt_screen)
+        assert_eq!(terminal.state.alt_screen, false)
     }
 
-    #[cfg(test)]
+    #[test]
     pub fn clear_line() {
         // No clue how I'm gonna do this
     }

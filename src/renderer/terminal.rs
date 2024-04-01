@@ -34,7 +34,6 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     // Shift this into a config signal
     let font_size = use_signal(|| 14);
-    let font = use_signal(|| "JetBrainsMono Nerd Font");
 
     // Cell Size Reader
     let mut size_style = use_signal(|| String::new());
@@ -83,9 +82,6 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             }
         }
     });
-
-    let overflow =
-        use_memo(move || if terminal.read().state.alt_screen { "hidden" } else { "auto" });
 
     let cell_click = EventHandler::new(move |e: (Event<MouseData>, usize, usize, bool)| {
         let (mouse, x, y, is_press) = e;

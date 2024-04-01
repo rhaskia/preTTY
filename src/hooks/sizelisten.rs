@@ -1,4 +1,3 @@
-use dioxus::{signals::Signal, hooks::{UseFuture, use_signal}};
 use dioxus::prelude::*;
 use serde::Deserialize;
 use std::fmt::Debug;
@@ -18,6 +17,7 @@ impl DomRectSignal {
     } 
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Default, Clone, Debug)]
 pub struct ResizeObserverEntry {
     pub content_rect: DOMRectReadOnly,
@@ -26,12 +26,14 @@ pub struct ResizeObserverEntry {
     pub device_pixel_content_box_size: Option<ResizeObserverSize>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Default, Clone, Debug)]
 pub struct ResizeObserverSize {
     pub inline_size: f32,
     pub block_size: f32,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Default, Clone, Debug)]
 pub struct DOMRectReadOnly {
     pub x: f32,
@@ -85,7 +87,7 @@ pub fn resize_observer() -> UseEval {
     )
 }
 
-pub fn on_resize(id: String, mut callback: impl FnMut(ResizeObserverEntry) + 'static) -> UseFuture {
+pub fn on_resize(id: String, callback: impl FnMut(ResizeObserverEntry) + 'static) -> UseFuture {
     let id = use_signal(|| id);
     let mut callback = use_signal(|| callback);
 

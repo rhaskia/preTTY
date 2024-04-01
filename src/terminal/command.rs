@@ -1,4 +1,4 @@
-use std::ops::{Range};
+use std::ops::Range;
 
 #[derive(Debug)]
 pub struct CommandSlicer {
@@ -46,9 +46,16 @@ impl CommandStatus {
 }
 
 impl CommandSlicer {
-    pub fn new() -> Self { CommandSlicer { commands: vec![CommandSlice::new(0, 0)] } }
+    pub fn new() -> Self {
+        CommandSlicer {
+            commands: vec![CommandSlice::new(0, 0)],
+        }
+    }
 
     pub fn get(&self) -> &Vec<CommandSlice> { &self.commands }
+    pub fn vis(&self, start: usize, end: usize) -> Vec<&CommandSlice> { 
+        self.commands.iter().filter(|command| command.intersects(start, end)).collect()
+    }
 
     pub fn start_new(&mut self, x: usize, y: usize) {
         if let Some(command) = self.commands.last_mut() {
@@ -65,11 +72,31 @@ impl CommandSlicer {
         self.commands.last_mut().unwrap().output = Some(Position { x, y });
     }
 
-    pub fn set_status(&mut self, status: i32) { self.commands.last_mut().unwrap().status = CommandStatus::from_int(status); }
+    pub fn set_status(&mut self, status: i32) {
+        self.commands.last_mut().unwrap().status = CommandStatus::from_int(status);
+    }
 }
 
 impl CommandSlice {
-    pub fn new(x: usize, y: usize) -> Self { CommandSlice { prompt: Position { x, y }, input: None, output: None, end: None, status: CommandStatus::None } }
+    pub fn new(x: usize, y: usize) -> Self {
+        CommandSlice {
+            prompt: Position { x, y },
+            input: None,
+            output: None,
+            end: None,
+            status: CommandStatus::None,
+        }
+    }
+
+    // If this command intersects with the given range
+    // No clue if it's correct or not
+    pub fn intersects(&self, start: usize, end: usize) -> bool {
+        let matches_end = match self.end {
+            Some(pos) => pos.y < end,
+            None => false,
+        };
+        matches_end || self.prompt.y > start
+    }
 
     pub fn get_status(&self) -> CommandStatus { self.status }
 
