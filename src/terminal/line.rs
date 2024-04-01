@@ -3,19 +3,29 @@ use std::ops::{Index, IndexMut, Deref, DerefMut};
 
 #[derive(Clone, Debug)]
 pub struct Line {
-    cells: Vec<Cell>
+    cells: Vec<Cell>,
+    pub width: bool,
+    pub height: bool,
 }
 
 impl Line {
     pub fn new() -> Self {
-        Line { cells: Vec::new() }
+        Line { cells: Vec::new(), width: false, height: false }
     }
 
     pub fn with_one() -> Self {
-        Line { cells: vec![Cell::default()] }
+        Line { cells: vec![Cell::default()], width: false, height: false }
     }
     
     pub fn set(&mut self, cells: Vec<Cell>) { self.cells = cells; }
+
+    pub fn set_width(&mut self, double: bool) { self.width = double }
+    pub fn set_height(&mut self, double: bool) { self.height = double }
+    pub fn set_double(&mut self, double: bool) { self.height = double; self.width = double; }
+
+    pub fn double_width(&self) -> bool { self.width && !self.height }
+    pub fn double_height(&self) -> bool { !self.width && self.height }
+    pub fn double_size(&self) -> bool { self.width && self.height }
 }
 
 

@@ -105,11 +105,17 @@ body {
 }
 
 .cellspan {
-    max-width: var(--cell-width);
-    max-height: var(--cell-height);
+    width: var(--cell-width);
+    height: var(--cell-height);
     font-size: 14px;
     display: inline-block;
-    overflow: hidden;
+    overflow: visible;
+}
+
+.doublesize .cellspan {
+    font-size: 28px;
+    width: calc(var(--cell-width) * 2);
+    height: calc(var(--cell-height) * 2);
 }
 
 pre {

@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use super::cell::CellSpan;
+use super::cell::{CellSpan, CellLine};
 use crate::terminal::command::{CommandSlice, CommandStatus};
 use crate::terminal::Terminal;
 
@@ -48,13 +48,7 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: Cl
 
             pre {
                 for y in command.range(terminal.read().screen().len()) {
-                    span {
-                        id: "line_{y}",
-                        for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
-                            CellSpan { cell: *cell, x, y, cell_click: cell_click.clone() }
-                        }
-                        br {}
-                    }
+                    CellLine { terminal, y, cell_click: cell_click.clone() }
                 }
             }
 

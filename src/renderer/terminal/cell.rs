@@ -25,11 +25,17 @@ pub fn CellGrid(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
 
 #[component]
 pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) -> Element {
+    let term = terminal.read();
+    let line = term.screen().line(y);
     rsx! {
         span {
             id: "line_{y}",
             class: "cellline",
-            for (x, cell) in terminal.read().screen().line(y).iter().enumerate() {
+            class: if line.double_width() { "doublewidth" },
+            class: if line.double_height() { "doubleheight" },
+            class: if line.double_size() { "doublesize" },
+
+            for (x, cell) in line.iter().enumerate() {
                 CellSpan { cell: cell.clone(), x, y, cell_click: cell_click.clone() }
             }
             br {}

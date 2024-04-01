@@ -10,9 +10,12 @@ use std::collections::HashMap;
 
 use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
+use line::Line;
+
 use notify_rust::Notification;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
+
 use termwiz::escape::csi::Mode::{ResetDecPrivateMode, SetDecPrivateMode};
 use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
@@ -67,7 +70,31 @@ impl Terminal {
         }
     }
 
-    pub fn handle_control(&mut self, control_code: ControlCode) {
+    pub fn handle_actions(&mut self, actions: Vec<Action>) {
+        for action in actions {
+            self.handle_action(action);
+        }
+    }
+
+    pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
+
+    pub fn mut_screen(&mut self) -> &mut Screen { self.renderer.mut_screen(self.state.alt_screen) }
+
+    pub fn cursor_pos(&self) -> (usize, usize) { (self.cursor.x, self.phys_cursor_y()) }
+
+    pub fn current_line(&mut self) -> &mut Line { 
+        let line_index = self.phys_cursor_y();
+        self.mut_screen().mut_line(line_index)
+    }
+
+    pub fn phys_cursor_y(&self) -> usize { self.screen().phys_line(self.cursor.y) }
+
+    pub fn resize(&mut self, rows: u16, cols: u16) {
+        self.rows = rows.into();
+        self.cols = cols.into()
+    }
+
+    fn handle_control(&mut self, control_code: ControlCode) {
         match control_code {
             ControlCode::LineFeed => self.new_line(),
             ControlCode::CarriageReturn => self.cursor.set_x(0),
@@ -76,7 +103,7 @@ impl Terminal {
         }
     }
 
-    pub fn handle_csi(&mut self, csi: CSI) {
+    fn handle_csi(&mut self, csi: CSI) {
         match csi {
             CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
             CSI::Mode(mode) => match mode {
@@ -92,25 +119,43 @@ impl Terminal {
         }
     }
 
-    pub fn device_control(&mut self, device_command: DeviceControlMode) {
+    fn device_control(&mut self, device_command: DeviceControlMode) {
         match device_command {
             _ => println!("{:?}", device_command),
         }
     }
 
-    pub fn kitty_image(&mut self, image: Box<KittyImage>) { println!("Kitty Image") }
+    fn kitty_image(&mut self, image: Box<KittyImage>) { println!("Kitty Image") }
 
-    pub fn handle_esc(&mut self, esc: Esc) {
-        match esc {
-            _ => println!("{:?}", esc),
+    /// Handles any Esc codes
+    fn handle_esc(&mut self, esc: Esc) {
+        use termwiz::escape::Esc::Code;
+
+        let code = match esc {
+            Code(c) => c,
+            Esc::Unspecified { intermediate, control } => {
+                println!("ESC {:?}", esc);
+                return;
+            }
+        };
+
+        use termwiz::escape::EscCode::*;
+        match code {
+            DecDoubleWidthLine => self.current_line().set_width(true),
+            DecDoubleHeightTopHalfLine => self.current_line().set_double(true),
+            // TODO: something else needed
+            DecDoubleHeightBottomHalfLine => self.current_line().set_double(true),
+            _ => println!("ESC {:?}", code),
         }
     }
 
-    pub fn handle_sixel(&mut self, sixel: Box<Sixel>) { println!("Sixel Image") }
+    /// "Renders" a sixel image
+    /// Really just stores it in a state for the webview to render
+    fn handle_sixel(&mut self, sixel: Box<Sixel>) { println!("Sixel Image") }
 
     /// Handles cursor movements, etc
     // Really need to move this to the cursor object
-    pub fn handle_cursor(&mut self, cursor: Cursor) {
+    fn handle_cursor(&mut self, cursor: Cursor) {
         use Cursor::*;
         match cursor {
             Left(amount) => self.cursor.shift_left(amount),
@@ -126,13 +171,13 @@ impl Terminal {
     }
 
     /// Backspaces at the terminal cursor position
-    pub fn backspace(&mut self) {
+    fn backspace(&mut self) {
         self.cursor.x -= 1;
         // self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default();
         // self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
-    pub fn new_line(&mut self) {
+    fn new_line(&mut self) {
         self.cursor.shift_down(1);
         if self.cursor.y == self.rows as usize {
             self.cursor.y = self.rows as usize - 1;
@@ -140,10 +185,8 @@ impl Terminal {
         }
     }
 
-    pub fn phys_cursor_y(&self) -> usize { self.screen().phys_line(self.cursor.y) }
-
     /// Pushes a cell onto the current screen
-    pub fn print(&mut self, char: char) {
+    fn print(&mut self, char: char) {
         let attr = self.renderer.attr.clone();
 
         // shells don't automatically do wrapping for applications
@@ -162,23 +205,17 @@ impl Terminal {
         self.cursor.x += 1;
     }
 
-    pub fn print_str(&mut self, text: String) {
+    fn print_str(&mut self, text: String) {
         for char in text.chars() {
             self.print(char);
         }
     }
 
-    pub fn handle_actions(&mut self, actions: Vec<Action>) {
-        for action in actions {
-            self.handle_action(action);
-        }
-    }
+    fn handle_kitty_keyboard(&mut self, command: Keyboard) {}
 
-    pub fn handle_kitty_keyboard(&mut self, command: Keyboard) {}
+    fn handle_device(&mut self, device_command: Box<Device>) {}
 
-    pub fn handle_device(&mut self, device_command: Box<Device>) {}
-
-    pub fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
+    fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
         use OperatingSystemCommand::*;
         match *command {
             SetWindowTitle(title) => self.title = title,
@@ -192,7 +229,7 @@ impl Terminal {
     }
 
     /// Handling of all Iterm-based commands
-    pub fn handle_iterm(&mut self, command: ITermProprietary) {
+    fn handle_iterm(&mut self, command: ITermProprietary) {
         match command {
             ITermProprietary::SetUserVar { name, value } => {
                 self.user_vars.insert(name, value);
@@ -203,7 +240,7 @@ impl Terminal {
 
     // TODO: Replace this with a more explicit system
     // Ideally there would be a Command object, that has prompt, input and output fields
-    pub fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
+    fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
         use FinalTermSemanticPrompt::*;
 
         match prompt {
@@ -231,7 +268,7 @@ impl Terminal {
     }
 
     /// Creates a 'Fresh Line' as described by the FinalTermSemanticPrompt protocol
-    pub fn fresh_line(&mut self) {
+    fn fresh_line(&mut self) {
         if self.cursor.x == 0 {
             return;
         }
@@ -239,20 +276,20 @@ impl Terminal {
         self.cursor.x = 0;
     }
 
-    pub fn start_command(&mut self) {
+    fn start_command(&mut self) {
         self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
         self.commands
             .start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
     }
 
-    pub fn start_input(&mut self, until: Until) {
+    fn start_input(&mut self, until: Until) {
         self.renderer.attr.semantic_type = SemanticType::Input(until);
         self.commands
             .start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
         // TODO: Do some state management. maybe some sort of custom editor?
     }
 
-    pub fn notify_window(notif: String) {
+    fn notify_window(notif: String) {
         Notification::new()
             .summary("Term")
             .body(&notif)
@@ -261,7 +298,7 @@ impl Terminal {
             .unwrap();
     }
 
-    pub fn erase_in_display(&mut self, edit: EraseInDisplay) {
+    fn erase_in_display(&mut self, edit: EraseInDisplay) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
 
         match edit {
@@ -273,7 +310,7 @@ impl Terminal {
         }
     }
 
-    pub fn erase_in_line(&mut self, edit: EraseInLine) {
+    fn erase_in_line(&mut self, edit: EraseInLine) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
 
         match edit {
@@ -297,7 +334,7 @@ impl Terminal {
         }
     }
 
-    pub fn erase_characters(&mut self, n: u32) {
+    fn erase_characters(&mut self, n: u32) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
         let end = (self.cursor.x + n as usize).min(screen.mut_line(self.cursor.y).len());
 
@@ -306,24 +343,13 @@ impl Terminal {
         }
     }
 
-    pub fn handle_edit(&mut self, edit: Edit) {
+    fn handle_edit(&mut self, edit: Edit) {
         match edit {
             Edit::EraseInLine(e) => self.erase_in_line(e),
             Edit::EraseInDisplay(e) => self.erase_in_display(e),
             Edit::EraseCharacter(n) => self.erase_characters(n),
             _ => println!("Edit {:?}", edit),
         }
-    }
-
-    pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
-
-    pub fn mut_screen(&mut self) -> &mut Screen { self.renderer.mut_screen(self.state.alt_screen) }
-
-    pub fn cursor_pos(&self) -> (usize, usize) { (self.cursor.x, self.phys_cursor_y()) }
-
-    pub fn resize(&mut self, rows: u16, cols: u16) {
-        self.rows = rows.into();
-        self.cols = cols.into()
     }
 }
 
