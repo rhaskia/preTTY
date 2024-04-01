@@ -160,6 +160,7 @@ impl Terminal {
             FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
             ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
             SystemNotification(notif) => Self::notify_window(notif),
+            CurrentWorkingDirectory(cwd) => self.state.cwd = cwd,
             _ => println!("OperatingSystemCommand({:?})", command),
         };
     }

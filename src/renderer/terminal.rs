@@ -106,7 +106,6 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             tabindex: index.to_string(),
 
             onkeydown: key_press,
-            "{terminal.read().state.alt_screen}",
 
             if terminal.read().state.alt_screen {
                 CellGrid { terminal, cell_click }
