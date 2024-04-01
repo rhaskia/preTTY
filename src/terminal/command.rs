@@ -55,17 +55,14 @@ impl CommandSlicer {
             command.end = Some(Position { x, y });
         }
         self.commands.push(CommandSlice::new(x, y));
-        println!("STARTED PROMPT");
     }
 
     pub fn start_input(&mut self, x: usize, y: usize) {
         self.commands.last_mut().unwrap().input = Some(Position { x, y });
-        println!("STARTED INPUT");
     }
 
     pub fn start_output(&mut self, x: usize, y: usize) {
         self.commands.last_mut().unwrap().output = Some(Position { x, y });
-        println!("STARTED OUPUT");
     }
 
     pub fn set_status(&mut self, status: i32) { self.commands.last_mut().unwrap().status = CommandStatus::from_int(status); }

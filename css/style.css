@@ -25,6 +25,22 @@
     border-left: var(--light-red) 2px solid; 
 }
 
+.command-button {
+    position: absolute;
+    /*mask*/
+    background-color: var(--black);
+    color: var(--white);
+    border: none;
+}
+
+.command-bar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: end;
+    align-items: end;
+}
+
 hr {
     border: none;
     border-top: 1px solid var(--grey);

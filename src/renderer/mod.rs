@@ -4,7 +4,6 @@ use crate::renderer::terminal::TerminalApp;
 use crate::terminal::pty::PseudoTerminalSystem;
 
 pub mod header;
-mod palette;
 pub mod terminal;
 
 #[component]

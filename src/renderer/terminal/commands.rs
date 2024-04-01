@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus::desktop::{Config, use_window};
 
 use super::cell::CellSpan;
 use crate::terminal::command::{CommandSlice, CommandStatus};
@@ -19,7 +20,18 @@ pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Elem
 }
 
 #[component]
+pub fn RightClickCommand() -> Element {
+    rsx! {
+        div {
+            "hi"
+        }
+    }
+}
+
+#[component]
 pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
+    let mut hovering = use_signal(|| false);
+
     rsx! {
         div {
             class: "command",
@@ -32,6 +44,8 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: Cl
                 CommandStatus::FatalError(_) => "command-fatal",
                 CommandStatus::None => "",
             },
+            onmouseover: move |info| hovering.set(true),
+            onmouseleave: move  |info| hovering.set(false),
 
             pre {
                 for y in command.range(terminal.read().screen().len()) {
@@ -42,6 +56,16 @@ pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: Cl
                         }
                         br {}
                     }
+                }
+            }
+
+            div {
+                class: "command-bar",
+                button {
+                    class: "command-button copy",
+                    onclick: |info| println!("copied to system"),
+                    hidden: !command.finished() || !hovering(),
+                    ""
                 }
             }
         }

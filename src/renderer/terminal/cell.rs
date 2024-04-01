@@ -72,7 +72,7 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Eleme
             },
             class: if cell.attr.invert { "invert" },
 
-            style: "--fg: {fg}; --bg: {bg}",
+            style: "--fg: {fg}; --bg: {bg}; --x: {x}; --y: {y}",
             key: "{x}:{y}",
             id: "{x}:{y}",
 

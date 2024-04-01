@@ -1,7 +1,7 @@
 pub mod cell;
-mod line;
 pub mod command;
 mod cursor;
+mod line;
 pub mod pty;
 pub mod screen;
 mod state;
@@ -160,7 +160,6 @@ impl Terminal {
             FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
             ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
             SystemNotification(notif) => Self::notify_window(notif),
-
             _ => println!("OperatingSystemCommand({:?})", command),
         };
     }
