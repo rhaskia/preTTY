@@ -1,6 +1,8 @@
-use termwiz::cell::{Blink, Intensity, Underline};
+use termwiz::cell::{Blink, Intensity, Underline, VerticalAlign};
 use termwiz::color::ColorSpec;
+use termwiz::escape::csi::Font;
 use termwiz::escape::osc::FinalTermPromptKind;
+use termwiz::color::SrgbaTuple;
 
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Until {
@@ -32,48 +34,184 @@ pub enum PromptKind {
     Secondary,
 }
 
-#[derive(Clone, Debug, PartialEq, Copy)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SemanticType {
     Output,
     Input(Until),
     Prompt(PromptKind),
 }
 
-#[derive(Clone, Debug, PartialEq, Copy)]
-pub struct CellAttributes {
-    pub bg: ColorSpec,
-    pub fg: ColorSpec,
-    // TODO bitmap these
-    pub underline: Underline,
-    pub intensity: Intensity,
-    pub italic: bool,
-    pub strikethrough: bool,
-    pub blink: Blink,
-    pub underline_fg: ColorSpec,
-    pub invert: bool,
+#[derive(Clone, Debug, PartialEq)]
+pub enum Color {
+    Default,
+    Palette(u8),
+    TrueColor,
+}
 
-    pub semantic_type: SemanticType,
+#[derive(Clone, Debug, PartialEq)]
+pub struct CellAttributes {
+    pub bg: Color,
+    pub fg: Color,
+    pub underline_fg: Color,
+    // bit 0 = bold
+    // bit 1 = dim
+    // bit 2 = italic
+    // bit 3 = strikethrough
+    // bit 4 = overline
+    // bit 5 = invert
+    // bit 6 = hide
+    // bit 7 = underline 
+    // bit 8 = double underline
+    // bit 9 = wrapped
+    // bit 10 = blink
+    // bit 11 = fast_blink
+    // bit 9-10 = semantic type
+    attributes: u16,
+    pub extra: Option<Box<ExtraAttributes>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ExtraAttributes {
+    font: Font,
+    fg: Option<SrgbaTuple>,
+    bg: Option<SrgbaTuple>,
+    underline_fg: Option<ColorSpec>,
+}
+
+impl ExtraAttributes {
+    pub fn default() -> Self {
+        ExtraAttributes { font: Font::Default, fg: None, bg: None, underline_fg: None }
+    }
+}
+
+macro_rules! bitfield {
+    ($get:ident, $set:ident, $bit_position:expr) => {
+        pub fn $get(&self) -> bool {
+            self.get_bit($bit_position)
+        }
+
+        pub fn $set(&mut self, active: bool) {
+            self.set_bit($bit_position, active);
+        }
+    };
+}
+
+macro_rules! set_colour {
+    ($name:ident, $get:ident, $set:ident) => {
+        pub fn $set(&mut self, color: ColorSpec) {
+            self.$name = match color {
+                ColorSpec::Default => Color::Default,
+                ColorSpec::PaletteIndex(idx) => Color::Palette(idx),
+                ColorSpec::TrueColor(tc) => {
+                    self.get_extra().$name = Some(tc.clone());
+                    Color::TrueColor
+                },
+            }
+        }
+
+        pub fn $get(&self) -> ColorSpec {
+            match self.$name {
+                Color::Default => ColorSpec::Default,
+                Color::Palette(idx) => ColorSpec::PaletteIndex(idx),
+                Color::TrueColor => ColorSpec::TrueColor(self.extra.clone().unwrap().$name.unwrap())
+            }
+        }
+    };
 }
 
 impl CellAttributes {
     pub fn default() -> CellAttributes {
         CellAttributes {
-            bg: ColorSpec::Default,
-            fg: ColorSpec::Default,
-            underline: Underline::None,
-            intensity: Intensity::Normal,
-            italic: false,
-            strikethrough: false,
-            blink: Blink::None,
-            underline_fg: ColorSpec::Default,
-            semantic_type: SemanticType::Output,
-            invert: false,
+            bg: Color::Default,
+            fg: Color::Default,
+            underline_fg: Color::Default,
+            attributes: 0,
+            extra: None,
         }
+    }
+
+    fn get_bit(&self, pos: u8) -> bool { ((self.attributes >> pos) & 1) != 0 }
+
+    fn set_bit(&mut self, pos: u8, active: bool) {
+        let old = self.attributes;
+        self.attributes = if active { old | (1 << pos) } else { old & !(1 << pos) };
+    }
+
+    bitfield!(bold, set_bold, 0);
+    bitfield!(dim, set_dim, 1);
+    bitfield!(italic, set_italic, 2);
+    bitfield!(strike, set_strike, 3);
+    bitfield!(overline, set_overline, 4);
+    bitfield!(invert, set_invert, 5);
+    bitfield!(hide, set_hide, 6);
+    bitfield!(single_underline, set_single_ul, 7);
+    bitfield!(double_underline, set_double_ul, 8);
+    bitfield!(wrapped, set_wrapped, 9);
+    bitfield!(superscript, set_super, 10);
+    bitfield!(subscript, set_sub, 11);
+    bitfield!(slow_blink, set_slow_blink, 12);
+    bitfield!(rapid_blink, set_rapid_blink, 13);
+
+    pub fn set_sem_type(&mut self, sem: SemanticType) {
+        match sem {
+            SemanticType::Output => {
+                self.set_bit(14, false);
+                self.set_bit(15, false);
+            },
+            SemanticType::Input(_) => {
+                self.set_bit(14, true);
+                self.set_bit(15, false);
+            },
+            SemanticType::Prompt(_) => {
+                self.set_bit(14, false);
+                self.set_bit(15, true);
+            },
+        }
+    }
+
+    pub fn semantic_type(&self) -> SemanticType {
+        let first_bit = self.get_bit(14);
+        let second_bit = self.get_bit(15);
+
+        match (first_bit, second_bit) {
+            (false, false) => SemanticType::Output,
+            (true, false) => SemanticType::Input(Until::LineEnd),
+            (false, true) => SemanticType::Prompt(PromptKind::Initial),
+            _ => panic!("Semantic type bits not set properly"),
+        }
+    }
+
+    pub fn set_font(&mut self, font: Font) {
+        // if self.extra.is_none() { self.extra = Some(Box::new(ExtraAttributes::default())) }
+        // if let Some(ref mut extra) = self.extra {
+        //     extra.font = font;
+        // }
+    }
+
+    pub fn set_vert_align(&mut self, align: VerticalAlign) {}
+
+    pub fn set_intensity(&mut self, intensity: Intensity) {}
+
+    pub fn set_blink(&mut self, blink: Blink) {}
+
+    pub fn set_underline(&mut self, underline: Underline) {}
+
+    set_colour!(fg, get_fg, set_fg);
+    set_colour!(bg, get_bg, set_bg);
+
+    pub fn set_underline_colour(&mut self, colour: ColorSpec) {
+
+    }
+
+    pub fn get_extra(&mut self) -> &mut Box<ExtraAttributes> {
+        if self.extra.is_none() { self.extra = Some(Box::new(ExtraAttributes::default())) }
+        self.extra.as_mut().unwrap()
     }
 }
 
 // Change to enum to allow for box drawing etc
-#[derive(Clone, Debug, PartialEq, Copy)]
+#[derive(Clone, Debug, PartialEq)]
+#[repr(align(8))]
 pub struct Cell {
     pub text: char,
     pub attr: CellAttributes,
@@ -82,5 +220,20 @@ pub struct Cell {
 impl Cell {
     pub fn new(text: char, attr: CellAttributes) -> Cell { Cell { text, attr } }
 
-    pub fn default() -> Cell { Cell { text: ' ', attr: CellAttributes::default() } }
+    pub fn default() -> Cell {
+        Cell {
+            text: ' ',
+            attr: CellAttributes::default(),
+        }
+    }
+}
+
+#[cfg(tests)]
+mod tests {
+    #[test]
+    pub fn set_bold() {
+        let attr = CellAttributes::new();
+        attr.set_bold(true);
+        assert!(attr.bold());
+    }
 }

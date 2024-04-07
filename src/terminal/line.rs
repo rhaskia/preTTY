@@ -28,7 +28,6 @@ impl Line {
     pub fn double_size(&self) -> bool { self.width && self.height }
 }
 
-
 impl Index<usize> for Line {
     type Output = Cell;
 

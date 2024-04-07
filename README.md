@@ -1,5 +1,5 @@
 # PreTTY
-preTTY is a dioxus-based terminal emulator, with full customizability (not really yet) through js and css.
+PreTTY is a Dioxus-based terminal emulator, with full customizability through JS and CSS.
 
 ## Dependencies 
 The main dependency is just a web view to render the app, which is usually these:

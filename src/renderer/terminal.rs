@@ -9,6 +9,7 @@ use cursor::Cursor;
 use dioxus::prelude::*;
 use serde::Deserialize;
 
+use tracing::info;
 use crate::hooks::{on_resize, DOMRectReadOnly};
 use crate::terminal::pty::PseudoTerminalSystem;
 use crate::terminal::Terminal;
@@ -59,6 +60,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     // Window Resize Event
     on_resize(format!("split-{index}"), move |size| {
+        info!("Resize Event {size:?}");
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
             let (rows, cols) = pty.write().resize(width, height, cell.width, cell.height);
@@ -68,6 +70,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     // Any Keyboard Events
     let key_press = move |e: Event<KeyboardData>| async move {
+        info!("Keyboard Event: {e:?}");
         let key = input.write().handle_key(e.data);
         pty.write().write(key);
     };
@@ -85,6 +88,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     let cell_click = EventHandler::new(move |e: (Event<MouseData>, usize, usize, bool)| {
         let (mouse, x, y, is_press) = e;
+        info!("Click Event @ {x}:{y}, type: {mouse:?}");
         if let Some(size) = cell_size.read().clone() {
             pty.write()
                 .write(input.write().handle_mouse(mouse.data, x, y, is_press));

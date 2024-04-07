@@ -23,6 +23,8 @@ use termwiz::escape::{
     Action, ControlCode, DeviceControlMode, Esc, KittyImage, OperatingSystemCommand, Sixel,
 };
 
+use tracing::info;
+
 use self::command::CommandSlicer;
 
 /// Main terminal controller
@@ -74,6 +76,8 @@ impl Terminal {
         for action in actions {
             self.handle_action(action);
         }
+
+        println!("Screen Memory Usage: {:?}", self.screen().memory_usage());
     }
 
     pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
@@ -99,7 +103,8 @@ impl Terminal {
             ControlCode::LineFeed => self.new_line(),
             ControlCode::CarriageReturn => self.cursor.set_x(0),
             ControlCode::Backspace => self.backspace(),
-            _ => println!("ControlCode({:?})", control_code),
+            ControlCode::Null => info!("Read NULL char"),
+            _ => info!("ControlCode({:?})", control_code),
         }
     }
 
@@ -115,13 +120,13 @@ impl Terminal {
             CSI::Edit(edit) => self.handle_edit(edit),
             CSI::Device(device) => self.handle_device(device),
             CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
-            _ => println!("CSI({:?})", csi),
+            _ => info!("CSI({:?})", csi),
         }
     }
 
     fn device_control(&mut self, device_command: DeviceControlMode) {
         match device_command {
-            _ => println!("{:?}", device_command),
+            _ => println!("Device Command {:?}", device_command),
         }
     }
 
@@ -173,10 +178,9 @@ impl Terminal {
     /// Backspaces at the terminal cursor position
     fn backspace(&mut self) {
         self.cursor.x -= 1;
-        // self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y][self.cursor.x] = Cell::default();
-        // self.renderer.mut_screen(self.state.alt_screen).cells[self.cursor.y].remove(self.cursor.x);
     }
 
+    // Performs a new line at the terminal cursor position
     fn new_line(&mut self) {
         self.cursor.shift_down(1);
         if self.cursor.y == self.rows as usize {
@@ -205,6 +209,7 @@ impl Terminal {
         self.cursor.x += 1;
     }
 
+    // Prints each char of a string into the screen
     fn print_str(&mut self, text: String) {
         for char in text.chars() {
             self.print(char);
@@ -215,6 +220,9 @@ impl Terminal {
 
     fn handle_device(&mut self, device_command: Box<Device>) {}
 
+    // Operating System Commands
+    // Usually for things like notifications and window control
+    // TODO: config to toggle these as they may be unwanted
     fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
         use OperatingSystemCommand::*;
         match *command {
@@ -224,7 +232,7 @@ impl Terminal {
             ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
             SystemNotification(notif) => Self::notify_window(notif),
             CurrentWorkingDirectory(cwd) => self.state.cwd = cwd,
-            _ => println!("OperatingSystemCommand({:?})", command),
+            _ => info!("OperatingSystemCommand({:?})", command),
         };
     }
 
@@ -250,8 +258,8 @@ impl Terminal {
                 self.start_command();
             }
             StartPrompt(prompt_kind) => {
-                self.renderer.attr.semantic_type =
-                    SemanticType::Prompt(PromptKind::from(prompt_kind))
+                self.renderer.attr.set_sem_type(
+                    SemanticType::Prompt(PromptKind::from(prompt_kind)))
             }
             // why are these so long :sob:
             MarkEndOfPromptAndStartOfInputUntilNextMarker => {
@@ -259,7 +267,7 @@ impl Terminal {
             }
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
             MarkEndOfInputAndStartOfOutput { aid } => {
-                self.renderer.attr.semantic_type = SemanticType::Output;
+                self.renderer.attr.set_sem_type(SemanticType::Output);
                 self.commands
                     .start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
             }
@@ -277,13 +285,13 @@ impl Terminal {
     }
 
     fn start_command(&mut self) {
-        self.renderer.attr.semantic_type = SemanticType::Prompt(PromptKind::Initial);
+        self.renderer.attr.set_sem_type(SemanticType::Prompt(PromptKind::Initial));
         self.commands
             .start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
     }
 
     fn start_input(&mut self, until: Until) {
-        self.renderer.attr.semantic_type = SemanticType::Input(until);
+        self.renderer.attr.set_sem_type(SemanticType::Input(until));
         self.commands
             .start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
         // TODO: Do some state management. maybe some sort of custom editor?

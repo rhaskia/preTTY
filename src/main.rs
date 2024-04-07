@@ -9,7 +9,7 @@ mod hooks;
 
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
-
+use tracing_subscriber::EnvFilter;
 
 use crate::input::InputManager;
 use crate::renderer::TerminalSplit;
@@ -38,6 +38,11 @@ pub fn App() -> Element {
 }
 
 fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .compact()
+        .init();
+
     let cfg = dioxus::desktop::Config::new()
         .with_disable_context_menu(true)
         .with_background_color((0, 0, 0, 0))

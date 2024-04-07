@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
-
+use crate::terminal::cell::Color;
 use crate::terminal::cell::{Cell, SemanticType};
 use crate::terminal::Terminal;
 
@@ -59,24 +59,21 @@ impl ToHex for ColorSpec {
 
 #[component]
 pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Element {
-    let fg = cell.attr.fg.to_hex("var(--fg-default)".to_string());
-    let bg = cell.attr.bg.to_hex("var(--bg-default)".to_string());
+    let fg = cell.attr.get_fg().to_hex("var(--fg-default)".to_string());
+    let bg = cell.attr.get_bg().to_hex("var(--bg-default)".to_string());
     let click_up = cell_click.clone();
 
     rsx! {
         span {
             class: "cellspan",
-            class: match cell.attr.intensity { 
-                Intensity::Bold => "cell-bold",
-                Intensity::Half => "cell-dim",
-                _ => ""
-            },
-            class: match cell.attr.semantic_type {
+            class: if cell.attr.bold() { "cell-bold" },
+            class: if cell.attr.dim() { "cell-dim" },
+            class: match cell.attr.semantic_type() {
                 SemanticType::Output => "command-ouput",
                 SemanticType::Input(_) => "command-input",
                 SemanticType::Prompt(_) => "command-prompt",
             },
-            class: if cell.attr.invert { "invert" },
+            class: if cell.attr.invert() { "invert" },
 
             style: "--fg: {fg}; --bg: {bg}; --x: {x}; --y: {y}",
             key: "{x}:{y}",

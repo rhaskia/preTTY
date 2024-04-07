@@ -3,7 +3,7 @@ use std::ops::Range;
 
 use termwiz::escape::csi::Sgr;
 
-use super::cell::{Cell, CellAttributes};
+use super::cell::{Cell, CellAttributes, Color};
 use super::line::Line;
 
 #[derive(Debug)]
@@ -43,17 +43,20 @@ impl TerminalRenderer {
 
     pub fn handle_sgr(&mut self, sgr: Sgr) {
         match sgr {
-            Sgr::Foreground(f) => self.attr.fg = f,
-            Sgr::Background(b) => self.attr.bg = b,
+            Sgr::Foreground(f) => self.attr.set_fg(f),
+            Sgr::Background(b) => self.attr.set_bg(b),
+            Sgr::UnderlineColor(colour) => self.attr.set_underline_colour(colour),
+            Sgr::Blink(b) => self.attr.set_blink(b),
+            Sgr::Underline(u) => self.attr.set_underline(u),
+            Sgr::Intensity(i) => self.attr.set_intensity(i),
+            Sgr::Italic(i) => self.attr.set_italic(i),
+            Sgr::StrikeThrough(s) => self.attr.set_strike(s),
+            Sgr::Inverse(invert) => self.attr.set_invert(invert),
+            Sgr::Invisible(inv) => self.attr.set_hide(inv),
+            Sgr::Font(font) => self.attr.set_font(font),
+            Sgr::Overline(o) => self.attr.set_overline(o),
+            Sgr::VerticalAlign(vert_align) => self.attr.set_vert_align(vert_align),
             Sgr::Reset => self.reset_attr(),
-            Sgr::Blink(b) => self.attr.blink = b,
-            Sgr::Underline(u) => self.attr.underline = u,
-            Sgr::Intensity(i) => self.attr.intensity = i,
-            Sgr::UnderlineColor(colour) => self.attr.underline_fg = colour,
-            Sgr::Italic(i) => self.attr.italic = i,
-            Sgr::StrikeThrough(s) => self.attr.strikethrough = s,
-            Sgr::Inverse(invert) => self.attr.invert = invert,
-            _ => println!("{:?}", sgr),
         }
     }
 }
@@ -164,4 +167,14 @@ impl Screen {
 
     /// The index at which the visible screen starts in the scrollback buffer
     pub fn visible_start(&self) -> usize { self.scrollback_offset }
+
+    /// Roughly how much memory the screen is using 
+    pub fn memory_usage(&self) -> (usize, usize, usize, usize) {
+        let cell_size = std::mem::size_of::<Cell>();
+        let attr_size = std::mem::size_of::<CellAttributes>();
+        let color_size = std::mem::size_of::<Color>();
+
+        let cells = self.cells.iter().fold(0, |acc, line| acc + line.len());
+        (cells, cell_size, attr_size, color_size)
+    }
 }
