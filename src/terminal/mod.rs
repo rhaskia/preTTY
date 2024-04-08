@@ -67,7 +67,7 @@ impl Terminal {
             Action::DeviceControl(control) => self.device_control(control),
             Action::Esc(code) => self.handle_esc(code),
             Action::Sixel(sixel) => self.handle_sixel(sixel),
-            Action::XtGetTcap(terminfo) => println!("TERMINFO {terminfo:?}"),
+            Action::XtGetTcap(terminfo) => info!("TERMINFO {terminfo:?}"),
             Action::KittyImage(image) => self.kitty_image(image),
         }
     }
@@ -76,8 +76,6 @@ impl Terminal {
         for action in actions {
             self.handle_action(action);
         }
-
-        println!("Screen Memory Usage: {:?}", self.screen().memory_usage());
     }
 
     pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
@@ -114,7 +112,7 @@ impl Terminal {
             CSI::Mode(mode) => match mode {
                 SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
                 ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
-                _ => println!("Mode({:?})", mode),
+                _ => info!("Mode({:?})", mode),
             },
             CSI::Cursor(cursor) => self.handle_cursor(cursor),
             CSI::Edit(edit) => self.handle_edit(edit),
@@ -126,11 +124,11 @@ impl Terminal {
 
     fn device_control(&mut self, device_command: DeviceControlMode) {
         match device_command {
-            _ => println!("Device Command {:?}", device_command),
+            _ => info!("Device Command {:?}", device_command),
         }
     }
 
-    fn kitty_image(&mut self, image: Box<KittyImage>) { println!("Kitty Image") }
+    fn kitty_image(&mut self, image: Box<KittyImage>) { info!("Kitty Image") }
 
     /// Handles any Esc codes
     fn handle_esc(&mut self, esc: Esc) {
@@ -139,7 +137,7 @@ impl Terminal {
         let code = match esc {
             Code(c) => c,
             Esc::Unspecified { intermediate, control } => {
-                println!("ESC {:?}", esc);
+                info!("ESC {:?}", esc);
                 return;
             }
         };
@@ -150,13 +148,13 @@ impl Terminal {
             DecDoubleHeightTopHalfLine => self.current_line().set_double(true),
             // TODO: something else needed
             DecDoubleHeightBottomHalfLine => self.current_line().set_double(true),
-            _ => println!("ESC {:?}", code),
+            _ => info!("ESC {:?}", code),
         }
     }
 
     /// "Renders" a sixel image
     /// Really just stores it in a state for the webview to render
-    fn handle_sixel(&mut self, sixel: Box<Sixel>) { println!("Sixel Image") }
+    fn handle_sixel(&mut self, sixel: Box<Sixel>) { info!("Sixel Image") }
 
     /// Handles cursor movements, etc
     // Really need to move this to the cursor object
@@ -171,7 +169,7 @@ impl Terminal {
                 .cursor
                 .set(col.as_one_based() - 1, line.as_one_based() - 1),
             CursorStyle(style) => self.cursor.set_style(style),
-            _ => println!("Cursor {cursor:?}"),
+            _ => info!("Cursor {cursor:?}"),
         }
     }
 
@@ -242,7 +240,7 @@ impl Terminal {
             ITermProprietary::SetUserVar { name, value } => {
                 self.user_vars.insert(name, value);
             }
-            _ => println!("Iterm {command:?}"),
+            _ => info!("Iterm {command:?}"),
         }
     }
 
@@ -314,7 +312,7 @@ impl Terminal {
                 screen.erase_all();
                 self.cursor.set(0, 0);
             }
-            _ => println!("Erase {edit:?}"),
+            _ => info!("Erase {edit:?}"),
         }
     }
 
@@ -356,7 +354,7 @@ impl Terminal {
             Edit::EraseInLine(e) => self.erase_in_line(e),
             Edit::EraseInDisplay(e) => self.erase_in_display(e),
             Edit::EraseCharacter(n) => self.erase_characters(n),
-            _ => println!("Edit {:?}", edit),
+            _ => info!("Edit {:?}", edit),
         }
     }
 }
