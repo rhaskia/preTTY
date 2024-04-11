@@ -4,6 +4,8 @@ use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{KeyboardData, MouseData};
 
+use tracing::*;
+
 pub struct InputManager {
     key_mode: KeyMode,
     mouse_mode: MouseMode,
@@ -124,7 +126,7 @@ impl InputManager {
             ArrowDown => String::from("\x1b[B"),
 
             _ => {
-                println!("{keyboard_data:?}");
+                info!("Unused Key: {keyboard_data:?}");
                 String::new()
             }
         }

@@ -10,6 +10,7 @@ mod hooks;
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::filter::LevelFilter;
 
 use crate::input::InputManager;
 use crate::renderer::TerminalSplit;
@@ -24,7 +25,7 @@ pub fn App() -> Element {
             style {{ include_str!("../css/style.css") }}
             style {{ include_str!("../css/gruvbox.css") }}
             style {{ include_str!("../css/palette.css") }}
-            // link { href: "/css/style.css" }
+            link { href: "~/.config/pretty/style.css" }
             // link { href: "/css/palette.css" }
             // link { href: mg!(file("css/gruvbox.css")) }
 
@@ -38,8 +39,13 @@ pub fn App() -> Element {
 }
 
 fn main() {
+    let filter = EnvFilter::builder()
+        .with_default_directive(LevelFilter::INFO.into())
+        .from_env().unwrap()
+        .add_directive("term=debug".parse().unwrap());
+        
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(filter)
         .compact()
         .init();
 
