@@ -1,0 +1,28 @@
+[package]
+name = "gui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+portable-pty = "0.8.1"
+termwiz = "0.22.0"
+dioxus = { version = "0.5.0", features = ["desktop", "html", "hooks"] }
+tokio = "1.36.0"
+web-sys = {version =  "0.3.68", features = ["ResizeObserver", "ResizeObserverEntry", "Element"] }
+futures = "0.3.30"
+serde-wasm-bindgen = "0.6.4"
+serde = { version = "1.0.197", features = ["serde_derive"] }
+serde_json = "1.0.114"
+async-channel = "2.2.0"
+async-option = "0.1.1"
+notify-rust = "4.10.0"
+manganis = "0.2.1"
+
+fern = "0.6.2"
+log = "0.4.21"
+
+term = { workspace = true }
+hooks = { workspace = true }

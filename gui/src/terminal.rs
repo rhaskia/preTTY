@@ -10,10 +10,10 @@ use dioxus::prelude::*;
 use serde::Deserialize;
 
 use log::info;
-use crate::hooks::{on_resize, DOMRectReadOnly};
-use crate::terminal::pty::PseudoTerminalSystem;
-use crate::terminal::Terminal;
-use crate::InputManager;
+use hooks::{on_resize, DOMRectReadOnly};
+use term::pty::PseudoTerminalSystem;
+use term::Terminal;
+use super::InputManager;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {

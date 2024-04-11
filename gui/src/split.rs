@@ -1,10 +1,7 @@
 use dioxus::prelude::*;
 
-use crate::renderer::terminal::TerminalApp;
-use crate::terminal::pty::PseudoTerminalSystem;
-
-pub mod header;
-pub mod terminal;
+use super::terminal::TerminalApp;
+use term::pty::PseudoTerminalSystem;
 
 #[component]
 pub fn TerminalSplit() -> Element {

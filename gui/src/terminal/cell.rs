@@ -1,9 +1,9 @@
 use dioxus::prelude::*;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
-use crate::terminal::cell::Color;
-use crate::terminal::cell::{Cell, SemanticType};
-use crate::terminal::Terminal;
+use term::cell::Color;
+use term::cell::{Cell, SemanticType};
+use term::Terminal;
 
 pub type ClickEvent = EventHandler<(Event<MouseData>, usize, usize, bool)>;
 

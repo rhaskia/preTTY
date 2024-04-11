@@ -3,16 +3,16 @@
 
 // crate imports
 mod input;
-mod renderer;
+mod split;
+mod header;
 mod terminal;
-mod hooks;
 
 use std::time::SystemTime;
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
 
-use crate::input::InputManager;
-use crate::renderer::TerminalSplit;
+use input::InputManager;
+use split::TerminalSplit;
 
 #[component]
 pub fn App() -> Element {
@@ -21,9 +21,9 @@ pub fn App() -> Element {
             id: "app",
             class: "app",
 
-            style {{ include_str!("../css/style.css") }}
-            style {{ include_str!("../css/gruvbox.css") }}
-            style {{ include_str!("../css/palette.css") }}
+            style {{ include_str!("../../css/style.css") }}
+            style {{ include_str!("../../css/gruvbox.css") }}
+            style {{ include_str!("../../css/palette.css") }}
             link { href: "~/.config/pretty/style.css" }
             // link { href: "/css/palette.css" }
             // link { href: mg!(file("css/gruvbox.css")) }

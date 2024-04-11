@@ -1,10 +1,9 @@
 use dioxus::prelude::*;
 
 use super::cell::{CellSpan, CellLine};
-use crate::terminal::command::{CommandSlice, CommandStatus};
-use crate::terminal::Terminal;
-
 use super::cell::ClickEvent;
+use term::command::{CommandSlice, CommandStatus};
+use term::Terminal;
 
 #[component]
 pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {

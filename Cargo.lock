@@ -1962,6 +1962,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "gui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-channel",
+ "async-option",
+ "dioxus",
+ "fern",
+ "futures 0.3.30",
+ "hooks",
+ "log",
+ "manganis",
+ "notify-rust",
+ "portable-pty",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "term",
+ "termwiz",
+ "tokio",
+ "web-sys",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2030,6 +2054,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3d1354bf6b7235cb4a0576c2619fd4ed18183f689b12b006a0ee7329eeff9a5"
 dependencies = [
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "hooks"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-channel",
+ "async-option",
+ "dioxus",
+ "fern",
+ "futures 0.3.30",
+ "log",
+ "manganis",
+ "notify-rust",
+ "portable-pty",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "termwiz",
+ "tokio",
+ "web-sys",
 ]
 
 [[package]]
