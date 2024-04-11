@@ -9,7 +9,7 @@ use cursor::Cursor;
 use dioxus::prelude::*;
 use serde::Deserialize;
 
-use tracing::info;
+use log::info;
 use crate::hooks::{on_resize, DOMRectReadOnly};
 use crate::terminal::pty::PseudoTerminalSystem;
 use crate::terminal::Terminal;

@@ -4,7 +4,7 @@ use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{KeyboardData, MouseData};
 
-use tracing::*;
+use log::*;
 
 pub struct InputManager {
     key_mode: KeyMode,

@@ -7,10 +7,9 @@ mod renderer;
 mod terminal;
 mod hooks;
 
+use std::time::SystemTime;
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
-use tracing_subscriber::EnvFilter;
-use tracing_subscriber::filter::LevelFilter;
 
 use crate::input::InputManager;
 use crate::renderer::TerminalSplit;
@@ -38,16 +37,25 @@ pub fn App() -> Element {
     }
 }
 
+fn setup_logger() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "\x1b[32m[\x1b[1m{} {}]\x1b[m {}",
+                record.level(),
+                record.target(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Debug)
+        .chain(std::io::stdout())
+        .chain(fern::log_file("output.log")?)
+        .apply()?;
+    Ok(())
+}
+
 fn main() {
-    let filter = EnvFilter::builder()
-        .with_default_directive(LevelFilter::INFO.into())
-        .from_env().unwrap()
-        .add_directive("term=debug".parse().unwrap());
-        
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .compact()
-        .init();
+    setup_logger().unwrap(); 
 
     let cfg = dioxus::desktop::Config::new()
         .with_disable_context_menu(true)

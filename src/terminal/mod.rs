@@ -23,7 +23,7 @@ use termwiz::escape::{
     Action, ControlCode, DeviceControlMode, Esc, KittyImage, OperatingSystemCommand, Sixel,
 };
 
-use tracing::info;
+use log::info;
 
 use self::command::CommandSlicer;
 

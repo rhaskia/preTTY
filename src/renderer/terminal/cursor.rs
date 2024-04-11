@@ -21,7 +21,7 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
                 console.log(line, y);
                 let cursor = document.getElementById("cursor-" + index);
                 if (line) {
-                    cursor.style.top = `calc(${line.offsetTop}px - var(--cell-height))`;
+                    cursor.style.top = `${line.offsetTop}px`;
                 }
                 "#,
             );

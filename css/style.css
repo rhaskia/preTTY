@@ -43,7 +43,7 @@
 
 hr {
     border: none;
-    border-top: 1px solid var(--grey);
+    border-top: 1px solid var(--bg4);
     margin: auto;
     width: calc(100% - 15px);
 }
@@ -116,6 +116,11 @@ body {
     font-size: 28px;
     width: calc(var(--cell-width) * 2);
     height: calc(var(--cell-height) * 2);
+}
+
+.cellline {
+    display: block;
+    height: var(--cell-height);
 }
 
 pre {
