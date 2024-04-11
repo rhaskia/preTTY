@@ -16,7 +16,6 @@ use notify_rust::Notification;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
 
-use termwiz::escape::csi::Mode::{ResetDecPrivateMode, SetDecPrivateMode};
 use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{
@@ -109,11 +108,7 @@ impl Terminal {
     fn handle_csi(&mut self, csi: CSI) {
         match csi {
             CSI::Sgr(sgr) => self.renderer.handle_sgr(sgr),
-            CSI::Mode(mode) => match mode {
-                SetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, true),
-                ResetDecPrivateMode(pmode) => self.state.set_dec_private_mode(pmode, false),
-                _ => info!("Mode({:?})", mode),
-            },
+            CSI::Mode(mode) => self.state.handle_state(mode),
             CSI::Cursor(cursor) => self.handle_cursor(cursor),
             CSI::Edit(edit) => self.handle_edit(edit),
             CSI::Device(device) => self.handle_device(device),
