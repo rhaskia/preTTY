@@ -1,10 +1,12 @@
 pub mod cell;
 pub mod commands;
 pub mod cursor;
+pub mod debug;
 
 use cell::CellGrid;
 use commands::CommandsSlice;
 use cursor::Cursor;
+use debug::TerminalDebug;
 
 use dioxus::prelude::*;
 use serde::Deserialize;
@@ -26,6 +28,7 @@ pub struct CellSize {
 pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> Element {
     let mut input = use_signal(InputManager::new);
     let mut terminal = use_signal(|| Terminal::setup().unwrap());
+    let mut debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
 
     // Pseudoterminal Stuff
@@ -60,7 +63,6 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     // Window Resize Event
     on_resize(format!("split-{index}"), move |size| {
-        info!("Resize Event {size:?}");
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
             let (rows, cols) = pty.write().resize(width, height, cell.width, cell.height);
@@ -70,7 +72,9 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
 
     // Any Keyboard Events
     let key_press = move |e: Event<KeyboardData>| async move {
-        info!("Keyboard Event: {e:?}");
+        if e.key() == Key::F1 {
+            debug.set(!debug());
+        }
         let key = input.write().handle_key(e.data);
         pty.write().write(key);
     };
@@ -119,6 +123,10 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
                     index,
                 }
             }
+        }
+
+        if debug() { 
+            TerminalDebug { terminal }
         }
     }
 }

@@ -26,3 +26,4 @@ log = "0.4.21"
 
 term = { workspace = true }
 hooks = { workspace = true }
+num-traits = "0.2.18"

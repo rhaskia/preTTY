@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use num_traits::cast::ToPrimitive;
 
 use log::info;
 use termwiz::escape::csi::{DecPrivateMode, DecPrivateModeCode, TerminalMode, XtermKeyModifierResource};
@@ -9,10 +10,10 @@ use termwiz::escape::csi::Mode;
 pub struct TerminalState {
     pub cwd: String,
     // dec private
-    dec_modes: HashMap<u8, bool>,
-    dec_saves: HashMap<u8, bool>,
+    pub dec_modes: HashMap<u16, bool>,
+    dec_saves: HashMap<u16, bool>,
     // terminal mode
-    modes: HashMap<u8, bool>,
+    pub modes: HashMap<u16, bool>,
 
     pub alt_screen: bool,
     pub bracketed_paste: bool,
@@ -36,11 +37,11 @@ impl TerminalState {
     }
 
     pub fn dec_mode(&self, code: DecPrivateModeCode) -> bool {
-        *self.dec_modes.get(&(code as u8)).unwrap_or(&false)
+        *self.dec_modes.get(&(code.to_u16().unwrap())).unwrap_or(&false)
     }
 
     pub fn dec_save(&self, code: DecPrivateModeCode) -> bool {
-        *self.dec_saves.get(&(code as u8)).unwrap_or(&false)
+        *self.dec_saves.get(&(code.to_u16().unwrap())).unwrap_or(&false)
     }
 
     pub fn handle_state(&mut self, mode: Mode) {
@@ -72,7 +73,7 @@ impl TerminalState {
             ClearAndEnableAlternateScreen => self.alt_screen = active,
             ShowCursor => self.show_cursor = active,
             _ => {
-                self.dec_modes.insert(code as u8, active);
+                self.dec_modes.insert(code.to_u16().unwrap(), active);
             }
         }
     }
@@ -80,13 +81,13 @@ impl TerminalState {
     pub fn save_dec_private_mode(&mut self, mode: DecPrivateMode) {
         info!("Save Dec Mode {mode:?}");
         let code = inner_mode!(mode);
-        self.dec_saves.insert(code.clone() as u8, self.dec_mode(code));
+        self.dec_saves.insert(code.to_u16().unwrap(), self.dec_mode(code));
     }
 
     pub fn restore_dec_private_mode(&mut self, mode: DecPrivateMode) {
         info!("Restore Dec Mode {mode:?}");
         let code = inner_mode!(mode);
-        self.dec_modes.insert(code.clone() as u8, self.dec_save(code));
+        self.dec_modes.insert(code.to_u16().unwrap(), self.dec_save(code));
     }
 
     /// Handles Terminal Modes

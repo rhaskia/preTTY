@@ -140,7 +140,21 @@ span {
     background: var(--fg);
 }
 
-/* ::selection { */
-/*   color: var(--bg); */
-/*   background: var(--fg); */
-/* } */
+/*DEBUG MENU*/
+.terminal-debug {
+    height: 100%;
+    border-left: 1px solid var(--bg4);
+}
+
+table {
+    color: var(--white);
+    font-size: 14px;
+}
+
+tr:nth-child(2n + 1) {
+    /*background: var(--bg1);*/
+}
+
+tr:nth-child(2n) {
+    background: var(--bg0);
+}
