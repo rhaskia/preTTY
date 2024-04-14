@@ -22,7 +22,7 @@
 }
 
 .command-fatal, .command-not-found, .command-error {
-    border-left: var(--light-red) 2px solid; 
+    border-left-inline: var(--light-red) 2px solid; 
 }
 
 .command-button {
@@ -98,12 +98,6 @@ body {
 }
 
 /* TEXT STYLES */
-.superscript {
-    vertical-align: top;
-    font-size: 10px;
-    text-align: center;
-}
-
 .cellspan {
     width: var(--cell-width);
     height: var(--cell-height);
@@ -135,9 +129,71 @@ span {
     background-color: var(--bg);
 }
 
+/*Cell Attributes*/
+.bold {
+    font-weight: bold;
+}
+
+.dim {
+    font-weight: lighter;
+}
+
+.italic {
+    font-style: italic;
+}
+
 .invert {
     color: var(--bg);
     background: var(--fg);
+}
+
+/*TODO combinations of the below 3*/
+.strikethrough {
+    text-decoration: line-through;
+}
+
+.overline {
+    text-decoration: overline;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
+.wrapped {
+    /* border? */    
+}
+
+.hide {
+    color: transparent;
+    background: transparent;
+}
+
+.superscript {
+    vertical-align: top;
+    font-size: 10px;
+    text-align: center;
+}
+
+.subscript {
+    vertical-align: bottom;
+    font-size: 10px;
+    text-align: center;
+}
+
+.blink {
+    animation: blink 2s linear infinite;
+}
+
+
+.rapid-blink {
+    animation: blink 0.9s linear infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    } 
 }
 
 /*DEBUG MENU*/

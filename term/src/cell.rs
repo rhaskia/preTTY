@@ -63,9 +63,11 @@ pub struct CellAttributes {
     // bit 7 = underline 
     // bit 8 = double underline
     // bit 9 = wrapped
-    // bit 10 = blink
-    // bit 11 = fast_blink
-    // bit 9-10 = semantic type
+    // bit 10 = superscript
+    // bit 11 = subscript
+    // bit 12 = slow blink
+    // bit 13 = fast_blink
+    // bit 14 15 = semantic type
     attributes: u16,
     pub extra: Option<Box<ExtraAttributes>>,
 }
@@ -188,13 +190,45 @@ impl CellAttributes {
         // }
     }
 
-    pub fn set_vert_align(&mut self, align: VerticalAlign) {}
+    pub fn set_two(&mut self, a: u8, b: u8, va: bool, vb: bool) {
+        self.set_bit(a, va);
+        self.set_bit(b, vb);
+    }
 
-    pub fn set_intensity(&mut self, intensity: Intensity) {}
+    pub fn set_vert_align(&mut self, align: VerticalAlign) {
+        match align {
+            VerticalAlign::BaseLine => self.set_two(10, 11, false, false),
+            VerticalAlign::SuperScript => self.set_two(10, 11, true, false),
+            VerticalAlign::SubScript => self.set_two(10, 11, false, true),
+        }
+    }
 
-    pub fn set_blink(&mut self, blink: Blink) {}
+    pub fn set_intensity(&mut self, intensity: Intensity) {
+        match intensity {
+            Intensity::Normal => self.set_two(0, 1, false, false),
+            Intensity::Bold => self.set_two(0, 1, true, false),
+            Intensity::Half => self.set_two(0, 1, false, true),
+        }
+    }
 
-    pub fn set_underline(&mut self, underline: Underline) {}
+    pub fn set_blink(&mut self, blink: Blink) {
+        match blink {
+            Blink::None => self.set_two(12, 13, false, false),
+            Blink::Slow => self.set_two(12, 13, true, false),
+            Blink::Rapid => self.set_two(12, 13, false, true),
+        }
+    }
+
+    pub fn set_underline(&mut self, underline: Underline) {
+        match underline {
+            Underline::None => self.set_two(7, 8, false, false),
+            Underline::Single => self.set_two(7, 8, true, false),
+            _ => {
+                self.set_two(7, 8, false, true);
+                // TODO set others
+            },
+        }
+    }
 
     set_colour!(fg, get_fg, set_fg);
     set_colour!(bg, get_bg, set_bg);
@@ -206,6 +240,10 @@ impl CellAttributes {
     pub fn get_extra(&mut self) -> &mut Box<ExtraAttributes> {
         if self.extra.is_none() { self.extra = Some(Box::new(ExtraAttributes::default())) }
         self.extra.as_mut().unwrap()
+    }
+
+    pub fn hash(&self) -> String {
+       format!("{:?}:{:?}:{}", self.fg, self.bg, self.attributes) 
     }
 }
 
@@ -225,6 +263,10 @@ impl Cell {
             text: ' ',
             attr: CellAttributes::default(),
         }
+    }
+
+    pub fn hash(&self) -> String {
+        format!("{}:{}", self.text, self.attr.hash())
     }
 }
 

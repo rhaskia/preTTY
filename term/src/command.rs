@@ -53,8 +53,11 @@ impl CommandSlicer {
     }
 
     pub fn get(&self) -> &Vec<CommandSlice> { &self.commands }
-    pub fn vis(&self, start: usize, end: usize) -> Vec<&CommandSlice> { 
-        self.commands.iter().filter(|command| command.intersects(start, end)).collect()
+    pub fn vis(&self, start: usize, end: usize) -> Vec<&CommandSlice> {
+        self.commands
+            .iter()
+            .filter(|command| command.intersects(start, end))
+            .collect()
     }
 
     pub fn start_new(&mut self, x: usize, y: usize) {
@@ -75,6 +78,8 @@ impl CommandSlicer {
     pub fn set_status(&mut self, status: i32) {
         self.commands.last_mut().unwrap().status = CommandStatus::from_int(status);
     }
+
+    pub fn len(&self) -> usize { self.commands.len() }
 }
 
 impl CommandSlice {

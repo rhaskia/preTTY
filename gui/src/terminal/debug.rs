@@ -20,8 +20,16 @@ pub fn TerminalDebug(terminal: Signal<Terminal>) -> Element {
                     td { "{terminal.read().state.alt_screen}" }
                 }
                 tr {
+                    td { "Show Cursor" }
+                    td { "{terminal.read().state.show_cursor}" }
+                }
+                tr {
                     td { "Bracketed Paste" }
                     td { "{terminal.read().state.bracketed_paste}" }
+                }
+                tr {
+                    td { "Commands" }
+                    td { "{terminal.read().commands.len()}" }
                 }
                 for (key, value) in &terminal.read().state.dec_modes {
                     tr {

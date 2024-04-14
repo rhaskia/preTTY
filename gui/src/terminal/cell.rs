@@ -66,14 +66,26 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Eleme
     rsx! {
         span {
             class: "cellspan",
-            class: if cell.attr.bold() { "cell-bold" },
-            class: if cell.attr.dim() { "cell-dim" },
+            // clean this ungodly mess up
+            class: if cell.attr.bold() { "bold" },
+            class: if cell.attr.dim() { "dim" },
+            class: if cell.attr.italic() { "italic" },
+            class: if cell.attr.strike() { "strikethrough" },
+            class: if cell.attr.overline() { "overline" },
+            class: if cell.attr.invert() { "invert" },
+            class: if cell.attr.hide() { "hide" },
+            class: if cell.attr.single_underline() { "underline" },
+            class: if cell.attr.double_underline() { "double_underline" },
+            class: if cell.attr.wrapped() { "wrapped" },
+            class: if cell.attr.superscript() { "superscript" },
+            class: if cell.attr.subscript() { "subscript" },
+            class: if cell.attr.slow_blink() { "blink" },
+            class: if cell.attr.rapid_blink() { "rapid_blink" },
             class: match cell.attr.semantic_type() {
                 SemanticType::Output => "command-ouput",
                 SemanticType::Input(_) => "command-input",
                 SemanticType::Prompt(_) => "command-prompt",
             },
-            class: if cell.attr.invert() { "invert" },
 
             style: "--fg: {fg}; --bg: {bg}; --x: {x}; --y: {y}",
             key: "{x}:{y}",
