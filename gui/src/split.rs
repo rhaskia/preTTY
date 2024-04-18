@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
+use term::pty::PseudoTerminalSystem;
 
 use super::terminal::TerminalApp;
-use term::pty::PseudoTerminalSystem;
 
 #[component]
 pub fn TerminalSplit() -> Element {

@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use num_traits::cast::ToPrimitive;
 
 use log::info;
-use termwiz::escape::csi::{DecPrivateMode, DecPrivateModeCode, TerminalMode, XtermKeyModifierResource};
-use termwiz::escape::csi::Mode;
+use num_traits::cast::ToPrimitive;
+use termwiz::escape::csi::{
+    DecPrivateMode, DecPrivateModeCode, Mode, TerminalMode, XtermKeyModifierResource,
+};
 
 // TODO: bitfield? may not be nessecary
 #[derive(Debug, Default)]
@@ -37,11 +38,17 @@ impl TerminalState {
     }
 
     pub fn dec_mode(&self, code: DecPrivateModeCode) -> bool {
-        *self.dec_modes.get(&(code.to_u16().unwrap())).unwrap_or(&false)
+        *self
+            .dec_modes
+            .get(&(code.to_u16().unwrap()))
+            .unwrap_or(&false)
     }
 
     pub fn dec_save(&self, code: DecPrivateModeCode) -> bool {
-        *self.dec_saves.get(&(code.to_u16().unwrap())).unwrap_or(&false)
+        *self
+            .dec_saves
+            .get(&(code.to_u16().unwrap()))
+            .unwrap_or(&false)
     }
 
     pub fn handle_state(&mut self, mode: Mode) {
@@ -81,13 +88,15 @@ impl TerminalState {
     pub fn save_dec_private_mode(&mut self, mode: DecPrivateMode) {
         info!("Save Dec Mode {mode:?}");
         let code = inner_mode!(mode);
-        self.dec_saves.insert(code.to_u16().unwrap(), self.dec_mode(code));
+        self.dec_saves
+            .insert(code.to_u16().unwrap(), self.dec_mode(code));
     }
 
     pub fn restore_dec_private_mode(&mut self, mode: DecPrivateMode) {
         info!("Restore Dec Mode {mode:?}");
         let code = inner_mode!(mode);
-        self.dec_modes.insert(code.to_u16().unwrap(), self.dec_save(code));
+        self.dec_modes
+            .insert(code.to_u16().unwrap(), self.dec_save(code));
     }
 
     /// Handles Terminal Modes

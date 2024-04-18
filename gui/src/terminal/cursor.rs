@@ -26,7 +26,15 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
                 "#,
             );
 
-            line_eval.send(to_value(CursorInfo { y: cursor_pos.read().1, index }).unwrap()).unwrap();
+            line_eval
+                .send(
+                    to_value(CursorInfo {
+                        y: cursor_pos.read().1,
+                        index,
+                    })
+                    .unwrap(),
+                )
+                .unwrap();
         }
     });
 

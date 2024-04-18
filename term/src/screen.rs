@@ -168,7 +168,7 @@ impl Screen {
     /// The index at which the visible screen starts in the scrollback buffer
     pub fn visible_start(&self) -> usize { self.scrollback_offset }
 
-    /// Roughly how much memory the screen is using 
+    /// Roughly how much memory the screen is using
     pub fn memory_usage(&self) -> (usize, usize, usize, usize) {
         let cell_size = std::mem::size_of::<Cell>();
         let attr_size = std::mem::size_of::<CellAttributes>();

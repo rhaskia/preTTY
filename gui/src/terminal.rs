@@ -7,14 +7,13 @@ use cell::CellGrid;
 use commands::CommandsSlice;
 use cursor::Cursor;
 use debug::TerminalDebug;
-
 use dioxus::prelude::*;
-use serde::Deserialize;
-
-use log::info;
 use hooks::{on_resize, DOMRectReadOnly};
+use log::info;
+use serde::Deserialize;
 use term::pty::PseudoTerminalSystem;
 use term::Terminal;
+
 use super::InputManager;
 
 #[derive(Default, Deserialize, Clone)]
@@ -27,7 +26,7 @@ pub struct CellSize {
 #[component]
 pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> Element {
     let mut input = use_signal(InputManager::new);
-    let mut terminal = use_signal(|| Terminal::setup().unwrap());
+    let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let mut debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
 
@@ -125,7 +124,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             }
         }
 
-        if debug() { 
+        if debug() {
             TerminalDebug { terminal }
         }
     }

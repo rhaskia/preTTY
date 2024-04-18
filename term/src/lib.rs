@@ -11,20 +11,28 @@ use std::collections::HashMap;
 use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
 use line::Line;
-
+use log::info;
 use notify_rust::Notification;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
-
-use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
+use termwiz::escape::csi::{
+    Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, Window, CSI,
+};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{
     Action, ControlCode, DeviceControlMode, Esc, KittyImage, OperatingSystemCommand, Sixel,
 };
 
-use log::info;
-
 use self::command::CommandSlicer;
+
+/// Trait for handling "window" specific ANSI commands
+pub trait WindowHandler {
+    fn csi_window(&mut self, command: Box<Window>) {}
+    fn send_notification(&mut self, notif: Notification) {}
+    fn bell(&mut self) {}
+}
+
+impl WindowHandler for () {}
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -37,23 +45,29 @@ pub struct Terminal {
     pub cursor: TerminalCursor,
     pub commands: CommandSlicer,
     pub user_vars: HashMap<String, String>,
+    pub window_handler: Box<dyn WindowHandler>,
 
     pub title: String,
 }
 
 impl Terminal {
     // TODO: pty box
-    pub fn setup() -> anyhow::Result<Terminal> {
+    pub fn setup<T: WindowHandler + 'static>(window_handler: Box<T>) -> anyhow::Result<Terminal> {
         Ok(Terminal {
             rows: 24,
             cols: 80,
             renderer: TerminalRenderer::new(24, 80),
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
-            title: "Terminal".into(),
+            title: "PreTTY".into(),
             commands: CommandSlicer::new(),
             user_vars: HashMap::new(),
+            window_handler,
         })
+    }
+
+    pub fn setup_no_window() -> anyhow::Result<Terminal> {
+        Self::setup(Box::new(()))
     }
 
     pub fn handle_action(&mut self, action: Action) {
@@ -83,7 +97,7 @@ impl Terminal {
 
     pub fn cursor_pos(&self) -> (usize, usize) { (self.cursor.x, self.phys_cursor_y()) }
 
-    pub fn current_line(&mut self) -> &mut Line { 
+    pub fn current_line(&mut self) -> &mut Line {
         let line_index = self.phys_cursor_y();
         self.mut_screen().mut_line(line_index)
     }
@@ -101,7 +115,8 @@ impl Terminal {
             ControlCode::CarriageReturn => self.cursor.set_x(0),
             ControlCode::Backspace => self.backspace(),
             ControlCode::Null => info!("Read NULL char"),
-            _ => info!("ControlCode({:?})", control_code),
+            ControlCode::Bell => self.window_handler.bell(),
+            _ => info!("Unimplemented: {control_code:?}"),
         }
     }
 
@@ -113,7 +128,11 @@ impl Terminal {
             CSI::Edit(edit) => self.handle_edit(edit),
             CSI::Device(device) => self.handle_device(device),
             CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
-            _ => info!("CSI({:?})", csi),
+            CSI::Mouse(_) => {} // These are input only
+            CSI::Window(command) => self.window_handler.csi_window(command),
+            CSI::SelectCharacterPath(_, _) => todo!(), // I believe this is for RTL text, which is
+            // already implemented
+            CSI::Unspecified(bytes) => info!("Unknown CSI {bytes:?}"),
         }
     }
 
@@ -123,7 +142,9 @@ impl Terminal {
         }
     }
 
-    fn kitty_image(&mut self, image: Box<KittyImage>) { info!("Kitty Image") }
+    fn kitty_image(&mut self, image: Box<KittyImage>) {
+        todo!("Kitty Image");
+    }
 
     /// Handles any Esc codes
     fn handle_esc(&mut self, esc: Esc) {
@@ -131,7 +152,10 @@ impl Terminal {
 
         let code = match esc {
             Code(c) => c,
-            Esc::Unspecified { intermediate, control } => {
+            Esc::Unspecified {
+                intermediate,
+                control,
+            } => {
                 info!("ESC {:?}", esc);
                 return;
             }
@@ -169,9 +193,7 @@ impl Terminal {
     }
 
     /// Backspaces at the terminal cursor position
-    fn backspace(&mut self) {
-        self.cursor.x -= 1;
-    }
+    fn backspace(&mut self) { self.cursor.x -= 1; }
 
     // Performs a new line at the terminal cursor position
     fn new_line(&mut self) {
@@ -250,10 +272,10 @@ impl Terminal {
                 self.fresh_line();
                 self.start_command();
             }
-            StartPrompt(prompt_kind) => {
-                self.renderer.attr.set_sem_type(
-                    SemanticType::Prompt(PromptKind::from(prompt_kind)))
-            }
+            StartPrompt(prompt_kind) => self
+                .renderer
+                .attr
+                .set_sem_type(SemanticType::Prompt(PromptKind::from(prompt_kind))),
             // why are these so long :sob:
             MarkEndOfPromptAndStartOfInputUntilNextMarker => {
                 self.start_input(Until::SemanticMarker)
@@ -278,7 +300,9 @@ impl Terminal {
     }
 
     fn start_command(&mut self) {
-        self.renderer.attr.set_sem_type(SemanticType::Prompt(PromptKind::Initial));
+        self.renderer
+            .attr
+            .set_sem_type(SemanticType::Prompt(PromptKind::Initial));
         self.commands
             .start_new(self.cursor.x, self.screen().phys_line(self.cursor.y));
     }
@@ -363,7 +387,7 @@ mod tests {
 
     #[test]
     pub fn alt_screen() {
-        let mut terminal = Terminal::setup().unwrap();
+        let mut terminal = Terminal::setup_no_window().unwrap();
 
         terminal.handle_action(Action::CSI(CSI::Mode(Mode::SetDecPrivateMode(
             DecPrivateMode::Code(EnableAlternateScreen),
@@ -373,7 +397,7 @@ mod tests {
 
     #[test]
     pub fn disable_alt_screen() {
-        let mut terminal = Terminal::setup().unwrap();
+        let mut terminal = Terminal::setup_no_window().unwrap();
 
         terminal.handle_action(Action::CSI(CSI::Mode(Mode::ResetDecPrivateMode(
             DecPrivateMode::Code(EnableAlternateScreen),

@@ -1,6 +1,7 @@
+use std::fmt::Debug;
+
 use dioxus::prelude::*;
 use serde::Deserialize;
-use std::fmt::Debug;
 
 pub struct DomRectSignal {
     inner: Signal<Option<ResizeObserverEntry>>,
@@ -8,13 +9,9 @@ pub struct DomRectSignal {
 }
 
 impl DomRectSignal {
-    pub fn value(&self) -> Option<ResizeObserverEntry> {
-        self.inner.read().clone()
-    } 
+    pub fn value(&self) -> Option<ResizeObserverEntry> { self.inner.read().clone() }
 
-    pub fn read(&self) -> ReadableRef<Signal<Option<ResizeObserverEntry>>> {
-        self.inner.read()
-    } 
+    pub fn read(&self) -> ReadableRef<Signal<Option<ResizeObserverEntry>>> { self.inner.read() }
 }
 
 #[allow(dead_code)]
@@ -124,5 +121,8 @@ pub fn use_div_size(id: String) -> DomRectSignal {
         }
     });
 
-    DomRectSignal { inner: signal, collector }
+    DomRectSignal {
+        inner: signal,
+        collector,
+    }
 }

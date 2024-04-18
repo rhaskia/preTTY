@@ -1,9 +1,8 @@
 use dioxus::prelude::*;
-
-use super::cell::{CellSpan, CellLine};
-use super::cell::ClickEvent;
 use term::command::{CommandSlice, CommandStatus};
 use term::Terminal;
+
+use super::cell::{CellLine, CellSpan, ClickEvent};
 
 #[component]
 pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
@@ -27,7 +26,11 @@ pub fn RightClickCommand() -> Element {
 }
 
 #[component]
-pub fn Command(command: CommandSlice, terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
+pub fn Command(
+    command: CommandSlice,
+    terminal: Signal<Terminal>,
+    cell_click: ClickEvent,
+) -> Element {
     let mut hovering = use_signal(|| false);
 
     rsx! {

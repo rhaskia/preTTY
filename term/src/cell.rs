@@ -1,8 +1,7 @@
 use termwiz::cell::{Blink, Intensity, Underline, VerticalAlign};
-use termwiz::color::ColorSpec;
+use termwiz::color::{ColorSpec, SrgbaTuple};
 use termwiz::escape::csi::Font;
 use termwiz::escape::osc::FinalTermPromptKind;
-use termwiz::color::SrgbaTuple;
 
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Until {
@@ -60,7 +59,7 @@ pub struct CellAttributes {
     // bit 4 = overline
     // bit 5 = invert
     // bit 6 = hide
-    // bit 7 = underline 
+    // bit 7 = underline
     // bit 8 = double underline
     // bit 9 = wrapped
     // bit 10 = superscript
@@ -82,19 +81,20 @@ pub struct ExtraAttributes {
 
 impl ExtraAttributes {
     pub fn default() -> Self {
-        ExtraAttributes { font: Font::Default, fg: None, bg: None, underline_fg: None }
+        ExtraAttributes {
+            font: Font::Default,
+            fg: None,
+            bg: None,
+            underline_fg: None,
+        }
     }
 }
 
 macro_rules! bitfield {
     ($get:ident, $set:ident, $bit_position:expr) => {
-        pub fn $get(&self) -> bool {
-            self.get_bit($bit_position)
-        }
+        pub fn $get(&self) -> bool { self.get_bit($bit_position) }
 
-        pub fn $set(&mut self, active: bool) {
-            self.set_bit($bit_position, active);
-        }
+        pub fn $set(&mut self, active: bool) { self.set_bit($bit_position, active); }
     };
 }
 
@@ -107,7 +107,7 @@ macro_rules! set_colour {
                 ColorSpec::TrueColor(tc) => {
                     self.get_extra().$name = Some(tc.clone());
                     Color::TrueColor
-                },
+                }
             }
         }
 
@@ -115,7 +115,9 @@ macro_rules! set_colour {
             match self.$name {
                 Color::Default => ColorSpec::Default,
                 Color::Palette(idx) => ColorSpec::PaletteIndex(idx),
-                Color::TrueColor => ColorSpec::TrueColor(self.extra.clone().unwrap().$name.unwrap())
+                Color::TrueColor => {
+                    ColorSpec::TrueColor(self.extra.clone().unwrap().$name.unwrap())
+                }
             }
         }
     };
@@ -159,15 +161,15 @@ impl CellAttributes {
             SemanticType::Output => {
                 self.set_bit(14, false);
                 self.set_bit(15, false);
-            },
+            }
             SemanticType::Input(_) => {
                 self.set_bit(14, true);
                 self.set_bit(15, false);
-            },
+            }
             SemanticType::Prompt(_) => {
                 self.set_bit(14, false);
                 self.set_bit(15, true);
-            },
+            }
         }
     }
 
@@ -226,25 +228,23 @@ impl CellAttributes {
             _ => {
                 self.set_two(7, 8, false, true);
                 // TODO set others
-            },
+            }
         }
     }
 
     set_colour!(fg, get_fg, set_fg);
     set_colour!(bg, get_bg, set_bg);
 
-    pub fn set_underline_colour(&mut self, colour: ColorSpec) {
-
-    }
+    pub fn set_underline_colour(&mut self, colour: ColorSpec) {}
 
     pub fn get_extra(&mut self) -> &mut Box<ExtraAttributes> {
-        if self.extra.is_none() { self.extra = Some(Box::new(ExtraAttributes::default())) }
+        if self.extra.is_none() {
+            self.extra = Some(Box::new(ExtraAttributes::default()))
+        }
         self.extra.as_mut().unwrap()
     }
 
-    pub fn hash(&self) -> String {
-       format!("{:?}:{:?}:{}", self.fg, self.bg, self.attributes) 
-    }
+    pub fn hash(&self) -> String { format!("{:?}:{:?}:{}", self.fg, self.bg, self.attributes) }
 }
 
 // Change to enum to allow for box drawing etc
@@ -265,9 +265,7 @@ impl Cell {
         }
     }
 
-    pub fn hash(&self) -> String {
-        format!("{}:{}", self.text, self.attr.hash())
-    }
+    pub fn hash(&self) -> String { format!("{}:{}", self.text, self.attr.hash()) }
 }
 
 #[cfg(tests)]

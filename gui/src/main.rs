@@ -2,15 +2,15 @@
 #![feature(fn_traits)]
 
 // crate imports
+mod header;
 mod input;
 mod split;
-mod header;
 mod terminal;
 
 use std::time::SystemTime;
+
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
-
 use input::InputManager;
 use split::TerminalSplit;
 
@@ -55,7 +55,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 }
 
 fn main() {
-    setup_logger().unwrap(); 
+    setup_logger().unwrap();
 
     let cfg = dioxus::desktop::Config::new()
         .with_disable_context_menu(true)

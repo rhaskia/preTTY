@@ -1,13 +1,14 @@
+use std::any::Any;
+
 use dioxus::prelude::*;
 use num_traits::cast::FromPrimitive;
 use term::Terminal;
 use termwiz::escape::csi::DecPrivateModeCode;
-use std::any::Any;
 
 #[component]
 pub fn TerminalDebug(terminal: Signal<Terminal>) -> Element {
-    rsx!{
-        div { 
+    rsx! {
+        div {
             id: "terminal-debug",
             class: "terminal-debug",
             table {
@@ -49,6 +50,4 @@ pub fn TerminalDebug(terminal: Signal<Terminal>) -> Element {
     }
 }
 
-fn as_dec(n: &u16) -> DecPrivateModeCode {
-    DecPrivateModeCode::from_u16(*n).unwrap()
-}
+fn as_dec(n: &u16) -> DecPrivateModeCode { DecPrivateModeCode::from_u16(*n).unwrap() }
