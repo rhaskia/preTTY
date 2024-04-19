@@ -12,7 +12,6 @@ use cell::{Cell, PromptKind, SemanticType, Until};
 use cursor::TerminalCursor;
 use line::Line;
 use log::info;
-use notify_rust::Notification;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
 use termwiz::escape::csi::{
@@ -28,8 +27,9 @@ use self::command::CommandSlicer;
 /// Trait for handling "window" specific ANSI commands
 pub trait WindowHandler {
     fn csi_window(&mut self, command: Box<Window>) {}
-    fn send_notification(&mut self, notif: Notification) {}
+    fn send_notification(&mut self, notif: String) {}
     fn bell(&mut self) {}
+    fn send_title(&mut self) {}
 }
 
 impl WindowHandler for () {}
@@ -52,6 +52,7 @@ pub struct Terminal {
 
 impl Terminal {
     // TODO: pty box
+    // Creates a Terminal Object with a Window Handler
     pub fn setup<T: WindowHandler + 'static>(window_handler: Box<T>) -> anyhow::Result<Terminal> {
         Ok(Terminal {
             rows: 24,
@@ -66,8 +67,11 @@ impl Terminal {
         })
     }
 
+    /// Creates a Terminal without a Window Handler
+    /// Useful for if window control is unnessecary or impossible on a platform
     pub fn setup_no_window() -> anyhow::Result<Terminal> { Self::setup(Box::new(())) }
 
+    /// Handles ANSI codes
     pub fn handle_action(&mut self, action: Action) {
         match action {
             Action::Print(s) => self.print(s),
@@ -83,16 +87,21 @@ impl Terminal {
         }
     }
 
+    /// Handles many ANSI codes
     pub fn handle_actions(&mut self, actions: Vec<Action>) {
         for action in actions {
             self.handle_action(action);
         }
     }
 
+    /// Immutable reference to the current screen object
     pub fn screen(&self) -> &Screen { self.renderer.get_screen(self.state.alt_screen) }
 
+    /// Mutable reference to the current screen object
     pub fn mut_screen(&mut self) -> &mut Screen { self.renderer.mut_screen(self.state.alt_screen) }
 
+    /// The physical position of the cursor
+    /// Needed for accessing cells from a screen object with scrollback
     pub fn cursor_pos(&self) -> (usize, usize) { (self.cursor.x, self.phys_cursor_y()) }
 
     pub fn current_line(&mut self) -> &mut Line {
@@ -100,8 +109,11 @@ impl Terminal {
         self.mut_screen().mut_line(line_index)
     }
 
+    /// The physical position of the cursor line
     pub fn phys_cursor_y(&self) -> usize { self.screen().phys_line(self.cursor.y) }
 
+    /// Sets how large the terminal believes it is
+    /// Only needed if you need TUI apps to work
     pub fn resize(&mut self, rows: u16, cols: u16) {
         self.rows = rows.into();
         self.cols = cols.into()
@@ -130,7 +142,7 @@ impl Terminal {
             CSI::Window(command) => self.window_handler.csi_window(command),
             // ECMA-48 SCP (not secure contain protect)
             // pretty sure this is RTL / LTR text, which the webview should implement
-            CSI::SelectCharacterPath(_, _) => {},
+            CSI::SelectCharacterPath(_, _) => {}
             CSI::Unspecified(bytes) => info!("Unknown CSI {bytes:?}"),
         }
     }
@@ -249,7 +261,7 @@ impl Terminal {
             SetIconNameAndWindowTitle(title) => self.title = title,
             FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
             ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
-            SystemNotification(notif) => Self::notify_window(notif),
+            SystemNotification(notif) => self.window_handler.send_notification(notif),
             CurrentWorkingDirectory(cwd) => self.state.cwd = cwd,
             _ => info!("OperatingSystemCommand({:?})", command),
         };
@@ -264,7 +276,10 @@ impl Terminal {
             _ => info!("Iterm {command:?}"),
         }
     }
+}
 
+// Prompt Management
+impl Terminal {
     // TODO: Replace this with a more explicit system
     // Ideally there would be a Command object, that has prompt, input and output fields
     fn handle_fts_prompt(&mut self, prompt: FinalTermSemanticPrompt) {
@@ -317,16 +332,10 @@ impl Terminal {
             .start_input(self.cursor.x, self.screen().phys_line(self.cursor.y));
         // TODO: Do some state management. maybe some sort of custom editor?
     }
+}
 
-    fn notify_window(notif: String) {
-        Notification::new()
-            .summary("Term")
-            .body(&notif)
-            .icon("firefox")
-            .show()
-            .unwrap();
-    }
-
+// Erase functions
+impl Terminal {
     fn erase_in_display(&mut self, edit: EraseInDisplay) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
 
