@@ -66,9 +66,7 @@ impl Terminal {
         })
     }
 
-    pub fn setup_no_window() -> anyhow::Result<Terminal> {
-        Self::setup(Box::new(()))
-    }
+    pub fn setup_no_window() -> anyhow::Result<Terminal> { Self::setup(Box::new(())) }
 
     pub fn handle_action(&mut self, action: Action) {
         match action {
@@ -130,15 +128,21 @@ impl Terminal {
             CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
             CSI::Mouse(_) => {} // These are input only
             CSI::Window(command) => self.window_handler.csi_window(command),
-            CSI::SelectCharacterPath(_, _) => todo!(), // I believe this is for RTL text, which is
-            // already implemented
+            // ECMA-48 SCP (not secure contain protect)
+            // pretty sure this is RTL / LTR text, which the webview should implement
+            CSI::SelectCharacterPath(_, _) => {},
             CSI::Unspecified(bytes) => info!("Unknown CSI {bytes:?}"),
         }
     }
 
     fn device_control(&mut self, device_command: DeviceControlMode) {
         match device_command {
-            _ => info!("Device Command {:?}", device_command),
+            DeviceControlMode::Enter(mode) => todo!(),
+            DeviceControlMode::Exit => todo!(),
+            DeviceControlMode::Data(_) => todo!(),
+            DeviceControlMode::ShortDeviceControl(_) => todo!(),
+            DeviceControlMode::TmuxEvents(_) => todo!(),
+            // _ => info!("Device Command {:?}", device_command),
         }
     }
 
