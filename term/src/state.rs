@@ -5,6 +5,7 @@ use num_traits::cast::ToPrimitive;
 use termwiz::escape::csi::{
     DecPrivateMode, DecPrivateModeCode, Mode, TerminalMode, XtermKeyModifierResource,
 };
+use termwiz::escape::DeviceControlMode;
 
 // TODO: bitfield? may not be nessecary
 #[derive(Debug, Default)]
@@ -19,6 +20,7 @@ pub struct TerminalState {
     pub alt_screen: bool,
     pub bracketed_paste: bool,
     pub show_cursor: bool,
+    pub alt_keypad: bool,
 }
 
 macro_rules! inner_mode {
@@ -26,7 +28,7 @@ macro_rules! inner_mode {
         match $mode {
             DecPrivateMode::Code(c) => c,
             DecPrivateMode::Unspecified(_) => return,
-        };
+        }
     };
 }
 
@@ -49,6 +51,17 @@ impl TerminalState {
             .dec_saves
             .get(&(code.to_u16().unwrap()))
             .unwrap_or(&false)
+    }
+
+    pub fn device_control(&mut self, device_command: DeviceControlMode) {
+        match device_command {
+            DeviceControlMode::Enter(mode) => todo!(),
+            DeviceControlMode::Exit => todo!(),
+            DeviceControlMode::Data(_) => todo!(),
+            DeviceControlMode::ShortDeviceControl(_) => todo!(),
+            DeviceControlMode::TmuxEvents(_) => todo!(),
+            // _ => info!("Device Command {:?}", device_command),
+        }
     }
 
     pub fn handle_state(&mut self, mode: Mode) {

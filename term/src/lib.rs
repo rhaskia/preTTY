@@ -79,7 +79,7 @@ impl Terminal {
             Action::Control(control) => self.handle_control(control),
             Action::CSI(csi) => self.handle_csi(csi),
             Action::OperatingSystemCommand(command) => self.handle_os_command(command),
-            Action::DeviceControl(control) => self.device_control(control),
+            Action::DeviceControl(control) => self.state.device_control(control),
             Action::Esc(code) => self.handle_esc(code),
             Action::Sixel(sixel) => self.handle_sixel(sixel),
             Action::XtGetTcap(terminfo) => info!("TERMINFO {terminfo:?}"),
@@ -147,17 +147,6 @@ impl Terminal {
         }
     }
 
-    fn device_control(&mut self, device_command: DeviceControlMode) {
-        match device_command {
-            DeviceControlMode::Enter(mode) => todo!(),
-            DeviceControlMode::Exit => todo!(),
-            DeviceControlMode::Data(_) => todo!(),
-            DeviceControlMode::ShortDeviceControl(_) => todo!(),
-            DeviceControlMode::TmuxEvents(_) => todo!(),
-            // _ => info!("Device Command {:?}", device_command),
-        }
-    }
-
     fn kitty_image(&mut self, image: Box<KittyImage>) {
         todo!("Kitty Image");
     }
@@ -183,6 +172,8 @@ impl Terminal {
             DecDoubleHeightTopHalfLine => self.current_line().set_double(true),
             // TODO: something else needed
             DecDoubleHeightBottomHalfLine => self.current_line().set_double(true),
+            DecNormalKeyPad => self.state.alt_keypad = false,
+            DecApplicationKeyPad => self.state.alt_keypad = true,
             _ => info!("ESC {:?}", code),
         }
     }
