@@ -27,3 +27,4 @@ log = "0.4.21"
 term = { workspace = true }
 hooks = { workspace = true }
 num-traits = "0.2.18"
+proc-macro2 = "=1.0.79"
