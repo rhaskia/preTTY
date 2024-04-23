@@ -4,7 +4,7 @@ use term::pty::PseudoTerminalSystem;
 use super::terminal::TerminalApp;
 
 #[component]
-pub fn TerminalSplit() -> Element {
+pub fn TerminalSplit(tabs: bool) -> Element {
     // Set up vector arrangement
     let pty_system = use_signal(|| PseudoTerminalSystem::setup());
 
