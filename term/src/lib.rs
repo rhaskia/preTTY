@@ -1,10 +1,11 @@
 pub mod cell;
 pub mod command;
-mod cursor;
-mod line;
 pub mod pty;
 pub mod screen;
-mod state;
+pub mod cursor;
+pub mod line;
+pub mod window;
+pub mod state;
 
 use std::collections::HashMap;
 
@@ -21,18 +22,10 @@ use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{
     Action, ControlCode, DeviceControlMode, Esc, KittyImage, OperatingSystemCommand, Sixel,
 };
+use window::WindowHandler;
 
 use self::command::CommandSlicer;
 
-/// Trait for handling "window" specific ANSI commands
-pub trait WindowHandler {
-    fn csi_window(&mut self, command: Box<Window>) {}
-    fn send_notification(&mut self, notif: String) {}
-    fn bell(&mut self) {}
-    fn send_title(&mut self) {}
-}
-
-impl WindowHandler for () {}
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -45,7 +38,7 @@ pub struct Terminal {
     pub cursor: TerminalCursor,
     pub commands: CommandSlicer,
     pub user_vars: HashMap<String, String>,
-    pub window_handler: Box<dyn WindowHandler>,
+    pub window: Box<dyn WindowHandler>,
 
     pub title: String,
 }
@@ -53,7 +46,7 @@ pub struct Terminal {
 impl Terminal {
     // TODO: pty box
     // Creates a Terminal Object with a Window Handler
-    pub fn setup<T: WindowHandler + 'static>(window_handler: Box<T>) -> anyhow::Result<Terminal> {
+    pub fn setup<T: WindowHandler + 'static>(window: Box<T>) -> anyhow::Result<Terminal> {
         Ok(Terminal {
             rows: 24,
             cols: 80,
@@ -63,7 +56,7 @@ impl Terminal {
             title: "PreTTY".into(),
             commands: CommandSlicer::new(),
             user_vars: HashMap::new(),
-            window_handler,
+            window,
         })
     }
 
@@ -125,7 +118,7 @@ impl Terminal {
             ControlCode::CarriageReturn => self.cursor.set_x(0),
             ControlCode::Backspace => self.backspace(),
             ControlCode::Null => info!("Read NULL char"),
-            ControlCode::Bell => self.window_handler.bell(),
+            ControlCode::Bell => self.window.bell(),
             _ => info!("Unimplemented: {control_code:?}"),
         }
     }
@@ -139,7 +132,7 @@ impl Terminal {
             CSI::Device(device) => self.handle_device(device),
             CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
             CSI::Mouse(_) => {} // These are input only
-            CSI::Window(command) => self.window_handler.csi_window(command),
+            CSI::Window(command) => self.window.csi_window(command),
             // ECMA-48 SCP (not secure contain protect)
             // pretty sure this is RTL / LTR text, which the webview should implement
             CSI::SelectCharacterPath(_, _) => {}
@@ -252,7 +245,7 @@ impl Terminal {
             SetIconNameAndWindowTitle(title) => self.title = title,
             FinalTermSemanticPrompt(ftsprompt) => self.handle_fts_prompt(ftsprompt),
             ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
-            SystemNotification(notif) => self.window_handler.send_notification(notif),
+            SystemNotification(notif) => self.window.send_notification(notif),
             CurrentWorkingDirectory(cwd) => self.state.cwd = cwd,
             _ => info!("OperatingSystemCommand({:?})", command),
         };
@@ -260,13 +253,24 @@ impl Terminal {
 
     /// Handling of all Iterm-based commands
     fn handle_iterm(&mut self, command: ITermProprietary) {
+        use ITermProprietary::*;
         match command {
-            ITermProprietary::SetUserVar { name, value } => {
+            SetUserVar { name, value } => { 
                 self.user_vars.insert(name, value);
-            }
-            _ => info!("Iterm {command:?}"),
+            },
+            ClearScrollback => self.mut_screen().clear_scrollback(),
+            StealFocus => self.window.steal_focus(),
+            SetMark => self.set_mark(),
+            SetProfile(profile) => self.set_profile(profile),
+            _ => info!("ITERM2 {command:?}")
         }
     }
+
+    /// Basically vim marks system, aka bookmark for cursor positions
+    fn set_mark(&mut self) {}
+
+    /// ITerm2 Profiles
+    fn set_profile(&mut self, profile: String) {}
 }
 
 // Prompt Management
@@ -377,7 +381,7 @@ impl Terminal {
             Edit::EraseInLine(e) => self.erase_in_line(e),
             Edit::EraseInDisplay(e) => self.erase_in_display(e),
             Edit::EraseCharacter(n) => self.erase_characters(n),
-            _ => info!("Edit {:?}", edit),
+            _ => info!("EDIT {edit:?}"),
         }
     }
 }

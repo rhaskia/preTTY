@@ -88,6 +88,9 @@ impl Screen {
     /// Scrolls a line out of the visible screen
     pub fn scrollback(&mut self) { self.scrollback_offset += 1; }
 
+    /// Clears scrollback
+    pub fn clear_scrollback(&mut self) { todo!(); }
+
     /// If the screen has the ability to use scrollback
     pub fn can_scroll(&self) -> bool { self.scrollback_allowed }
 
