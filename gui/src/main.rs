@@ -32,7 +32,7 @@ pub fn App() -> Element {
             script { src: "/js/waitfor.js" }
 
             //Header {}
-            TerminalSplit { }
+            TerminalSplit { tabs: false }
         }
     }
 }
