@@ -51,12 +51,12 @@ impl IndexMut<usize> for Line {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output { &mut self.cells[index] }
 }
 
-// impl Deref for Line {
-//     type Target = Vec<Cell>;
-//
-//     fn deref(&self) -> &Self::Target { &self.cells }
-// }
-//
-// impl DerefMut for Line {
-//     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.cells }
-// }
+impl Deref for Line {
+    type Target = Vec<Cell>;
+
+    fn deref(&self) -> &Self::Target { &self.cells }
+}
+
+impl DerefMut for Line {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.cells }
+}

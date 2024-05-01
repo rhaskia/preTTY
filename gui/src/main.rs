@@ -7,8 +7,6 @@ mod input;
 mod split;
 mod terminal;
 
-use std::time::SystemTime;
-
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
 use input::InputManager;

@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use term::command::{CommandSlice, CommandStatus};
 use term::Terminal;
 
-use super::cell::{CellLine, CellSpan, ClickEvent};
+use super::cell::{CellLine, ClickEvent};
 
 #[component]
 pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
