@@ -142,7 +142,7 @@ impl CellAttributes {
         }
     }
 
-    fn get_bit(&self, pos: u8) -> bool { ((self.attributes >> pos) & 1) != 0 }
+    pub fn get_bit(&self, pos: u8) -> bool { ((self.attributes >> pos) & 1) != 0 }
 
     fn set_bit(&mut self, pos: u8, active: bool) {
         let old = self.attributes;

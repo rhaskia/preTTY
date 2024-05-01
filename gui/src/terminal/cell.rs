@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
-use term::cell::{Cell, SemanticType};
+use term::cell::{Cell, Color, SemanticType};
 use term::Terminal;
+use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
 
 pub type ClickEvent = EventHandler<(Event<MouseData>, usize, usize, bool)>;
@@ -21,22 +22,52 @@ pub fn CellGrid(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
     }
 }
 
+// #[component]
+// pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) -> Element {
+//     let term = terminal.read();
+//     let line = term.screen().line(y);
+//     rsx! {
+//         span {
+//             id: "line_{y}",
+//             class: "cellline",
+//             class: if line.double_width() { "doublewidth" },
+//             class: if line.double_height() { "doubleheight" },
+//             class: if line.double_size() { "doublesize" },
+//
+//             for (x, cell) in line.iter().enumerate() {
+//                 CellSpan { cell: cell.clone(), x, y, cell_click: cell_click.clone() }
+//             }
+//             br {}
+//         }
+//     }
+// }
+
+
 #[component]
 pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) -> Element {
     let term = terminal.read();
-    let line = term.screen().line(y);
-    rsx! {
-        span {
-            id: "line_{y}",
-            class: "cellline",
-            class: if line.double_width() { "doublewidth" },
-            class: if line.double_height() { "doubleheight" },
-            class: if line.double_size() { "doublesize" },
+    let line = term.screen().line(y).iter();
+    let mut rendered = String::new();
+    let mut last_attr = CellAttributes::default();
 
-            for (x, cell) in line.iter().enumerate() {
-                CellSpan { cell: cell.clone(), x, y, cell_click: cell_click.clone() }
+    while let Some(cell) = line.next() {
+        for i in 0..13 {
+            let last = last_attr.get_bit(i);
+            let current = cell.attr.get_bit(i);
+            let tag = get_tag(i); 
+
+            match (last, current) {
+                (true, false) => rendered.push_str(format!("</{tag}>")),
+                (false, true) => rendered.push_str(format!("<{tag}>")),
+                _ => {}
             }
-            br {}
+        }
+    }
+
+    rsx!{
+        div {
+            font_size: "14px",
+            dangerous_inner_html: rendered,
         }
     }
 }
@@ -94,5 +125,18 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Eleme
 
             "{cell.text}"
         }
+    }
+}
+
+pub fn get_tag(tag: u8) -> String {
+    match tag {
+        0 => "strong",
+        1 => "dim",
+        2 => "em",
+        3 => "strike",
+        4 => "overline",
+        5 => "invert",
+        6 => "hide",
+        _ => {}
     }
 }
