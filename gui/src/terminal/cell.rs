@@ -47,8 +47,9 @@ pub fn CellGrid(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
 pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) -> Element {
     let term = terminal.read();
     let mut line = term.screen().line(y).iter();
-    let mut rendered = String::new();
     let mut last_attr = CellAttributes::default();
+    let mut open = false;
+    let mut rendered = String::new();
 
     while let Some(cell) = line.next() {
         // Every bit in attributes, associated with a certain tag
@@ -65,20 +66,21 @@ pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) ->
             }
         }
 
+        // TODO: macro for colours?
         // FG Differences
-        if cell.attr.get_fg() != last_attr.get_fg() {
+        if cell.attr.get_fg() != last_attr.get_fg() ||
+            cell.attr.get_bg() != last_attr.get_bg() {
             let fg = cell.attr.get_fg().to_hex("var(--fg-default)".to_string());
-            rendered.push_str(&format!("</fg><fg style=\"color: {fg}\">"))
-        } 
-
-        // BG Differences
-        if cell.attr.get_bg() != last_attr.get_bg() {
             let bg = cell.attr.get_bg().to_hex("var(--bg-default)".to_string());
-            rendered.push_str(&format!("</bg><bg style=\"background: {bg}\">"))
+            if open { rendered.push_str("</fg>"); }
+            rendered.push_str(&format!("<span style=\"color: {fg}; background: {bg}\">"));
+            open = true;
         } 
 
         rendered.push(cell.text);
+        last_attr = cell.attr.clone();
     }
+    println!("{rendered}");
 
     rsx!{
         div {
