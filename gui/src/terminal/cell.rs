@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use term::cell::{Cell, Color, SemanticType};
+use term::cell::{Cell, Color, SemanticType, CellAttributes};
 use term::Terminal;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
@@ -46,22 +46,38 @@ pub fn CellGrid(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
 #[component]
 pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) -> Element {
     let term = terminal.read();
-    let line = term.screen().line(y).iter();
+    let mut line = term.screen().line(y).iter();
     let mut rendered = String::new();
     let mut last_attr = CellAttributes::default();
 
     while let Some(cell) = line.next() {
+        // Every bit in attributes, associated with a certain tag
+        // Multibit attributes are ignored
         for i in 0..13 {
             let last = last_attr.get_bit(i);
             let current = cell.attr.get_bit(i);
             let tag = get_tag(i); 
 
             match (last, current) {
-                (true, false) => rendered.push_str(format!("</{tag}>")),
-                (false, true) => rendered.push_str(format!("<{tag}>")),
+                (true, false) => rendered.push_str(&format!("</{tag}>")),
+                (false, true) => rendered.push_str(&format!("<{tag}>")),
                 _ => {}
             }
         }
+
+        // FG Differences
+        if cell.attr.get_fg() != last_attr.get_fg() {
+            let fg = cell.attr.get_fg().to_hex("var(--fg-default)".to_string());
+            rendered.push_str(&format!("</fg><fg style=\"color: {fg}\">"))
+        } 
+
+        // BG Differences
+        if cell.attr.get_bg() != last_attr.get_bg() {
+            let bg = cell.attr.get_bg().to_hex("var(--bg-default)".to_string());
+            rendered.push_str(&format!("</bg><bg style=\"background: {bg}\">"))
+        } 
+
+        rendered.push(cell.text);
     }
 
     rsx!{
@@ -129,14 +145,21 @@ pub fn CellSpan(cell: Cell, x: usize, y: usize, cell_click: ClickEvent) -> Eleme
 }
 
 pub fn get_tag(tag: u8) -> String {
-    match tag {
-        0 => "strong",
-        1 => "dim",
-        2 => "em",
-        3 => "strike",
-        4 => "overline",
-        5 => "invert",
-        6 => "hide",
-        _ => {}
-    }
+    String::from(match tag {
+        0  => "strong",
+        1  => "dim",
+        2  => "em",
+        3  => "strike",
+        4  => "overline",
+        5  => "invert",
+        6  => "hide",
+        7  => "underline",
+        8  => "doubleunderline",
+        9  => "wrapped",
+        10 => "super",
+        11 => "sub",
+        12 => "blink",
+        13 => "rapidblink",
+        _  => "",
+    })
 }
