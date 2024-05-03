@@ -7,8 +7,6 @@ mod input;
 mod split;
 mod terminal;
 
-use std::time::SystemTime;
-
 use dioxus::desktop::WindowBuilder;
 use dioxus::prelude::*;
 use input::InputManager;
@@ -32,7 +30,7 @@ pub fn App() -> Element {
             script { src: "/js/waitfor.js" }
 
             //Header {}
-            TerminalSplit { }
+            TerminalSplit { tabs: false }
         }
     }
 }
@@ -40,8 +38,18 @@ pub fn App() -> Element {
 fn setup_logger() -> Result<(), fern::InitError> {
     fern::Dispatch::new()
         .format(|out, message, record| {
+            use log::Level::*;
+            let colour = match record.level() {
+                Error => 32,
+                Warn => 33,
+                Debug => 33,
+                Info => 33,
+                Trace => 35,
+                _ => 1,
+            };
             out.finish(format_args!(
-                "\x1b[32m[\x1b[1m{} {}]\x1b[m {}",
+                "\x1b[{}m[\x1b[1m{} {}]\x1b[m {}",
+                colour,
                 record.level(),
                 record.target(),
                 message

@@ -3,6 +3,14 @@ use termwiz::color::{ColorSpec, SrgbaTuple};
 use termwiz::escape::csi::Font;
 use termwiz::escape::osc::FinalTermPromptKind;
 
+/// A Node system for dealing with terminal output
+/// Unsure if it should be a syntax tree or just have splitter members in it
+pub enum Node {
+    Text(String),
+    Bold { children: Vec<Node> },
+    Dim { children: Vec<Node> },
+}
+
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Until {
     LineEnd,
@@ -134,7 +142,7 @@ impl CellAttributes {
         }
     }
 
-    fn get_bit(&self, pos: u8) -> bool { ((self.attributes >> pos) & 1) != 0 }
+    pub fn get_bit(&self, pos: u8) -> bool { ((self.attributes >> pos) & 1) != 0 }
 
     fn set_bit(&mut self, pos: u8, active: bool) {
         let old = self.attributes;

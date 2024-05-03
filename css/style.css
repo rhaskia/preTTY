@@ -3,6 +3,11 @@
     overflow-x:hidden;
 }
 
+
+dim {
+    font-weight: lighter;
+}
+
 /* SPLIT STYLES */
 .terminal-split {
     --padding: 4px;
