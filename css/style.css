@@ -7,7 +7,7 @@
 /* SPLIT STYLES */
 .terminal-split {
     --padding: 4px;
-    flex: 1 1 0;
+    flex-grow: 1;
     position: relative;
 }
 
