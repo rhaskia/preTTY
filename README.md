@@ -9,3 +9,14 @@ Linux: WebkitGtk,
 Windows: WebView2 (packaged with Edge),
 
 MacOS: Built in
+
+# Installation 
+The following command works for any OS:
+`cargo install --locked pretty-term`
+on Linux you may also need the webkitgtk package for PreTTY to function.
+
+You can also install through on the following package managers as well:
+ * Nothing yet 
+
+# Plugins
+
