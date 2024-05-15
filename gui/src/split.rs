@@ -22,12 +22,14 @@ impl Tab {
 pub fn TerminalSplit(tabs: bool) -> Element {
     // Set up vector arrangement
     let pty_system = use_signal(|| PseudoTerminalSystem::setup());
-    let tabs = use_signal(|| vec![Tab::new(0), Tab::new(1)]);
+    let tabs = use_signal(|| vec![Tab::new(0)]);
 
     rsx! {
         div {
             display: "flex",
             flex_direction: "column",
+            width: "100%",
+            height: "100%",
             pre {
                 class: "tabs",
                 display: "flex",

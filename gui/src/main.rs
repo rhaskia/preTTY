@@ -14,6 +14,9 @@ use split::TerminalSplit;
 
 #[component]
 pub fn App() -> Element {
+    dioxus::desktop::use_wry_event_handler(|event, _| {
+    });
+
     rsx! {
         div {
             id: "app",
@@ -22,9 +25,6 @@ pub fn App() -> Element {
             style {{ include_str!("../../css/style.css") }}
             style {{ include_str!("../../css/gruvbox.css") }}
             style {{ include_str!("../../css/palette.css") }}
-            link { href: "~/.config/pretty/style.css" }
-            // link { href: "/css/palette.css" }
-            // link { href: mg!(file("css/gruvbox.css")) }
 
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
