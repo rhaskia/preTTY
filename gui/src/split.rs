@@ -22,16 +22,30 @@ impl Tab {
 pub fn TerminalSplit(tabs: bool) -> Element {
     // Set up vector arrangement
     let pty_system = use_signal(|| PseudoTerminalSystem::setup());
-    let tabs = use_signal(|| vec![Tab::new(0)]);
+    let tabs = use_signal(|| vec![Tab::new(0), Tab::new(1)]);
 
     rsx! {
         div {
-            for tab in tabs.read().iter() {
-                span { "{tab.name}" }
+            display: "flex",
+            flex_direction: "column",
+            pre {
+                class: "tabs",
+                display: "flex",
+                font_size: "14px",
+                for tab in tabs.read().iter() {
+                    span { 
+                        class: "tab",
+                        " {tab.name} "
+                    }
+                }
             }
-        }
-        for tab in tabs.read().iter() {
-            TerminalApp { tab: tab.clone(), pty_system }
+            div {
+                display: "flex",
+                flex_direction: "row",
+                for tab in tabs.read().iter() {
+                    TerminalApp { tab: tab.clone(), pty_system }
+                }
+            }
         }
     }
 }

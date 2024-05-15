@@ -276,7 +276,7 @@ impl Cell {
     pub fn hash(&self) -> String { format!("{}:{}", self.text, self.attr.hash()) }
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod tests {
     #[test]
     pub fn set_bold() {
