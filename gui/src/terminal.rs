@@ -43,13 +43,7 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>) -> Elemen
     let cell_size = use_resource(move || async move {
         wait_for_next_render().await;
 
-        let mut glyph_size = eval(
-            r#"
-            let size = await dioxus.recv();
-            let width = getTextSize(size, "JetBrainsMono Nerd Font");
-            dioxus.send(width);
-            "#,
-        );
+        let mut glyph_size = eval(include_str!("../../js/textsizeloader.js"));
 
         glyph_size.send(font_size.to_string().into()).unwrap();
         let size = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();

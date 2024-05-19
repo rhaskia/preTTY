@@ -18,10 +18,10 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
                 r#"
                 let { y, index} = await dioxus.recv();
                 let line = document.getElementById("line_" + y);
-                console.log(line, y);
                 let cursor = document.getElementById("cursor-" + index);
                 if (line) {
-                    cursor.style.top = `${line.offsetTop}px`;
+                    let top = line.getBoundingClientRect().top;
+                    cursor.style.top = `calc(${top}px - var(--cell-height))`;
                 }
                 "#,
             );

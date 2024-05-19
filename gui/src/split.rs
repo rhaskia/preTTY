@@ -28,6 +28,7 @@ pub fn TerminalSplit(tabs: bool) -> Element {
         div {
             display: "flex",
             flex_direction: "column",
+            flex_grow: 1,
             pre {
                 class: "tabs",
                 display: "flex",
@@ -42,6 +43,7 @@ pub fn TerminalSplit(tabs: bool) -> Element {
             div {
                 display: "flex",
                 flex_direction: "row",
+                flex_grow: 1,
                 for tab in tabs.read().iter() {
                     TerminalApp { tab: tab.clone(), pty_system }
                 }
