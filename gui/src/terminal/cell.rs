@@ -60,11 +60,11 @@ pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) ->
         rendered.push(cell.text);
         last_attr = cell.attr.clone();
     }
-    println!("{rendered}");
 
     rsx! {
         div {
             font_size: "14px",
+            id: "line_{y}",
             dangerous_inner_html: rendered,
         }
     }

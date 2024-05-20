@@ -23,3 +23,7 @@ function getTextSize(size, family) {
     // Return the size as an object
     return { width, height };
 }
+
+let size = await dioxus.recv();
+let width = getTextSize(size, "JetBrainsMono Nerd Font");
+dioxus.send(width);
