@@ -7,15 +7,17 @@ mod input;
 mod split;
 mod terminal;
 
-use dioxus::desktop::WindowBuilder;
+use dioxus::desktop::{WindowBuilder, use_window};
 use dioxus::prelude::*;
+use global_hotkey::hotkey::HotKey;
 use input::InputManager;
 use split::TerminalSplit;
 
 #[component]
 pub fn App() -> Element {
-    dioxus::desktop::use_wry_event_handler(|event, _| {
-    });
+    let window = use_window();
+    let hotkey = HotKey::new();
+    window.create_shortcut(hotkey, || {});
 
     rsx! {
         div {
