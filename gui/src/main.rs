@@ -7,17 +7,21 @@ mod input;
 mod split;
 mod terminal;
 
-use dioxus::desktop::{WindowBuilder, use_window};
+use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::event::{Event, KeyEvent}};
 use dioxus::prelude::*;
-use global_hotkey::hotkey::HotKey;
 use input::InputManager;
 use split::TerminalSplit;
 
 #[component]
 pub fn App() -> Element {
-    let window = use_window();
-    let hotkey = HotKey::new(Some(Modifiers::SHIFT), Code::KeyD);
-    window.create_shortcut(hotkey, || { println!("hotkeyt") });
+    use_wry_event_handler(|event, _| {
+        match event {
+            Event::WindowEvent { window_id, event, .. } => println!("window {event:?}"),
+            Event::DeviceEvent { device_id, event, .. } => println!("device {event:?}"),
+            _ => {},
+        }
+
+    });
 
     rsx! {
         div {

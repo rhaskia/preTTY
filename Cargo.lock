@@ -5,9 +5,6 @@ version = 3
 [[package]]
 name = "actions"
 version = "0.1.0"
-dependencies = [
- "global-hotkey",
-]
 
 [[package]]
 name = "addr2line"
@@ -1916,7 +1913,6 @@ dependencies = [
  "dioxus",
  "fern",
  "futures 0.3.30",
- "global-hotkey",
  "hooks",
  "log",
  "manganis",
