@@ -13,7 +13,7 @@ use log::info;
 use serde::Deserialize;
 use term::pty::PseudoTerminalSystem;
 use term::Terminal;
-
+use crate::split::Tab;
 use super::InputManager;
 
 #[derive(Default, Deserialize, Clone)]
@@ -24,7 +24,7 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> Element {
+pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>) -> Element {
     let mut input = use_signal(InputManager::new);
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let mut debug = use_signal(|| false);
@@ -43,13 +43,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     let cell_size = use_resource(move || async move {
         wait_for_next_render().await;
 
-        let mut glyph_size = eval(
-            r#"
-            let size = await dioxus.recv();
-            let width = getTextSize(size, "JetBrainsMono Nerd Font");
-            dioxus.send(width);
-            "#,
-        );
+        let mut glyph_size = eval(include_str!("../../js/textsizeloader.js"));
 
         glyph_size.send(font_size.to_string().into()).unwrap();
         let size = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();
@@ -61,7 +55,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
     });
 
     // Window Resize Event
-    on_resize(format!("split-{index}"), move |size| {
+    on_resize(format!("split-{}", tab.index), move |size| {
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
             let (rows, cols) = pty.write().resize(width, height, cell.width, cell.height);
@@ -103,10 +97,10 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             style: "{size_style.read()}",
             class: "terminal-split",
             class: if terminal.read().state.alt_screen { "alt-screen" },
-            id: "split-{index}",
-            key: "split-{index}",
+            id: "split-{tab.index}",
+            key: "split-{tab.index}",
             autofocus: true,
-            tabindex: index.to_string(),
+            tabindex: tab.index.to_string(),
 
             onkeydown: key_press,
 
@@ -119,7 +113,7 @@ pub fn TerminalApp(index: usize, pty_system: Signal<PseudoTerminalSystem>) -> El
             if terminal.read().state.show_cursor {
                 Cursor {
                     cursor_pos,
-                    index,
+                    index: tab.index,
                 }
             }
         }

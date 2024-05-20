@@ -4,10 +4,6 @@
 }
 
 
-dim {
-    font-weight: lighter;
-}
-
 /* SPLIT STYLES */
 .terminal-split {
     --padding: 4px;
@@ -19,11 +15,20 @@ dim {
     outline: none;
 }
 
+.tab:nth-child(2n) {
+    background: var(--bg1);
+}
+
+.tab {
+    background: var(--fg);
+}
+
 /* COMMAND STYLES */
 .command {
     padding: var(--padding);
     padding-top: calc(var(--padding) * 2);
     padding-bottom: calc(var(--padding) * 2);
+    position: relative;
 }
 
 .command-fatal, .command-not-found, .command-error {
@@ -31,8 +36,6 @@ dim {
 }
 
 .command-button {
-    position: absolute;
-    /*mask*/
     background-color: var(--black);
     color: var(--white);
     border: none;
@@ -40,10 +43,13 @@ dim {
 
 .command-bar {
     width: 100%;
-    height: 100%;
     display: flex;
     justify-content: end;
     align-items: end;
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    z-index: 1;
 }
 
 hr {
@@ -109,6 +115,10 @@ body {
     font-size: 14px;
     display: inline-block;
     overflow: visible;
+}
+
+dim {
+    font-weight: lighter;
 }
 
 .doublesize .cellspan {
@@ -200,6 +210,10 @@ span {
         opacity: 0;
     } 
 }
+
+/* .tabs { */
+/*     width: 100%; */
+/* } */
 
 /*DEBUG MENU*/
 .terminal-debug {
