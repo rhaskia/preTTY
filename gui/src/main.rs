@@ -7,13 +7,18 @@ mod input;
 mod split;
 mod terminal;
 
-use dioxus::desktop::WindowBuilder;
+use dioxus::desktop::{WindowBuilder, use_window};
 use dioxus::prelude::*;
+use global_hotkey::hotkey::HotKey;
 use input::InputManager;
 use split::TerminalSplit;
 
 #[component]
 pub fn App() -> Element {
+    let window = use_window();
+    let hotkey = HotKey::new(Some(Modifiers::SHIFT), Code::KeyD);
+    window.create_shortcut(hotkey, || { println!("hotkeyt") });
+
     rsx! {
         div {
             id: "app",
@@ -22,9 +27,6 @@ pub fn App() -> Element {
             style {{ include_str!("../../css/style.css") }}
             style {{ include_str!("../../css/gruvbox.css") }}
             style {{ include_str!("../../css/palette.css") }}
-            link { href: "~/.config/pretty/style.css" }
-            // link { href: "/css/palette.css" }
-            // link { href: mg!(file("css/gruvbox.css")) }
 
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }

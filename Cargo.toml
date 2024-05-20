@@ -1,5 +1,5 @@
 [workspace]
-members = ["gui", "term", "hooks"]
+members = ["gui", "term", "hooks", "config"]
 resolver = "2"
 
 [workspace.dependencies]
