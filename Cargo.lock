@@ -5,6 +5,9 @@ version = 3
 [[package]]
 name = "actions"
 version = "0.1.0"
+dependencies = [
+ "global-hotkey",
+]
 
 [[package]]
 name = "addr2line"
@@ -1805,12 +1808,15 @@ dependencies = [
 
 [[package]]
 name = "global-hotkey"
-version = "0.5.1"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b0d37e95d3937251ee2019709389bb793c1237f16d45fc0fe7b2464b5f97c68"
+checksum = "daf13ae557ac61fa8f6fa949c33616e9680f0f04a9dd0195cd210770ba643f1a"
 dependencies = [
+ "bitflags 2.5.0",
+ "cocoa",
  "crossbeam-channel",
  "keyboard-types",
+ "objc",
  "once_cell",
  "thiserror",
  "windows-sys 0.52.0",
@@ -1924,6 +1930,7 @@ dependencies = [
  "dioxus",
  "fern",
  "futures 0.3.30",
+ "global-hotkey",
  "hooks",
  "log",
  "manganis",

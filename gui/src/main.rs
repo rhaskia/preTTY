@@ -16,8 +16,8 @@ use split::TerminalSplit;
 #[component]
 pub fn App() -> Element {
     let window = use_window();
-    let hotkey = HotKey::new();
-    window.create_shortcut(hotkey, || {});
+    let hotkey = HotKey::new(Some(Modifiers::SHIFT), Code::KeyD);
+    window.create_shortcut(hotkey, || { println!("hotkeyt") });
 
     rsx! {
         div {
