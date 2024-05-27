@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
-use term::pty::PseudoTerminalSystem;
-
+use pretty_term::pty::PseudoTerminalSystem;
 use super::terminal::TerminalApp;
 
 #[derive(Clone, PartialEq)]

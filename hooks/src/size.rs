@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-
 use dioxus::prelude::*;
 use serde::Deserialize;
 

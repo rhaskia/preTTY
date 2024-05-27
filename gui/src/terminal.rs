@@ -8,11 +8,11 @@ use commands::CommandsSlice;
 use cursor::Cursor;
 use debug::TerminalDebug;
 use dioxus::prelude::*;
-use hooks::{on_resize, DOMRectReadOnly};
+use pretty_hooks::{on_resize, DOMRectReadOnly};
 use log::info;
 use serde::Deserialize;
-use term::pty::PseudoTerminalSystem;
-use term::Terminal;
+use pretty_term::pty::PseudoTerminalSystem;
+use pretty_term::Terminal;
 use crate::split::Tab;
 use super::InputManager;
 

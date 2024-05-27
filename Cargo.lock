@@ -1907,33 +1907,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "async-option",
- "dioxus",
- "fern",
- "futures 0.3.30",
- "global-hotkey",
- "hooks",
- "log",
- "manganis",
- "notify-rust",
- "num-traits",
- "portable-pty",
- "proc-macro2",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "term",
- "termwiz",
- "tokio",
- "web-sys",
-]
-
-[[package]]
 name = "h2"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2009,28 +1982,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3d1354bf6b7235cb4a0576c2619fd4ed18183f689b12b006a0ee7329eeff9a5"
 dependencies = [
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "hooks"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "async-option",
- "dioxus",
- "fern",
- "futures 0.3.30",
- "log",
- "manganis",
- "notify-rust",
- "portable-pty",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "termwiz",
- "tokio",
- "web-sys",
 ]
 
 [[package]]
@@ -3318,6 +3269,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
+name = "pretty_hooks"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dioxus",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "pretty_term"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-channel",
+ "async-option",
+ "log",
+ "num-traits",
+ "portable-pty",
+ "termwiz",
+ "tokio",
+]
+
+[[package]]
 name = "prettyplease"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3325,6 +3300,28 @@ checksum = "8d3928fb5db768cb86f891ff014f0144589297e3c6a1aba6ed7cecfdace270c7"
 dependencies = [
  "proc-macro2",
  "syn 2.0.58",
+]
+
+[[package]]
+name = "prettyterm_gui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dioxus",
+ "fern",
+ "futures 0.3.30",
+ "global-hotkey",
+ "log",
+ "manganis",
+ "notify-rust",
+ "num-traits",
+ "pretty_hooks",
+ "pretty_term",
+ "proc-macro2",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "termwiz",
 ]
 
 [[package]]
@@ -4329,29 +4326,6 @@ dependencies = [
  "futf",
  "mac",
  "utf-8",
-]
-
-[[package]]
-name = "term"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "async-option",
- "dioxus",
- "fern",
- "futures 0.3.30",
- "log",
- "manganis",
- "notify-rust",
- "num-traits",
- "portable-pty",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "termwiz",
- "tokio",
- "web-sys",
 ]
 
 [[package]]

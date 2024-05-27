@@ -71,8 +71,6 @@ fn main() {
         .with_transparent(true);
 
     let cfg = dioxus::desktop::Config::new()
-        .with_prerendered(include_str!("../loading.html").to_string())
-        //.with_icon()
         .with_window(window)
         .with_disable_context_menu(true)
         .with_background_color((0, 0, 0, 0))
