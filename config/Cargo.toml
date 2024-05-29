@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 toml = "0.8.13"
+serde = "1.0"
+dirs = "5.0.1"

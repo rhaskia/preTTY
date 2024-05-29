@@ -7,21 +7,22 @@ mod input;
 mod split;
 mod terminal;
 
-use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::event::{Event, KeyEvent}};
+use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::event::{Event, KeyEvent}, use_window};
 use dioxus::prelude::*;
 use input::InputManager;
 use split::TerminalSplit;
+use dioxus::desktop::tao::keyboard::ModifiersState;
 
 #[component]
 pub fn App() -> Element {
-    use_wry_event_handler(|event, _| {
-        match event {
-            Event::WindowEvent { window_id, event, .. } => println!("window {event:?}"),
-            Event::DeviceEvent { device_id, event, .. } => println!("device {event:?}"),
-            _ => {},
-        }
-
-    });
+    let config = config::load_config();
+    // this is not going to work ):
+    // let window = use_window();
+    // dioxus::desktop::use_global_shortcut((ModifiersState::empty(), KeyCode::Q), move || {
+    //     println!("not active"); 
+    //     if !window.is_focused() { return; }
+    //     println!("keybind"); 
+    // });
 
     rsx! {
         div {
