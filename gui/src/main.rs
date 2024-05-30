@@ -16,13 +16,14 @@ use dioxus::desktop::tao::keyboard::ModifiersState;
 #[component]
 pub fn App() -> Element {
     let config = config::load_config();
-    // this is not going to work ):
-    // let window = use_window();
-    // dioxus::desktop::use_global_shortcut((ModifiersState::empty(), KeyCode::Q), move || {
-    //     println!("not active"); 
-    //     if !window.is_focused() { return; }
-    //     println!("keybind"); 
-    // });
+    eval(r#"
+         document.onkeyup = function(e) {
+             if (e.key = "Space") {
+                 e.cancelBubble = true;
+                 console.log("test keybind");
+             }
+         };
+         "#);
 
     rsx! {
         div {
