@@ -1,21 +1,22 @@
 use serde::Deserialize;
-mod keybindings;
+pub mod keybindings;
 mod loader;
 mod actions;
-use actions::Action;
-use keybindings::{Key, Keybinding};
+pub use actions::TerminalAction;
+use keybindings::Keybinding;
 pub use loader::load_config;
 
 #[derive(Deserialize, Debug)]
 #[serde(default)]
 pub struct Config {
-    start_up_command: Option<String>,
-    keybinds: Vec<Keybinding>,
-    font_size: i64,
+    pub start_up_command: Option<String>,
+    pub keybinds: Vec<Keybinding>,
+    pub font_size: i64,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self { start_up_command: None, keybinds: Default::default(), font_size: 14 }
     }
+
 }

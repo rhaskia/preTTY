@@ -1,6 +1,7 @@
 * {
     font-family: "JetBrainsMono Nerd Font";  
     overflow-x:hidden;
+    tab-index: -1;
 }
 
 

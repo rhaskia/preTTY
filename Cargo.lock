@@ -554,7 +554,9 @@ dependencies = [
 name = "config"
 version = "0.1.0"
 dependencies = [
+ "dioxus",
  "dirs 5.0.1",
+ "enum_derive",
  "serde",
  "toml 0.8.13",
 ]
@@ -826,6 +828,7 @@ dependencies = [
  "dioxus-hot-reload",
  "dioxus-html",
  "dioxus-signals",
+ "serde",
 ]
 
 [[package]]
@@ -1218,6 +1221,12 @@ name = "endi"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3d8a32ae18130a3c84dd492d4215c3d913c3b07c6b63c2eb3eb7ff1101ab7bf"
+
+[[package]]
+name = "enum_derive"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "406ac2a8c9eedf8af9ee1489bee9e50029278a6456c740f7454cf8a158abc816"
 
 [[package]]
 name = "enumflags2"

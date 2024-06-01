@@ -7,7 +7,7 @@ use termwiz::color::ColorSpec;
 pub type ClickEvent = EventHandler<(Event<MouseData>, usize, usize, bool)>;
 
 #[component]
-pub fn CellGrid(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
+pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
     let scrollback = use_signal(|| 0);
 
     rsx! {
@@ -16,14 +16,14 @@ pub fn CellGrid(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
             overflow_y: "overflow",
 
             for y in terminal.read().screen().scroll_range(scrollback()) {
-                CellLine { terminal, y, cell_click: cell_click.clone() }
+                CellLine { terminal, y }
             }
         }
     }
 }
 
 #[component]
-pub fn CellLine(terminal: Signal<Terminal>, y: usize, cell_click: ClickEvent) -> Element {
+pub fn CellLine(terminal: Signal<Terminal>, y: usize) -> Element {
     let term = terminal.read();
     let mut line = term.screen().line(y).iter();
     let mut last_attr = CellAttributes::default();

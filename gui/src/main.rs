@@ -4,31 +4,37 @@
 // crate imports
 mod header;
 mod input;
-mod split;
+mod tabs;
 mod terminal;
 
-use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::event::{Event, KeyEvent}, use_window};
+use config::Config;
+use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::{event::{Event, KeyEvent}, window::Window}, use_window};
 use dioxus::prelude::*;
 use input::InputManager;
-use split::TerminalSplit;
+use tabs::TerminalSplit;
+use config::TerminalAction;
 use dioxus::desktop::tao::keyboard::ModifiersState;
+use term::pty::PseudoTerminalSystem;
+
+static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 
 #[component]
 pub fn App() -> Element {
-    let config = config::load_config();
-    eval(r#"
-         document.onkeyup = function(e) {
-             if (e.key = "Space") {
-                 e.cancelBubble = true;
-                 console.log("test keybind");
-             }
-         };
-         "#);
+    let mut input = use_signal(InputManager::new);
+    let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
+    let mut current_pty = use_signal(|| 0);
 
     rsx! {
         div {
             id: "app",
             class: "app",
+            autofocus: true,
+            tabindex: 0,
+
+            onkeydown: move |e| match input.read().handle_keypress(&e) {
+                TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
+                _ => {}
+            },
 
             style {{ include_str!("../../css/style.css") }}
             style {{ include_str!("../../css/gruvbox.css") }}
@@ -37,8 +43,7 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            //Header {}
-            TerminalSplit { tabs: false }
+            TerminalSplit { tabs: false, input, pty_system }
         }
     }
 }

@@ -1,13 +1,17 @@
+use std::collections::HashMap;
 use std::rc::Rc;
 
+use config::keybindings::Keybinding;
+use config::TerminalAction;
 use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
-use dioxus::prelude::{KeyboardData, MouseData};
+use dioxus::prelude::{Event, KeyboardData, MouseData};
 use log::*;
 
 pub struct InputManager {
     key_mode: KeyMode,
     mouse_mode: MouseMode,
+    keybinds: Vec<Keybinding>,
 }
 
 pub enum KeyMode {
@@ -27,6 +31,7 @@ impl InputManager {
         InputManager {
             key_mode: KeyMode::Legacy,
             mouse_mode: MouseMode::SGR,
+            keybinds: Vec::new(),
         }
     }
 
@@ -105,10 +110,11 @@ impl InputManager {
         }
     }
 
-    pub fn handle_key(&self, keyboard_data: Rc<KeyboardData>) -> String {
+    pub fn match_key(&self, keyboard_data: &Event<KeyboardData>) -> String {
         let modifiers = keyboard_data.modifiers();
         let ctrl = modifiers.ctrl();
         let alt = modifiers.alt();
+        info!("Unused Key: {keyboard_data:?}");
 
         use dioxus::events::Key::*;
         match keyboard_data.key() {
@@ -129,5 +135,16 @@ impl InputManager {
                 String::new()
             }
         }
+    }
+
+    pub fn handle_keypress(&self, key_data: &Event<KeyboardData>) -> TerminalAction {
+        for keybind in &self.keybinds {
+            if keybind.modifiers == key_data.modifiers() && keybind.key == key_data.key() {
+                info!("Hit keybind {}", keybind.action);
+            }
+        }
+        // Match keybinds
+
+        TerminalAction::Write(self.match_key(key_data))
     }
 }
