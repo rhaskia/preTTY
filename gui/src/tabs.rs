@@ -1,8 +1,6 @@
 use dioxus::prelude::*;
 use term::pty::PseudoTerminalSystem;
-
 use crate::input::InputManager;
-
 use super::terminal::TerminalApp;
 
 #[derive(Clone, PartialEq)]
@@ -22,7 +20,6 @@ impl Tab {
 
 #[component]
 pub fn TerminalSplit(tabs: bool, input: Signal<InputManager>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
-    // Set up vector arrangement
     let tabs = use_signal(|| vec![Tab::new(0)]);
 
     rsx! {
