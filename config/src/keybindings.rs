@@ -2,7 +2,6 @@
 use dioxus::events::{Key, Modifiers};
 use serde::Deserialize;
 use toml::Table;
-
 use crate::loader::RawKeybinding;
 use crate::TerminalAction;
 
@@ -10,7 +9,7 @@ use crate::TerminalAction;
 pub struct Keybinding {
     pub key: Key,
     pub modifiers: Modifiers,
-    pub action: String,
+    pub action: TerminalAction,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -25,11 +24,21 @@ impl From<RawKeybinding> for Keybinding {
                 key: Key::Character(value.key),
             });
 
+        let mut modifiers = Modifiers::empty();
+        for modifier in value.modifiers {
+            match modifier.trim().to_lowercase().as_str() {
+                "ctrl" => modifiers.insert(Modifiers::CONTROL),
+                "alt" => modifiers.insert(Modifiers::ALT),
+                "super" => modifiers.insert(Modifiers::SUPER),
+                "shift" => modifiers.insert(Modifiers::SHIFT),
+                // TODO: more?
+                _ => { } // TODO: error
+            }
+        }
 
-        println!("{key:?}");
         Self {
             key: key.key,
-            modifiers: Modifiers::ALT,
+            modifiers,
             action: value.action,
         }
     }

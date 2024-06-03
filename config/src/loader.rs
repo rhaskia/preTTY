@@ -1,4 +1,4 @@
-use crate::{Config, keybindings::Keybinding};
+use crate::{Config, keybindings::Keybinding, TerminalAction};
 use dioxus::events::{Key, Modifiers};
 use serde::Deserialize;
 
@@ -13,7 +13,7 @@ struct RawConfig {
 pub struct RawKeybinding {
     pub key: String,
     pub modifiers: Vec<String>,
-    pub action: String,
+    pub action: TerminalAction,
 }
 
 pub fn load_config() -> Config {

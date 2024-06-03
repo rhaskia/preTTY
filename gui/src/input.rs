@@ -5,8 +5,9 @@ use config::keybindings::Keybinding;
 use config::TerminalAction;
 use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
-use dioxus::prelude::{Event, KeyboardData, MouseData};
+use dioxus::prelude::{Event, KeyboardData, MouseData, Readable};
 use log::*;
+use crate::CONFIG;
 
 pub struct InputManager {
     key_mode: KeyMode,
@@ -114,7 +115,6 @@ impl InputManager {
         let modifiers = keyboard_data.modifiers();
         let ctrl = modifiers.ctrl();
         let alt = modifiers.alt();
-        info!("Unused Key: {keyboard_data:?}");
 
         use dioxus::events::Key::*;
         match keyboard_data.key() {
@@ -138,12 +138,11 @@ impl InputManager {
     }
 
     pub fn handle_keypress(&self, key_data: &Event<KeyboardData>) -> TerminalAction {
-        for keybind in &self.keybinds {
+        for keybind in &CONFIG.read().keybinds {
             if keybind.modifiers == key_data.modifiers() && keybind.key == key_data.key() {
-                info!("Hit keybind {}", keybind.action);
+                return keybind.action.clone();
             }
         }
-        // Match keybinds
 
         TerminalAction::Write(self.match_key(key_data))
     }

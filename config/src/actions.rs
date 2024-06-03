@@ -1,8 +1,8 @@
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum TerminalAction {
-    NewTab(String),
+    NewTab,
     CloseTab,
     CloseTabSpecific(i64),
     Write(String),

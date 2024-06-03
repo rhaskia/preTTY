@@ -16,6 +16,10 @@
     outline: none;
 }
 
+.tabs {
+    border-bottom: 1px solid var(--bg2);
+}
+
 .tab:nth-child(2n) {
     background: var(--bg1);
 }

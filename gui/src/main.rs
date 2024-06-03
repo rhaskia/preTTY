@@ -15,12 +15,13 @@ use tabs::TerminalSplit;
 use config::TerminalAction;
 use dioxus::desktop::tao::keyboard::ModifiersState;
 use term::pty::PseudoTerminalSystem;
+use log::info;
 
-static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
+pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 
 #[component]
 pub fn App() -> Element {
-    let mut input = use_signal(InputManager::new);
+    let mut input = use_signal(|| InputManager::new());
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_pty = use_signal(|| 0);
 
@@ -33,7 +34,8 @@ pub fn App() -> Element {
 
             onkeydown: move |e| match input.read().handle_keypress(&e) {
                 TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
-                _ => {}
+                TerminalAction::Quit => use_window().close(),
+                action => info!("{:?} not yet implemented", action)
             },
 
             style {{ include_str!("../../css/style.css") }}
