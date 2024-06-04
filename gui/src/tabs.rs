@@ -19,8 +19,7 @@ impl Tab {
 }
 
 #[component]
-pub fn TerminalSplit(tabs: bool, input: Signal<InputManager>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
-    let tabs = use_signal(|| vec![Tab::new(0)]);
+pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
 
     rsx! {
         div {
