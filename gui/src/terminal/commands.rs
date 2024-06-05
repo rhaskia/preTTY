@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
-use term::command::{CommandSlice, CommandStatus};
-use term::Terminal;
+use pretty_term::command::{CommandSlice, CommandStatus};
+use pretty_term::Terminal;
 
 use super::cell::{CellLine, ClickEvent};
 

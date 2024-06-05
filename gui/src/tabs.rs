@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
-use term::pty::PseudoTerminalSystem;
 use crate::input::InputManager;
+use pretty_term::pty::PseudoTerminalSystem;
 use super::terminal::TerminalApp;
 
 #[derive(Clone, PartialEq)]

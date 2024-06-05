@@ -1,7 +1,6 @@
-
 use dioxus::prelude::*;
 use num_traits::cast::FromPrimitive;
-use term::Terminal;
+use pretty_term::Terminal;
 use termwiz::escape::csi::DecPrivateModeCode;
 
 #[component]

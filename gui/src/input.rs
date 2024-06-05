@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::rc::Rc;
-
 use config::keybindings::Keybinding;
 use config::TerminalAction;
 use dioxus::events::{ModifiersInteraction, PointerInteraction};

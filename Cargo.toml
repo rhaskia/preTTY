@@ -3,8 +3,15 @@ members = ["gui", "term", "hooks", "config"]
 resolver = "2"
 
 [workspace.dependencies]
-hooks = { path = "./hooks" }
-term = { path = "./term" }
-gui = { path = "./gui" }
 config = { path = "./config" }
+pretty_hooks = { path = "./hooks" }
+pretty_term = { path = "./term" }
+prettyterm_gui = { path = "./gui" }
 
+anyhow = "1.0.79"
+dioxus = { version = "0.5.0", features = ["desktop", "html", "hooks"] }
+fern = "0.6.2"
+log = "0.4.21"
+async-channel = "2.2.0"
+async-option = "0.1.1"
+termwiz = "0.22.0"

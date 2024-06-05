@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
-use term::cell::{Cell, CellAttributes, Color, SemanticType};
-use term::Terminal;
+use pretty_term::cell::{Cell, CellAttributes, Color, SemanticType};
+use pretty_term::Terminal;
 use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
 
