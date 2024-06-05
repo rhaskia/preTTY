@@ -15,7 +15,6 @@ use crate::CONFIG;
 use crate::tabs::Tab;
 use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
-use crate::split::Tab;
 use super::InputManager;
 
 #[derive(Default, Deserialize, Clone)]

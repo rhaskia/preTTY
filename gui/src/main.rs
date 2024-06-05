@@ -14,7 +14,7 @@ use input::InputManager;
 use tabs::TerminalSplit;
 use config::TerminalAction;
 use dioxus::desktop::tao::keyboard::ModifiersState;
-use term::pty::PseudoTerminalSystem;
+use pretty_term::pty::PseudoTerminalSystem;
 use log::info;
 use crate::tabs::Tab;
 
