@@ -4,25 +4,52 @@
 // crate imports
 mod header;
 mod input;
-mod split;
+mod tabs;
 mod terminal;
 
-use dioxus::desktop::{WindowBuilder, use_window};
+use config::Config;
+use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::{event::{Event, KeyEvent}, window::Window}, use_window};
 use dioxus::prelude::*;
-use global_hotkey::hotkey::HotKey;
 use input::InputManager;
-use split::TerminalSplit;
+use tabs::TerminalSplit;
+use config::TerminalAction;
+use dioxus::desktop::tao::keyboard::ModifiersState;
+use term::pty::PseudoTerminalSystem;
+use log::info;
+use crate::tabs::Tab;
+
+pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 
 #[component]
 pub fn App() -> Element {
-    let window = use_window();
-    let hotkey = HotKey::new(Some(Modifiers::SHIFT), Code::KeyD);
-    window.create_shortcut(hotkey, || { println!("hotkeyt") });
+    let mut input = use_signal(|| InputManager::new());
+    let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
+    let mut current_pty = use_signal(|| 0);
+    let mut tabs = use_signal(|| vec![Tab::new(0)]);
 
     rsx! {
         div {
             id: "app",
             class: "app",
+            autofocus: true,
+            tabindex: 0,
+
+            onkeydown: move |e| match input.read().handle_keypress(&e) {
+                TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
+                TerminalAction::NewTab => {
+                    tabs.write().push(Tab::new(90));
+                    current_pty += 1;
+                }
+                // TODO pty removal
+                TerminalAction::CloseTab => { 
+                    tabs.write().remove(*current_pty.read());
+                    // Maybe vector of last tabs open instead of decreasing tab number
+                    // Also try trigger quit if only one tab left
+                    current_pty -= 1;
+                }
+                TerminalAction::Quit => use_window().close(),
+                action => info!("{:?} not yet implemented", action)
+            },
 
             style {{ include_str!("../../css/style.css") }}
             style {{ include_str!("../../css/gruvbox.css") }}
@@ -31,8 +58,7 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            //Header {}
-            TerminalSplit { tabs: false }
+            TerminalSplit { tabs, input, pty_system }
         }
     }
 }

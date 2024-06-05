@@ -1,7 +1,11 @@
 [package]
-name = "actions"
+name = "config"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-global-hotkey = "0.5.0"
+toml = "0.8.13"
+serde = "1.0"
+dirs = "5.0.1"
+dioxus = { version = "0.5.0", features = ["serde", "html", "hooks"] }
+enum_derive = "0.1.7"

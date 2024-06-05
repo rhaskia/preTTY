@@ -1,6 +1,7 @@
 * {
     font-family: "JetBrainsMono Nerd Font";  
     overflow-x:hidden;
+    tab-index: -1;
 }
 
 
@@ -13,6 +14,10 @@
 
 .terminal-split:focus {
     outline: none;
+}
+
+.tabs {
+    border-bottom: 1px solid var(--bg2);
 }
 
 .tab:nth-child(2n) {

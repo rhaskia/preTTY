@@ -3,6 +3,7 @@ members = ["gui", "term", "hooks", "config"]
 resolver = "2"
 
 [workspace.dependencies]
+config = { path = "./config" }
 pretty_hooks = { path = "./hooks" }
 pretty_term = { path = "./term" }
 prettyterm_gui = { path = "./gui" }

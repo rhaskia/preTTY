@@ -1,5 +1,9 @@
-enum Action {
-    NewTab(String),
-    CloseTab(usize),
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug, Clone)]
+pub enum TerminalAction {
+    NewTab,
+    CloseTab,
+    Write(String),
     Quit,
 }

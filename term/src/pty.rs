@@ -8,6 +8,7 @@ use tokio::runtime::Runtime;
 
 pub struct PseudoTerminalSystem {
     pub pty_system: Box<dyn PtySystem + Send>,
+    pub ptys: Vec<PseudoTerminal>
 }
 
 pub struct PseudoTerminal {
@@ -22,11 +23,12 @@ impl PseudoTerminalSystem {
     pub fn setup() -> PseudoTerminalSystem {
         PseudoTerminalSystem {
             pty_system: native_pty_system(),
+            ptys: Vec::new(),
         }
     }
 
     /// Requires a sender to pull data out of it
-    pub fn spawn_new(&mut self, tx: Sender<Vec<Action>>) -> anyhow::Result<PseudoTerminal> {
+    pub fn spawn_new(&mut self, tx: Sender<Vec<Action>>) -> anyhow::Result<usize> {
         // Create a new pty
         let pair = self.pty_system.openpty(PtySize {
             rows: 24,
@@ -51,12 +53,14 @@ impl PseudoTerminalSystem {
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
         // program to hang on windows
-        Ok(PseudoTerminal {
+        self.ptys.push(PseudoTerminal {
             pair,
             child,
             writer,
             _reader_thread,
-        })
+        });
+
+        Ok(self.ptys.len() - 1)
     }
 
     /// Default shell as per ENV vars or whatever is default for the platform

@@ -5,12 +5,12 @@ use pretty_term::Terminal;
 use super::cell::{CellLine, ClickEvent};
 
 #[component]
-pub fn CommandsSlice(terminal: Signal<Terminal>, cell_click: ClickEvent) -> Element {
+pub fn CommandsSlice(terminal: Signal<Terminal>) -> Element {
     to_owned![terminal];
 
     rsx! {
         for command in terminal.read().commands.get() {
-            Command { command: *command, terminal, cell_click: cell_click.clone() }
+            Command { command: *command, terminal }
             hr { class: "command-sep" }
         }
     }
@@ -29,7 +29,6 @@ pub fn RightClickCommand() -> Element {
 pub fn Command(
     command: CommandSlice,
     terminal: Signal<Terminal>,
-    cell_click: ClickEvent,
 ) -> Element {
     let mut hovering = use_signal(|| false);
 
@@ -50,7 +49,7 @@ pub fn Command(
 
             pre {
                 for y in command.range(terminal.read().screen().len()) {
-                    CellLine { terminal, y, cell_click: cell_click.clone() }
+                    CellLine { terminal, y }
                 }
             }
 
