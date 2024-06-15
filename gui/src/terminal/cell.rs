@@ -1,10 +1,7 @@
 use dioxus::prelude::*;
-use pretty_term::cell::{Cell, CellAttributes, Color, SemanticType};
+use pretty_term::cell::{CellAttributes};
 use pretty_term::Terminal;
-use termwiz::cell::Intensity;
 use termwiz::color::ColorSpec;
-
-pub type ClickEvent = EventHandler<(Event<MouseData>, usize, usize, bool)>;
 
 #[component]
 pub fn CellGrid(terminal: Signal<Terminal>) -> Element {

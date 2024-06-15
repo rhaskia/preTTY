@@ -55,7 +55,7 @@ impl TerminalState {
 
     pub fn device_control(&mut self, device_command: DeviceControlMode) {
         match device_command {
-            DeviceControlMode::Enter(mode) => todo!(),
+            DeviceControlMode::Enter(_) => todo!(),
             DeviceControlMode::Exit => todo!(),
             DeviceControlMode::Data(_) => todo!(),
             DeviceControlMode::ShortDeviceControl(_) => todo!(),
@@ -71,12 +71,12 @@ impl TerminalState {
             ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
             SaveDecPrivateMode(pmode) => self.save_dec_private_mode(pmode),
             RestoreDecPrivateMode(pmode) => self.restore_dec_private_mode(pmode),
-            QueryDecPrivateMode(pmode) => todo!(),
+            QueryDecPrivateMode(_) => todo!(),
 
             SetMode(mode) => self.set_mode(mode, true),
             ResetMode(mode) => self.set_mode(mode, false),
             XtermKeyMode { resource, value } => self.set_key_mode(resource, value),
-            QueryMode(mode) => todo!(),
+            QueryMode(_) => todo!(),
         }
     }
 

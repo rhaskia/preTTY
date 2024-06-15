@@ -4,6 +4,54 @@
     tab-index: -1;
 }
 
+/* menu */
+.menu {
+    position: absolute;
+    width: 780px;
+    height: 550px;
+    background: #0000006b;
+    z-index: 100;
+    border: 1px #ffffff33 solid;
+    box-shadow: 0px 0px 20px 0px #000000d1;
+    border-radius: 10px;
+    color: var(--white);
+    backdrop-filter: blur(7px);
+    display: flex;
+    padding: 8px;
+}
+
+.menu h2 {
+    margin: 4px;
+    margin-right: 0;
+}
+
+#menuheader {
+    z-index: 101;
+    cursor: move;
+}
+
+.menu input[type=number] {
+    border-radius: 4px;
+    background: transparent;
+    color: #ffffff;
+    margin-left: 20px;
+    border: 1px #ffffff33 solid;
+}
+
+:focus-visible {
+    border: 1px #ffffff solid;
+    outline: none;
+}
+
+.menubar {
+    display: flex;
+    flex-direction: column;
+}
+
+.menucontent {
+    display: flex;
+    flex-direction: column;
+}
 
 /* SPLIT STYLES */
 .terminal-split {

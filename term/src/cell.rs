@@ -48,14 +48,15 @@ pub enum SemanticType {
     Prompt(PromptKind),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub enum Color {
+    #[default]
     Default,
     Palette(u8),
     TrueColor,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct CellAttributes {
     pub bg: Color,
     pub fg: Color,
@@ -194,10 +195,10 @@ impl CellAttributes {
     }
 
     pub fn set_font(&mut self, font: Font) {
-        // if self.extra.is_none() { self.extra = Some(Box::new(ExtraAttributes::default())) }
-        // if let Some(ref mut extra) = self.extra {
-        //     extra.font = font;
-        // }
+        if self.extra.is_none() { self.extra = Some(Box::new(ExtraAttributes::default())) }
+        if let Some(ref mut extra) = self.extra {
+            extra.font = font;
+        }
     }
 
     pub fn set_two(&mut self, a: u8, b: u8, va: bool, vb: bool) {
@@ -243,7 +244,11 @@ impl CellAttributes {
     set_colour!(fg, get_fg, set_fg);
     set_colour!(bg, get_bg, set_bg);
 
-    pub fn set_underline_colour(&mut self, colour: ColorSpec) {}
+    pub fn set_underline_colour(&mut self, colour: ColorSpec) { 
+        if let Some(ref mut extra) = self.extra {
+            extra.underline_fg = Some(colour);
+        }
+    }
 
     pub fn get_extra(&mut self) -> &mut Box<ExtraAttributes> {
         if self.extra.is_none() {
@@ -278,9 +283,11 @@ impl Cell {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     pub fn set_bold() {
-        let attr = CellAttributes::new();
+        let mut attr = CellAttributes::default();
         attr.set_bold(true);
         assert!(attr.bold());
     }

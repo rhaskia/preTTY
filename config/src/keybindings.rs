@@ -1,7 +1,6 @@
 // type Keybinds = std::collections::Hashmap<Key, Action>;
 use dioxus::events::{Key, Modifiers};
 use serde::Deserialize;
-use toml::Table;
 use crate::loader::RawKeybinding;
 use crate::TerminalAction;
 

@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::rc::Rc;
 use config::keybindings::Keybinding;
 use config::TerminalAction;
@@ -44,7 +43,7 @@ impl InputManager {
     ) -> String {
         let trail = if is_press { "M" } else { "m" };
         let button = mouse_info.trigger_button().unwrap_or(MouseButton::Unknown);
-        let mods = mouse_info.modifiers();
+        let _mods = mouse_info.modifiers();
 
         let code = match button {
             MouseButton::Primary => 0,

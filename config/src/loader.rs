@@ -1,5 +1,4 @@
 use crate::{Config, keybindings::Keybinding, TerminalAction};
-use dioxus::events::{Key, Modifiers};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]

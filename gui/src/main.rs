@@ -4,25 +4,25 @@
 // crate imports
 mod header;
 mod input;
+mod menu;
 mod tabs;
 mod terminal;
 
-use config::Config;
-use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::{event::{Event, KeyEvent}, window::Window}, use_window};
+use config::{Config, TerminalAction};
+use dioxus::desktop::{use_window, WindowBuilder};
 use dioxus::prelude::*;
 use input::InputManager;
-use tabs::TerminalSplit;
-use config::TerminalAction;
-use dioxus::desktop::tao::keyboard::ModifiersState;
+use menu::Menu;
 use pretty_term::pty::PseudoTerminalSystem;
-use log::info;
+use tabs::TerminalSplit;
+
 use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 
 #[component]
 pub fn App() -> Element {
-    let mut input = use_signal(|| InputManager::new());
+    let input = use_signal(|| InputManager::new());
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_pty = use_signal(|| 0);
     let mut tabs = use_signal(|| vec![Tab::new(0)]);
@@ -41,14 +41,14 @@ pub fn App() -> Element {
                     current_pty += 1;
                 }
                 // TODO pty removal
-                TerminalAction::CloseTab => { 
+                TerminalAction::CloseTab => {
                     tabs.write().remove(*current_pty.read());
                     // Maybe vector of last tabs open instead of decreasing tab number
                     // Also try trigger quit if only one tab left
                     current_pty -= 1;
                 }
                 TerminalAction::Quit => use_window().close(),
-                action => info!("{:?} not yet implemented", action)
+                //action => info!("{:?} not yet implemented", action)
             },
 
             style {{ include_str!("../../css/style.css") }}
@@ -59,6 +59,8 @@ pub fn App() -> Element {
             script { src: "/js/waitfor.js" }
 
             TerminalSplit { tabs, input, pty_system }
+
+            Menu { }
         }
     }
 }
@@ -73,7 +75,6 @@ fn setup_logger() -> Result<(), fern::InitError> {
                 Debug => 33,
                 Info => 33,
                 Trace => 35,
-                _ => 1,
             };
             out.finish(format_args!(
                 "\x1b[{}m[\x1b[1m{} {}]\x1b[m {}",

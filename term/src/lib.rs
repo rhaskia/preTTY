@@ -1,11 +1,11 @@
 pub mod cell;
 pub mod command;
-pub mod pty;
-pub mod screen;
 pub mod cursor;
 pub mod line;
-pub mod window;
+pub mod pty;
+pub mod screen;
 pub mod state;
+pub mod window;
 
 use std::collections::HashMap;
 
@@ -15,17 +15,12 @@ use line::Line;
 use log::info;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
-use termwiz::escape::csi::{
-    Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, Window, CSI,
-};
+use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
-use termwiz::escape::{
-    Action, ControlCode, DeviceControlMode, Esc, KittyImage, OperatingSystemCommand, Sixel,
-};
+use termwiz::escape::{Action, ControlCode, Esc, KittyImage, OperatingSystemCommand, Sixel};
 use window::WindowHandler;
 
 use self::command::CommandSlicer;
-
 
 /// Main terminal controller
 /// Holds a lot of sub-objects
@@ -39,6 +34,7 @@ pub struct Terminal {
     pub commands: CommandSlicer,
     pub user_vars: HashMap<String, String>,
     pub window: Box<dyn WindowHandler>,
+    pub marks: Vec<(usize, usize)>,
 
     pub title: String,
 }
@@ -53,10 +49,11 @@ impl Terminal {
             renderer: TerminalRenderer::new(24, 80),
             state: TerminalState::new(),
             cursor: TerminalCursor::new(),
-            title: "PreTTY".into(),
             commands: CommandSlicer::new(),
             user_vars: HashMap::new(),
             window,
+            marks: Vec::new(),
+            title: "PreTTY".into(),
         })
     }
 
@@ -140,7 +137,7 @@ impl Terminal {
         }
     }
 
-    fn kitty_image(&mut self, image: Box<KittyImage>) {
+    fn kitty_image(&mut self, _image: Box<KittyImage>) {
         todo!("Kitty Image");
     }
 
@@ -154,7 +151,7 @@ impl Terminal {
                 intermediate,
                 control,
             } => {
-                info!("ESC {:?}", esc);
+                info!("ESC Unknown {:?} {:?}", intermediate, control);
                 return;
             }
         };
@@ -173,7 +170,7 @@ impl Terminal {
 
     /// "Renders" a sixel image
     /// Really just stores it in a state for the webview to render
-    fn handle_sixel(&mut self, sixel: Box<Sixel>) { info!("Sixel Image") }
+    fn handle_sixel(&mut self, sixel: Box<Sixel>) { info!("Sixel Image {sixel:?}") }
 
     /// Handles cursor movements, etc
     // Really need to move this to the cursor object
@@ -231,9 +228,11 @@ impl Terminal {
         }
     }
 
-    fn handle_kitty_keyboard(&mut self, command: Keyboard) {}
+    fn handle_kitty_keyboard(&mut self, command: Keyboard) { info!("Kitty Keyboard {command:?}") }
 
-    fn handle_device(&mut self, device_command: Box<Device>) {}
+    fn handle_device(&mut self, device_command: Box<Device>) {
+        info!("Device Command {device_command:?}")
+    }
 
     // Operating System Commands
     // Usually for things like notifications and window control
@@ -255,22 +254,22 @@ impl Terminal {
     fn handle_iterm(&mut self, command: ITermProprietary) {
         use ITermProprietary::*;
         match command {
-            SetUserVar { name, value } => { 
+            SetUserVar { name, value } => {
                 self.user_vars.insert(name, value);
-            },
+            }
             ClearScrollback => self.mut_screen().clear_scrollback(),
             StealFocus => self.window.steal_focus(),
             SetMark => self.set_mark(),
             SetProfile(profile) => self.set_profile(profile),
-            _ => info!("ITERM2 {command:?}")
+            _ => info!("ITERM2 {command:?}"),
         }
     }
 
     /// Basically vim marks system, aka bookmark for cursor positions
-    fn set_mark(&mut self) {}
+    fn set_mark(&mut self) { self.marks.push(self.cursor_pos()); }
 
     /// ITerm2 Profiles
-    fn set_profile(&mut self, profile: String) {}
+    fn set_profile(&mut self, profile: String) { info!("Set Iterm2 Profile {profile}") }
 }
 
 // Prompt Management
@@ -295,7 +294,7 @@ impl Terminal {
                 self.start_input(Until::SemanticMarker)
             }
             MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
-            MarkEndOfInputAndStartOfOutput { aid } => {
+            MarkEndOfInputAndStartOfOutput { aid: _ } => {
                 self.renderer.attr.set_sem_type(SemanticType::Output);
                 self.commands
                     .start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));

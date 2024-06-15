@@ -20,7 +20,6 @@ impl Tab {
 
 #[component]
 pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
-
     rsx! {
         div {
             display: "flex",

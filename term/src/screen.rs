@@ -66,23 +66,28 @@ pub struct Screen {
     pub cells: VecDeque<Line>,
     max_scrollback: usize,
     scrollback_offset: usize,
-
-    physical_rows: usize,
-    physical_columns: usize,
+    rows: usize,
+    cols: usize,
 
     scrollback_allowed: bool,
 }
 
 impl Screen {
-    pub fn new(rows: usize, columns: usize, sc_allow: bool) -> Screen {
+    pub fn new(rows: usize, cols: usize, sc_allow: bool) -> Screen {
         Screen {
             cells: VecDeque::new(),
             max_scrollback: 100,
-            physical_rows: rows,
-            physical_columns: columns,
             scrollback_allowed: sc_allow,
             scrollback_offset: 0,
+            rows,
+            cols,
         }
+    }
+
+    /// Sets screen size. Meant for changing after a pty has been updated
+    pub fn set_size(&mut self, rows: usize, cols: usize)  {
+        self.cols = cols;
+        self.rows = rows;
     }
 
     /// Scrolls a line out of the visible screen
@@ -101,7 +106,7 @@ impl Screen {
         self.ensure_lines(cursor_y);
 
         if cursor_x >= self.cells[cursor_y].len() {
-            let extend_amount = cursor_x - &self.cells[cursor_y].len();
+            let extend_amount = cursor_x - self.cells[cursor_y].len();
             self.cells[cursor_y].extend(vec![Cell::default(); extend_amount + 1])
         }
 
@@ -118,8 +123,8 @@ impl Screen {
     }
 
     /// Bad bad bad bad
-    pub fn scroll_range(&self, back: usize) -> Range<usize> {
-        self.scrollback_offset..self.cells.len()
+    pub fn scroll_range(&self, _back: usize) -> Range<usize> {
+        self.scrollback_offset..self.scrollback_offset + self.rows
     }
 
     /// Length of whole scrollback
@@ -149,7 +154,7 @@ impl Screen {
     /// Reference to a line within the visible screen
     /// TODO fix this
     pub fn line(&self, index: usize) -> &Line {
-        let vis_index = self.visible_start() + index;
+        let _vis_index = self.visible_start() + index;
         &self.cells[index]
     }
 

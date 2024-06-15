@@ -9,7 +9,6 @@ use cursor::Cursor;
 use debug::TerminalDebug;
 use dioxus::prelude::*;
 use pretty_hooks::{on_resize, DOMRectReadOnly};
-use log::info;
 use serde::Deserialize;
 use crate::CONFIG;
 use crate::tabs::Tab;
@@ -27,13 +26,13 @@ pub struct CellSize {
 #[component]
 pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
-    let mut debug = use_signal(|| false);
+    let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
 
     // Pseudoterminal Stuff
     let (tx, rx) = async_channel::unbounded();
     let mut rx = use_signal(|| rx);
-    let mut pty = use_signal(|| pty_system.write().spawn_new(tx).unwrap());
+    let pty = use_signal(|| pty_system.write().spawn_new(tx).unwrap());
 
     // Cell Size Reader
     let mut size_style = use_signal(|| String::new());

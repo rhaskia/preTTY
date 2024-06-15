@@ -1,8 +1,7 @@
 use dioxus::prelude::*;
 use pretty_term::command::{CommandSlice, CommandStatus};
 use pretty_term::Terminal;
-
-use super::cell::{CellLine, ClickEvent};
+use super::cell::CellLine;
 
 #[component]
 pub fn CommandsSlice(terminal: Signal<Terminal>) -> Element {

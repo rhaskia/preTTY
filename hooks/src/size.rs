@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 pub struct DomRectSignal {
     inner: Signal<Option<ResizeObserverEntry>>,
-    collector: UseFuture,
+    _collector: UseFuture,
 }
 
 impl DomRectSignal {
@@ -106,7 +106,7 @@ pub fn use_div_size(id: String) -> DomRectSignal {
     let id = use_signal(|| id);
     let mut signal = use_signal(|| None);
 
-    let collector = use_future(move || async move {
+    let _collector = use_future(move || async move {
         wait_for_next_render().await;
 
         let mut js = resize_observer();
@@ -122,6 +122,6 @@ pub fn use_div_size(id: String) -> DomRectSignal {
 
     DomRectSignal {
         inner: signal,
-        collector,
+        _collector,
     }
 }
