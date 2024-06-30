@@ -51,6 +51,20 @@
 .menucontent {
     display: flex;
     flex-direction: column;
+    width: 100%;
+}
+
+.menuheader button {
+    background: #ffffff33;
+    border: none;
+    padding: none;
+    margin-left: auto;
+}
+
+.barbutton {
+    background: #ffffff33;
+    border: none;
+    padding: none;
 }
 
 /* SPLIT STYLES */

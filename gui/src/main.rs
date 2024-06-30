@@ -26,6 +26,7 @@ pub fn App() -> Element {
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_pty = use_signal(|| 0);
     let mut tabs = use_signal(|| vec![Tab::new(0)]);
+    let menu_open = use_signal(|| false);
 
     rsx! {
         div {
@@ -58,9 +59,9 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            TerminalSplit { tabs, input, pty_system }
+            TerminalSplit { tabs, input, pty_system, menu_open }
 
-            Menu { }
+            if menu_open() { Menu { menu_open } }
         }
     }
 }
