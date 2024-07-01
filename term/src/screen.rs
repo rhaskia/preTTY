@@ -155,6 +155,7 @@ impl Screen {
     /// TODO fix this
     pub fn line(&self, index: usize) -> &Line {
         let _vis_index = self.visible_start() + index;
+        // BUG goes out of range
         &self.cells[index]
     }
 

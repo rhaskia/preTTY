@@ -6,4 +6,5 @@ pub enum TerminalAction {
     CloseTab,
     Write(String),
     Quit,
+    ToggleMenu,
 }

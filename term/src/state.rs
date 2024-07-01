@@ -71,12 +71,12 @@ impl TerminalState {
             ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
             SaveDecPrivateMode(pmode) => self.save_dec_private_mode(pmode),
             RestoreDecPrivateMode(pmode) => self.restore_dec_private_mode(pmode),
-            QueryDecPrivateMode(_) => todo!(),
+            QueryDecPrivateMode(pmode) => info!("Query Mode {:?}", pmode),
 
             SetMode(mode) => self.set_mode(mode, true),
             ResetMode(mode) => self.set_mode(mode, false),
             XtermKeyMode { resource, value } => self.set_key_mode(resource, value),
-            QueryMode(_) => todo!(),
+            QueryMode(mode) => info!("Query Mode {:?}", mode),
         }
     }
 

@@ -26,7 +26,7 @@ pub fn App() -> Element {
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_pty = use_signal(|| 0);
     let mut tabs = use_signal(|| vec![Tab::new(0)]);
-    let menu_open = use_signal(|| false);
+    let mut menu_open = use_signal(|| false);
 
     rsx! {
         div {
@@ -49,6 +49,9 @@ pub fn App() -> Element {
                     current_pty -= 1;
                 }
                 TerminalAction::Quit => use_window().close(),
+                TerminalAction::ToggleMenu => {
+                    menu_open.toggle();
+                }
                 //action => info!("{:?} not yet implemented", action)
             },
 

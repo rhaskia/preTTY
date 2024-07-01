@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use dioxus::prelude::*;
 use serde::Deserialize;
+use log::info;
 
 pub struct DomRectSignal {
     inner: Signal<Option<ResizeObserverEntry>>,
@@ -9,7 +10,6 @@ pub struct DomRectSignal {
 
 impl DomRectSignal {
     pub fn value(&self) -> Option<ResizeObserverEntry> { self.inner.read().clone() }
-
     pub fn read(&self) -> ReadableRef<Signal<Option<ResizeObserverEntry>>> { self.inner.read() }
 }
 
@@ -96,6 +96,7 @@ pub fn on_resize(id: String, callback: impl FnMut(ResizeObserverEntry) + 'static
 
         loop {
             let div_info = js.recv().await.unwrap();
+            info!("Recieved json {div_info:?}");
             let parsed = serde_json::from_value::<ResizeObserverEntry>(div_info).unwrap();
             callback.write().call_mut((parsed,));
         }

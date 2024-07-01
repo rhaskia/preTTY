@@ -15,6 +15,7 @@ use crate::tabs::Tab;
 use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
 use super::InputManager;
+use log::info;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -55,6 +56,7 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
             let (rows, cols) = pty_system.write().ptys[*pty.read()].resize(width, height, cell.width, cell.height);
+            info!("Resize Event, {rows}:{cols}");
             terminal.write().resize(rows, cols);
         }
     });
