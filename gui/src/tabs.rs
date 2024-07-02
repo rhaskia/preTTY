@@ -40,7 +40,7 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_sy
                     align_self: "flex-end",
                     margin_right: "14px",
                     margin_left: "auto",
-                    onclick: move |_| menu_open.toggle(),
+                    // onclick: move |_| menu_open.toggle(),
                     " "
                 } 
             }
