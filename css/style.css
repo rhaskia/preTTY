@@ -60,9 +60,17 @@
 }
 
 .barbutton {
-    background: #ffffff33;
     border: none;
     padding: none;
+    background: none;
+    color: var(--fg);
+}
+
+.bardropdown {
+    width: 50px;
+    height: 200px;
+    position: absolute;
+    z-index: 10;
 }
 
 /* SPLIT STYLES */

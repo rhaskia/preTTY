@@ -22,7 +22,9 @@ impl Tab {
 }
 
 #[component]
-pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_pty: Signal<usize>, pty_system: Signal<PseudoTerminalSystem>, menu_open: Signal<bool>) -> Element {
+pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_pty: Signal<usize>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
+    let mut menu_open = use_signal(|| false);
+
     rsx! {
         div {
             display: "flex",
@@ -42,23 +44,36 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, curren
                 }
                 button {
                     class: "barbutton",
-                    align_self: "flex-end",
-                    margin_right: "14px",
-                    margin_left: "auto",
-                    onclick: move |_| menu_open.toggle(),
-                    " "
+                    onclick: move |_| {
+                        tabs.write().push(Tab::new(current_pty + 1));
+                        current_pty += 1;
+                    },
+                    ""
                 } 
+                div {
+                    class: "dropdown",
+                    button {
+                        class: "barbutton",
+                        onclick: move |_| menu_open.toggle(),
+                        ""
+                    } 
+                    if menu_open() {
+                        div {
+                            class: "bardropdown"
+                        }
+                    }
+                }
             }
             div {
                 display: "flex",
                 flex_direction: "row",
                 flex_grow: 1,
                 for tab in tabs().into_iter() {
-                        TerminalApp { pty_system, input, hidden: index != current_pty(), tab: index },
-                    // if tab.settings {
-                    // } else {
-                    //     Menu {}
-                    // }
+                    if tab.settings {
+                         Menu {}
+                    } else {
+                        TerminalApp { pty_system, input, hidden: tab.index != current_pty(), tab: tab.index }
+                    }
                 }
             }
         }

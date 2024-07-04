@@ -26,7 +26,6 @@ pub fn App() -> Element {
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_pty = use_signal(|| 0);
     let mut tabs = use_signal(|| vec![Tab::new(0)]);
-    let mut menu_open = use_signal(|| false);
 
     rsx! {
         div {
@@ -36,7 +35,6 @@ pub fn App() -> Element {
             tabindex: 0,
 
             onkeydown: move |e| match input.read().handle_keypress(&e) {
-                TerminalAction::Write(_) if menu_open() => {},
                 TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
                 TerminalAction::NewTab => {
                     tabs.write().push(Tab::new(current_pty + 1));
@@ -51,7 +49,7 @@ pub fn App() -> Element {
                 }
                 TerminalAction::Quit => use_window().close(),
                 TerminalAction::ToggleMenu => {
-                    menu_open.toggle();
+                    //menu_open.toggle();
                 }
                 //action => info!("{:?} not yet implemented", action)
             },
@@ -63,7 +61,7 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            TerminalSplit { tabs, input, pty_system, menu_open, current_pty }
+            TerminalSplit { tabs, input, pty_system, current_pty }
 
         }
     }

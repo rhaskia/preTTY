@@ -83,7 +83,7 @@ impl TerminalState {
     /// Switches dec private modes on or off
     /// Useful stuff like alt_screen, bracketed_paste etc
     pub fn set_dec_private_mode(&mut self, mode: DecPrivateMode, active: bool) {
-        info!("Set Dec Mode {mode:?} {active}");
+        //info!("Set Dec Mode {mode:?} {active}");
         let code = inner_mode!(mode);
 
         use termwiz::escape::csi::DecPrivateModeCode::*;
@@ -99,14 +99,14 @@ impl TerminalState {
     }
 
     pub fn save_dec_private_mode(&mut self, mode: DecPrivateMode) {
-        info!("Save Dec Mode {mode:?}");
+        //info!("Save Dec Mode {mode:?}");
         let code = inner_mode!(mode);
         self.dec_saves
             .insert(code.to_u16().unwrap(), self.dec_mode(code));
     }
 
     pub fn restore_dec_private_mode(&mut self, mode: DecPrivateMode) {
-        info!("Restore Dec Mode {mode:?}");
+        //info!("Restore Dec Mode {mode:?}");
         let code = inner_mode!(mode);
         self.dec_modes
             .insert(code.to_u16().unwrap(), self.dec_save(code));
