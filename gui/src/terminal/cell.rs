@@ -22,7 +22,7 @@ pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
 #[component]
 pub fn CellLine(terminal: Signal<Terminal>, y: usize) -> Element {
     let term = terminal.read();
-    let mut line = term.screen().line(y).iter();
+    let mut line = term.screen().line(y)?.iter();
     let mut last_attr = CellAttributes::default();
     let mut open = false;
     let mut rendered = String::new();

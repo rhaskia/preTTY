@@ -153,10 +153,9 @@ impl Screen {
 
     /// Reference to a line within the visible screen
     /// TODO fix this
-    pub fn line(&self, index: usize) -> &Line {
-        let _vis_index = self.visible_start() + index;
-        // BUG goes out of range
-        &self.cells[index]
+    pub fn line(&self, index: usize) -> Option<&Line> {
+        let vis_index = self.visible_start() + index;
+        self.cells.get(vis_index)
     }
 
     /// Pushes a new line onto the screen

@@ -36,6 +36,7 @@ pub fn App() -> Element {
             tabindex: 0,
 
             onkeydown: move |e| match input.read().handle_keypress(&e) {
+                TerminalAction::Write(_) if menu_open() => {},
                 TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
                 TerminalAction::NewTab => {
                     tabs.write().push(Tab::new(90));
@@ -62,7 +63,7 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            TerminalSplit { tabs, input, pty_system, menu_open }
+            TerminalSplit { tabs, input, pty_system, menu_open, current_pty }
 
             if menu_open() { Menu { menu_open } }
         }

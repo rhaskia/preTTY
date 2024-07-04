@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use super::cell::Cell;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Line {
     cells: Vec<Cell>,
     pub width: bool,

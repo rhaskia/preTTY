@@ -2,6 +2,7 @@ use termwiz::cell::{Blink, Intensity, Underline, VerticalAlign};
 use termwiz::color::{ColorSpec, SrgbaTuple};
 use termwiz::escape::csi::Font;
 use termwiz::escape::osc::FinalTermPromptKind;
+use termwiz::hyperlink::Hyperlink;
 
 /// A Node system for dealing with terminal output
 /// Unsure if it should be a syntax tree or just have splitter members in it
@@ -86,6 +87,7 @@ pub struct ExtraAttributes {
     fg: Option<SrgbaTuple>,
     bg: Option<SrgbaTuple>,
     underline_fg: Option<ColorSpec>,
+    hyperlink: Option<Hyperlink>,
 }
 
 impl ExtraAttributes {
@@ -95,6 +97,7 @@ impl ExtraAttributes {
             fg: None,
             bg: None,
             underline_fg: None,
+            hyperlink: None,
         }
     }
 }
@@ -245,9 +248,11 @@ impl CellAttributes {
     set_colour!(bg, get_bg, set_bg);
 
     pub fn set_underline_colour(&mut self, colour: ColorSpec) { 
-        if let Some(ref mut extra) = self.extra {
-            extra.underline_fg = Some(colour);
-        }
+            self.get_extra().underline_fg = Some(colour);
+    }
+
+    pub fn set_hyperlink(&mut self, link: Option<Hyperlink>) { 
+            self.get_extra().hyperlink = link;
     }
 
     pub fn get_extra(&mut self) -> &mut Box<ExtraAttributes> {

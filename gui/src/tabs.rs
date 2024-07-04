@@ -19,7 +19,7 @@ impl Tab {
 }
 
 #[component]
-pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_system: Signal<PseudoTerminalSystem>, menu_open: Signal<bool>) -> Element {
+pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_pty: Signal<usize>, pty_system: Signal<PseudoTerminalSystem>, menu_open: Signal<bool>) -> Element {
     rsx! {
         div {
             display: "flex",
@@ -29,9 +29,10 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_sy
                 class: "tabs",
                 display: "flex",
                 font_size: "14px",
-                for tab in tabs.read().iter() {
+                for (n, tab) in tabs.read().iter().enumerate() {
                     span { 
                         class: "tab",
+                        onclick: move |_| current_pty.set(n),
                         " {tab.name} "
                     }
                 }
@@ -40,7 +41,7 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_sy
                     align_self: "flex-end",
                     margin_right: "14px",
                     margin_left: "auto",
-                    // onclick: move |_| menu_open.toggle(),
+                    onclick: move |_| menu_open.toggle(),
                     " "
                 } 
             }
@@ -48,9 +49,7 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_sy
                 display: "flex",
                 flex_direction: "row",
                 flex_grow: 1,
-                for tab in tabs.read().iter() {
-                    TerminalApp { tab: tab.clone(), pty_system, input }
-                }
+                TerminalApp { tab: tabs.get(*current_pty.read()).unwrap().clone(), pty_system, input }
             }
         }
     }

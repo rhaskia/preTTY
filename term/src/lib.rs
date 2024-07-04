@@ -344,24 +344,26 @@ impl Terminal {
 
     fn erase_in_line(&mut self, edit: EraseInLine) {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
+        let start = self.cursor.x;
+        let y = self.cursor.y;
 
         match edit {
             EraseInLine::EraseToEndOfLine => {
-                if screen.len() > self.cursor.y {
-                    for x in self.cursor.x..screen.line(self.cursor.y).len() {
-                        screen.push(Cell::default(), x, self.cursor.y);
-                    }
+                let line = self.mut_screen().mut_line(y);
+
+                for x in start..line.len() {
+                    line[x] = Cell::default();
                 }
             }
             EraseInLine::EraseToStartOfLine => {
-                // may go out of bounds. idk
-                for x in 0..self.cursor.x {
-                    screen.push(Cell::default(), x, self.cursor.y);
+                let line = self.mut_screen().mut_line(y);
+
+                for x in start..line.len() {
+                    line[x] = Cell::default();
                 }
             }
             EraseInLine::EraseLine => {
-                screen.set_line(self.cursor.y, Vec::new());
-                // self.cursor.set_x(0);
+                *self.mut_screen().mut_line(y) = Line::default();
             }
         }
     }
