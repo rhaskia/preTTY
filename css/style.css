@@ -81,7 +81,7 @@
 }
 
 .tab:nth-child(2n) {
-    background: var(--bg1);
+    background: var(--bg0);
 }
 
 .tab {

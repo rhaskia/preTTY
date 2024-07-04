@@ -2,18 +2,21 @@ use dioxus::prelude::*;
 use crate::input::InputManager;
 use pretty_term::pty::PseudoTerminalSystem;
 use super::terminal::TerminalApp;
+use crate::menu::Menu;
 
 #[derive(Clone, PartialEq)]
 pub struct Tab {
-    pub index: usize,
-    pub name: String,
+    index: usize, 
+    name: String,
+    settings: bool,
 }
 
 impl Tab {
     pub fn new(idx: usize) -> Self {
         Tab {
             index: idx,
-            name: format!("terminal {idx}")
+            name: format!("terminal {idx}"),
+            settings: false,
         }
     }
 }
@@ -33,7 +36,8 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, curren
                     span { 
                         class: "tab",
                         onclick: move |_| current_pty.set(n),
-                        " {tab.name} "
+                        background: if n == current_pty() {"var(--bg1)"},
+                        " {n} "
                     }
                 }
                 button {
@@ -49,7 +53,13 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, curren
                 display: "flex",
                 flex_direction: "row",
                 flex_grow: 1,
-                TerminalApp { tab: tabs.get(*current_pty.read()).unwrap().clone(), pty_system, input }
+                for tab in tabs().into_iter() {
+                        TerminalApp { pty_system, input, hidden: index != current_pty(), tab: index },
+                    // if tab.settings {
+                    // } else {
+                    //     Menu {}
+                    // }
+                }
             }
         }
     }

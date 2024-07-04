@@ -2,7 +2,7 @@ mod settings;
 use dioxus::prelude::*;
 
 #[component]
-pub fn Menu(menu_open: Signal<bool>) -> Element {
+pub fn Menu() -> Element {
     // let config = Config::new()
     //     .with_background_color((0, 0, 0, 0))
     //     .with_disable_context_menu(true)
@@ -22,10 +22,6 @@ pub fn Menu(menu_open: Signal<bool>) -> Element {
                   id: "menuheader", 
                   class: "menuheader",
                   h2 { "Settings" }, 
-                  button { 
-                    onclick: move |_| menu_open.toggle(),
-                    "X"
-                  } 
                 }
                 div { "Font Size" input { r#type: "number" } }
             }

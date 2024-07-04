@@ -25,7 +25,7 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>) -> Element {
+pub fn TerminalApp(tab: usize, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>, hidden: bool) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
@@ -52,7 +52,7 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
     });
 
     // Window Resize Event
-    on_resize(format!("split-{}", tab.index), move |size| {
+    on_resize(format!("split-{}", tab), move |size| {
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
             let (rows, cols) = pty_system.write().ptys[*pty.read()].resize(width, height, cell.width, cell.height);
@@ -75,8 +75,9 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
             style: "{size_style.read()}",
             class: "terminal-split",
             class: if terminal.read().state.alt_screen { "alt-screen" },
-            id: "split-{tab.index}",
-            key: "split-{tab.index}",
+            id: "split-{tab}",
+            key: "split-{tab}",
+            hidden,
 
             if terminal.read().state.alt_screen {
                 CellGrid { terminal }
@@ -87,7 +88,7 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
             if terminal.read().state.show_cursor {
                 Cursor {
                     cursor_pos,
-                    index: tab.index,
+                    index: tab,
                 }
             }
         }

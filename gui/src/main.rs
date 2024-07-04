@@ -39,7 +39,7 @@ pub fn App() -> Element {
                 TerminalAction::Write(_) if menu_open() => {},
                 TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
                 TerminalAction::NewTab => {
-                    tabs.write().push(Tab::new(90));
+                    tabs.write().push(Tab::new(current_pty + 1));
                     current_pty += 1;
                 }
                 // TODO pty removal
@@ -65,7 +65,6 @@ pub fn App() -> Element {
 
             TerminalSplit { tabs, input, pty_system, menu_open, current_pty }
 
-            if menu_open() { Menu { menu_open } }
         }
     }
 }
