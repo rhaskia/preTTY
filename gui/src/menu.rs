@@ -2,7 +2,7 @@ mod settings;
 use dioxus::prelude::*;
 
 #[component]
-pub fn Menu() -> Element {
+pub fn Menu(active: bool) -> Element {
     // let config = Config::new()
     //     .with_background_color((0, 0, 0, 0))
     //     .with_disable_context_menu(true)
@@ -15,6 +15,7 @@ pub fn Menu() -> Element {
     rsx! {
         div {
             class: "menu",
+            display: if active { "block" } else { "none" },
             id: "menu",
             div {
                 class: "menucontent",
@@ -25,18 +26,6 @@ pub fn Menu() -> Element {
                 }
                 div { "Font Size" input { r#type: "number" } }
             }
-        }
-    }
-}
-
-#[component]
-pub fn FloatingMenu() -> Element {
-    rsx! {
-        div {
-            class: "menu",
-            height: "400px",
-            width: "40px",
-            "hello"
         }
     }
 }

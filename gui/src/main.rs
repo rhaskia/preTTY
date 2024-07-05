@@ -24,8 +24,8 @@ pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config(
 pub fn App() -> Element {
     let input = use_signal(|| InputManager::new());
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
-    let mut current_pty = use_signal(|| 0);
-    let mut tabs = use_signal(|| vec![Tab::new(0)]);
+    let mut current_tab = use_signal(|| 0);
+    let mut tabs = use_signal(|| vec![Tab::new(0, 0)]);
 
     rsx! {
         div {
@@ -35,17 +35,17 @@ pub fn App() -> Element {
             tabindex: 0,
 
             onkeydown: move |e| match input.read().handle_keypress(&e) {
-                TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
+                TerminalAction::Write(s) => pty_system.write().ptys[*current_tab.read()].write(s),
                 TerminalAction::NewTab => {
-                    tabs.write().push(Tab::new(current_pty + 1));
-                    current_pty += 1;
+                    tabs.write().push(Tab::new(current_tab + 1, pty_system.read().len()));
+                    current_tab += 1;
                 }
                 // TODO pty removal
                 TerminalAction::CloseTab => {
-                    tabs.write().remove(*current_pty.read());
+                    tabs.write().remove(*current_tab.read());
                     // Maybe vector of last tabs open instead of decreasing tab number
                     // Also try trigger quit if only one tab left
-                    current_pty -= 1;
+                    current_tab -= 1;
                 }
                 TerminalAction::Quit => use_window().close(),
                 TerminalAction::ToggleMenu => {
@@ -61,7 +61,7 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            TerminalSplit { tabs, input, pty_system, current_pty }
+            TerminalSplit { tabs, input, pty_system, current_tab }
 
         }
     }

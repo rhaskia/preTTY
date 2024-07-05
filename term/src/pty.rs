@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use std::ops::Deref;
 use std::thread::{self, JoinHandle};
 
 use async_channel::Sender;
@@ -25,6 +26,10 @@ impl PseudoTerminalSystem {
             pty_system: native_pty_system(),
             ptys: Vec::new(),
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.ptys.len()
     }
 
     /// Requires a sender to pull data out of it
@@ -73,6 +78,14 @@ impl PseudoTerminalSystem {
                 Err(_) => String::from("bash"), /* apple should implement SHELL but if they don't too bad */
             }
         }
+    }
+}
+
+impl Deref for PseudoTerminalSystem {
+    type Target = Vec<PseudoTerminal>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.ptys
     }
 }
 

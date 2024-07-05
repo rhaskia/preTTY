@@ -6,10 +6,7 @@
 /* menu */
 .menu {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background: #0000006b;
-    z-index: 100;
+    flex-grow: 1;
     /* border: 1px #ffffff33 solid; */
     /* box-shadow: 0px 0px 20px 0px #000000d1; */
     /* border-radius: 10px; */
@@ -67,10 +64,24 @@
 }
 
 .bardropdown {
-    width: 50px;
-    height: 200px;
+    width: auto;
+    height: auto;
+    background: var(--bg1);
     position: absolute;
+    border-radius: 5px;
+    border: 1px var(--fg0) solid;
     z-index: 10;
+}
+
+.bardropdown button {
+    background: none;
+    color: var(--fg);
+    display: block;
+    border: none,
+}
+
+.bardropdown button:hover {
+    background: #00000033
 }
 
 /* SPLIT STYLES */
@@ -86,6 +97,7 @@
 
 .tabs {
     border-bottom: 1px solid var(--bg2);
+    min-height: 20px;
 }
 
 .tab:nth-child(2n) {

@@ -25,7 +25,7 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(tab: usize, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>, hidden: bool) -> Element {
+pub fn TerminalApp(pty_no: usize, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>, hidden: bool) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
@@ -52,7 +52,7 @@ pub fn TerminalApp(tab: usize, pty_system: Signal<PseudoTerminalSystem>, input: 
     });
 
     // Window Resize Event
-    on_resize(format!("split-{}", tab), move |size| {
+    on_resize(format!("split-{}", pty_no), move |size| {
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
             let (rows, cols) = pty_system.write().ptys[*pty.read()].resize(width, height, cell.width, cell.height);
@@ -75,8 +75,8 @@ pub fn TerminalApp(tab: usize, pty_system: Signal<PseudoTerminalSystem>, input: 
             style: "{size_style.read()}",
             class: "terminal-split",
             class: if terminal.read().state.alt_screen { "alt-screen" },
-            id: "split-{tab}",
-            key: "split-{tab}",
+            id: "split-{pty_no}",
+            key: "split-{pty_no}",
             hidden,
 
             if terminal.read().state.alt_screen {
@@ -88,7 +88,7 @@ pub fn TerminalApp(tab: usize, pty_system: Signal<PseudoTerminalSystem>, input: 
             if terminal.read().state.show_cursor {
                 Cursor {
                     cursor_pos,
-                    index: tab,
+                    index: pty_no,
                 }
             }
         }
