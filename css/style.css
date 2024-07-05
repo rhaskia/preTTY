@@ -98,14 +98,47 @@
 .tabs {
     border-bottom: 1px solid var(--bg2);
     min-height: 20px;
+    --tab-colour: var(--bg);
+    overflow-x: visible;
 }
 
 .tab:nth-child(2n) {
-    background: var(--bg0);
+    --tab-colour: var(--bg0);
 }
 
 .tab {
-    background: var(--fg);
+    background: var(--tab-colour);
+    margin-right: 4px;
+    margin-left: 4px;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    overflow-x: show;
+}
+
+.tab::before {
+    content: "";
+    position: absolute;
+    background-color: transparent;
+    width: 4px;
+    height: 4px;
+    left: -4px;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: 4px 4px 0 4px var(--tab-colour);
+    border-bottom-right-radius: 20px;
+}
+
+.tab::after {
+    content: "";
+    position: absolute;
+    background-color: transparent;
+    width: 4px;
+    height: 4px;
+    right: -4px;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: -4px 4px 0 4px var(--tab-colour);
+    border-bottom-left-radius: 20px;
 }
 
 /* COMMAND STYLES */

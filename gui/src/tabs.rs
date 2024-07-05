@@ -48,7 +48,7 @@ pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, curren
                                 _ => {}
                             }
                         },
-                        background: if n == current_tab() {"var(--bg1)"},
+                        style: if n == current_tab() { "--tab-colour: var(--bg1)" },
                         " {tab.name} "
                     }
                 }
