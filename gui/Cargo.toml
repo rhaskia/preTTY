@@ -24,3 +24,4 @@ pretty_hooks = { workspace = true }
 anyhow = { workspace = true }
 dioxus = { workspace = true }
 async-channel = { workspace = true }
+macros = { workspace = true }
