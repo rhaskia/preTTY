@@ -1,13 +1,22 @@
 mod settings;
 mod keybinding;
+mod form;
 use keybinding::Keybind;
 use dioxus::prelude::*;
 use crate::CONFIG;
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct Example {
+    pub amount: i64,
+}
 
 #[component]
 pub fn Menu(active: bool) -> Element {
     // Temporary config
     let config = use_signal(|| CONFIG.cloned());
+    let value = Example { amount: 34 };
+    println!("{:?}", form::create_form(&value));
 
     rsx! {
         div {

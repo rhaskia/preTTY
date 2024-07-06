@@ -1,5 +1,6 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
+#![feature(error_generic_member_access)]
 
 // crate imports
 mod header;
