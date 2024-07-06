@@ -69,15 +69,20 @@
     background: var(--bg1);
     position: absolute;
     border-radius: 5px;
-    border: 1px var(--fg0) solid;
-    z-index: 10;
+    box-shadow: 0 0 8px 0 #00000055;
+    z-index: 15;
+    display: none;
+}
+
+.show {
+    display: block !important;
 }
 
 .bardropdown button {
     background: none;
     color: var(--fg);
     display: block;
-    border: none,
+    border: none;
 }
 
 .bardropdown button:hover {
@@ -112,7 +117,7 @@
     margin-left: 4px;
     border-radius: 4px 4px 0 0;
     position: relative;
-    overflow-x: show;
+    overflow-x: visible;
 }
 
 .tab::before {

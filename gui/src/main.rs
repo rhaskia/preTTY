@@ -14,7 +14,8 @@ use dioxus::prelude::*;
 use input::InputManager;
 use menu::Menu;
 use pretty_term::pty::PseudoTerminalSystem;
-use tabs::TerminalSplit;
+use tabs::Tabs;
+use terminal::TerminalApp;
 
 use crate::tabs::Tab;
 
@@ -61,8 +62,24 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            TerminalSplit { tabs, input, pty_system, current_tab }
-
+            div {
+                display: "flex",
+                flex_direction: "column",
+                flex_grow: 1,
+                Tabs { tabs, input, pty_system, current_tab }
+                div {
+                    display: "flex",
+                    flex_direction: "row",
+                    flex_grow: 1,
+                    for tab in tabs().into_iter() {
+                        if tab.settings {
+                            Menu { active: tab.index == current_tab() }
+                        } else {
+                            TerminalApp { pty_system, input, hidden: tab.index != current_tab(), pty_no: tab.pty as usize }
+                        }
+                    }
+                }
+            }
         }
     }
 }
