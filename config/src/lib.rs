@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 pub mod keybindings;
 mod loader;
 mod actions;
@@ -6,7 +6,7 @@ pub use actions::TerminalAction;
 use keybindings::Keybinding;
 pub use loader::load_config;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(default)]
 pub struct Config {
     pub start_up_command: Option<String>,

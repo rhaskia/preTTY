@@ -37,7 +37,11 @@ pub fn App() -> Element {
             tabindex: 0,
 
             onkeydown: move |e| match input.read().handle_keypress(&e) {
-                TerminalAction::Write(s) => pty_system.write().ptys[*current_tab.read()].write(s),
+                TerminalAction::Write(s) => {
+                    let tab = &tabs()[*current_tab.read()];
+                    if tab.settings { return }
+                    pty_system.write().ptys[tab.pty as usize].write(s);
+                }
                 TerminalAction::NewTab => {
                     tabs.write().push(Tab::new(current_tab + 1, pty_system.read().len()));
                     current_tab += 1;

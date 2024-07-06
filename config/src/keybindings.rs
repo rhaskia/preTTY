@@ -1,10 +1,10 @@
 // type Keybinds = std::collections::Hashmap<Key, Action>;
 use dioxus::events::{Key, Modifiers};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::loader::RawKeybinding;
 use crate::TerminalAction;
 
-#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct Keybinding {
     pub key: Key,
     pub modifiers: Modifiers,

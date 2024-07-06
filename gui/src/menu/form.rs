@@ -3,13 +3,15 @@ use std::fmt::Display;
 use dioxus::prelude::*;
 use serde::ser::{SerializeStruct, Serializer, SerializeTupleStruct, Serialize, SerializeStructVariant, SerializeTupleVariant, SerializeSeq, SerializeTuple, SerializeMap};
 
-pub fn create_form<T>(value: &T) -> Result<Element, Error>
+pub fn create_form<T>(value: Signal<T>) -> Result<String, Error>
 where
     T: Serialize,
 {
-    let mut serializer = FormBuilder {};
-
-    value.serialize(&mut serializer)?;
+    let mut serializer = FormBuilder {
+        output: String::new(),
+        current_id: String::new(),
+    };
+    value.read().serialize(&mut serializer)?;
     Ok(serializer.output)
 }
 
@@ -47,10 +49,12 @@ impl serde::ser::StdError for Error {
 }
 
 pub struct FormBuilder {
+    output: String,
+    current_id: String,
 }
 
-impl Serializer for FormBuilder {
-    type Ok = Element;
+impl<'a> Serializer for &'a mut FormBuilder {
+    type Ok = ();
 
     type Error = Error;
 
@@ -75,11 +79,14 @@ impl Serializer for FormBuilder {
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_i64(i64::from(v))
     }
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "<input name=\"";
+        self.output += &self.current_id;
+        self.output += &format!("\" value = {v} type=\"number\" /><br/>");
+        Ok(())
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
@@ -111,7 +118,10 @@ impl Serializer for FormBuilder {
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "<input name=\"";
+        self.output += &self.current_id;
+        self.output += &format!("\" value = {v:?}/><br/>");
+        Ok(())
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
@@ -168,7 +178,8 @@ impl Serializer for FormBuilder {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        todo!()
+        self.output += "<div class = \"formlist\">";
+        Ok(self)
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
@@ -193,8 +204,9 @@ impl Serializer for FormBuilder {
         todo!()
     }
 
-    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        todo!()
+    fn serialize_map(mut self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        self.output += "<fieldset name: \"map\" >";
+        Ok(self)
     }
 
     fn serialize_struct(
@@ -202,7 +214,8 @@ impl Serializer for FormBuilder {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        todo!()
+        self.output += &format!("<fieldset name: {name:?} >");
+        Ok(self)
     }
 
     fn serialize_struct_variant(
@@ -216,24 +229,28 @@ impl Serializer for FormBuilder {
     }
 }
 
-impl SerializeStruct for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeStruct for &'a mut FormBuilder  {
+    type Ok = ();
 
     type Error = Error;
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
         T: ?Sized + serde::Serialize {
-        todo!()
+        self.output += &format!("<label class=\"inputname\" for={key:?}>{key} </label>");
+        self.current_id = key.to_string();
+        value.serialize(&mut **self)?;
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "</fieldset>";
+        Ok(())
     }
 }
 
-impl SerializeTupleStruct for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeTupleStruct for &'a mut FormBuilder  {
+    type Ok = ();
 
     type Error = Error;
 
@@ -248,8 +265,8 @@ impl SerializeTupleStruct for FormBuilder {
     }
 }
 
-impl SerializeStructVariant for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeStructVariant for &'a mut FormBuilder  {
+    type Ok = ();
 
     type Error = Error;
 
@@ -264,8 +281,8 @@ impl SerializeStructVariant for FormBuilder {
     }
 }
 
-impl SerializeTupleVariant for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeTupleVariant for &'a mut FormBuilder  {
+    type Ok = ();
 
     type Error = Error;
 
@@ -280,8 +297,8 @@ impl SerializeTupleVariant for FormBuilder {
     }
 }
 
-impl SerializeTuple for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeTuple for &'a mut FormBuilder  {
+    type Ok = ();
 
     type Error = Error;
 
@@ -296,24 +313,27 @@ impl SerializeTuple for FormBuilder {
     }
 }
 
-impl SerializeSeq for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeSeq for &'a mut FormBuilder  {
+    type Ok = ();
 
     type Error = Error;
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
         T: ?Sized + serde::Serialize {
-        todo!()
+        self.current_id = "item".to_string();
+        value.serialize(&mut **self)?;
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "</div>";
+        Ok(())
     }
 }
 
-impl SerializeMap for FormBuilder {
-    type Ok = Element;
+impl<'a> SerializeMap for &'a mut FormBuilder {
+    type Ok = ();
 
     type Error = Error;
 

@@ -25,12 +25,16 @@
     z-index: 101;
 }
 
-.menu input[type=number] {
+.menu input {
     border-radius: 4px;
     background: transparent;
     color: #ffffff;
-    margin-left: 20px;
+    margin-left: 4px;
     border: 1px #ffffff33 solid;
+}
+
+.formlist {
+    margin-left: 10px;
 }
 
 :focus-visible {

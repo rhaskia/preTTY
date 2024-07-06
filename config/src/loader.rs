@@ -1,5 +1,5 @@
 use crate::{Config, keybindings::Keybinding, TerminalAction};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 struct RawConfig {
@@ -8,7 +8,7 @@ struct RawConfig {
     pub font_size: i64,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct RawKeybinding {
     pub key: String,
     pub modifiers: Vec<String>,
