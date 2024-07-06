@@ -6,7 +6,7 @@ pub use actions::TerminalAction;
 use keybindings::Keybinding;
 pub use loader::load_config;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(default)]
 pub struct Config {
     pub start_up_command: Option<String>,

@@ -1,16 +1,13 @@
 mod settings;
+mod keybinding;
+use keybinding::Keybind;
 use dioxus::prelude::*;
+use crate::CONFIG;
 
 #[component]
 pub fn Menu(active: bool) -> Element {
-    // let config = Config::new()
-    //     .with_background_color((0, 0, 0, 0))
-    //     .with_disable_context_menu(true)
-    //     .with_menu(None)
-    //     .with_window(WindowBuilder::new().with_transparent(true).with_decorations(false));
-    //
-    // let err = use_window().new_window(VirtualDom::new(FloatingMenu), config);
-    //
+    // Temporary config
+    let config = use_signal(|| CONFIG.cloned());
 
     rsx! {
         div {
@@ -24,7 +21,11 @@ pub fn Menu(active: bool) -> Element {
                   class: "menuheader",
                   h2 { "Settings" }, 
                 }
-                div { "Font Size" input { r#type: "number" } }
+                div { "Font Size" input { r#type: "number", value: config().font_size } }
+
+                for i in 0..config().keybinds.len() {
+                    Keybind { index: i, config }
+                }
             }
         }
     }

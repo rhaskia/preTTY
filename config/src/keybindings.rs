@@ -4,7 +4,7 @@ use serde::Deserialize;
 use crate::loader::RawKeybinding;
 use crate::TerminalAction;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct Keybinding {
     pub key: Key,
     pub modifiers: Modifiers,
