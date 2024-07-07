@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Debug)]
 struct RawConfig {
     pub start_up_command: Option<String>,
-    pub keybinds: Vec<RawKeybinding>,
     pub font_size: i64,
 }
 
@@ -15,6 +14,11 @@ pub struct RawKeybinding {
     pub action: TerminalAction,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct RawKeybinds {
+    pub keybinds: Vec<RawKeybinding>,
+}
+
 pub fn load_config() -> Config {
     // will only fail on platforms that aren't supported anyway
     let path = dirs::config_dir().unwrap().join("prettyterm"); 
@@ -23,8 +27,20 @@ pub fn load_config() -> Config {
         Err(_) => return Config::default(),
     };
 
-    let RawConfig { start_up_command, keybinds, font_size } = toml::from_str(&config_file).unwrap();
-    let keybinds = keybinds.clone().iter().map(|kb| Keybinding::from(kb.clone())).collect();
+    let RawConfig { start_up_command, font_size } = toml::from_str(&config_file).unwrap();
 
-    Config { keybinds, font_size, start_up_command } 
+    Config { font_size, start_up_command } 
+}
+
+pub fn load_keybinds() -> Vec<Keybinding> {
+    let path = dirs::config_dir().unwrap().join("prettyterm"); 
+    let keybind_file = match std::fs::read_to_string(path.join("keybinds.toml")) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+
+    let RawKeybinds { keybinds } = toml::from_str(&keybind_file).unwrap();
+
+    let keybinds = keybinds.clone().iter().map(|kb| Keybinding::from(kb.clone())).collect();
+    keybinds
 }

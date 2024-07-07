@@ -1,9 +1,9 @@
 mod settings;
 mod keybinding;
 mod form;
-use keybinding::Keybind;
+use keybinding::Keybinds;
 use dioxus::prelude::*;
-use crate::CONFIG;
+use crate::{KEYBINDS, CONFIG};
 use serde::Serialize;
 use form::Form;
 //use ::create_form;
@@ -26,6 +26,7 @@ struct Example2 {
 pub fn Menu(active: bool) -> Element {
     // Temporary config
     let config = use_signal(|| CONFIG.cloned());
+    let keybinds = use_signal(|| KEYBINDS().clone());
     let value = use_signal(|| Example {amount:56,name:"hello".to_string(),keybinds:vec![2,3,4,56], nested: Example2 { amount: false, name: "john".to_string() } });
 
     rsx! {
@@ -40,12 +41,8 @@ pub fn Menu(active: bool) -> Element {
                   class: "menuheader",
                   h2 { "Settings" }, 
                 }
-                //div { "Font Size" input { r#type: "number", value: config().font_size } }
                 Form { value: config }
-
-                // for i in 0..config().keybinds.len() {
-                //     Keybind { index: i, config }
-                // }
+                Keybinds { keybinds }
             }
         }
     }

@@ -9,6 +9,7 @@ mod menu;
 mod tabs;
 mod terminal;
 
+use config::keybindings::Keybinding;
 use config::{Config, TerminalAction};
 use dioxus::desktop::{use_window, WindowBuilder};
 use dioxus::prelude::*;
@@ -21,6 +22,7 @@ use terminal::TerminalApp;
 use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
+pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
 
 #[component]
 pub fn App() -> Element {

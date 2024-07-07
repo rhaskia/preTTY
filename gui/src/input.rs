@@ -5,7 +5,7 @@ use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{Event, KeyboardData, MouseData, Readable};
 use log::*;
-use crate::CONFIG;
+use crate::KEYBINDS;
 
 pub struct InputManager {
     key_mode: KeyMode,
@@ -136,7 +136,7 @@ impl InputManager {
     }
 
     pub fn handle_keypress(&self, key_data: &Event<KeyboardData>) -> TerminalAction {
-        for keybind in &CONFIG.read().keybinds {
+        for keybind in KEYBINDS.read().iter() {
             if keybind.modifiers == key_data.modifiers() && keybind.key == key_data.key() {
                 return keybind.action.clone();
             }

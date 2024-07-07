@@ -14,6 +14,7 @@ notify-rust = "4.10.0"
 manganis = "0.2.1"
 num-traits = "0.2.18"
 proc-macro2 = "=1.0.79"
+strum = "0.26.3"
 
 config = { workspace = true }
 fern = { workspace = true }
