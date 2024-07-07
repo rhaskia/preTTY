@@ -5,9 +5,10 @@ use keybinding::Keybind;
 use dioxus::prelude::*;
 use crate::CONFIG;
 use serde::Serialize;
+use form::Form;
 //use ::create_form;
 
-#[derive(Serialize)]
+#[derive(Serialize, PartialEq, Clone)]
 struct Example {
     pub amount: i64,
     pub name: String,
@@ -15,9 +16,9 @@ struct Example {
     pub nested: Example2,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, PartialEq, Clone)]
 struct Example2 {
-    pub amount: i64,
+    pub amount: bool,
     pub name: String,
 }
 
@@ -25,7 +26,7 @@ struct Example2 {
 pub fn Menu(active: bool) -> Element {
     // Temporary config
     let config = use_signal(|| CONFIG.cloned());
-    let value = use_signal(|| Example {amount:56,name:"hello".to_string(),keybinds:vec![2,3,4,56], nested: Example2 { amount: 23, name: "john".to_string() } });
+    let value = use_signal(|| Example {amount:56,name:"hello".to_string(),keybinds:vec![2,3,4,56], nested: Example2 { amount: false, name: "john".to_string() } });
 
     rsx! {
         div {
@@ -40,10 +41,7 @@ pub fn Menu(active: bool) -> Element {
                   h2 { "Settings" }, 
                 }
                 //div { "Font Size" input { r#type: "number", value: config().font_size } }
-                form { 
-                    oninput: |i| println!("{i:?}"),
-                    dangerous_inner_html: { form::create_form(value).ok()? } 
-                }
+                Form { value: config }
 
                 // for i in 0..config().keybinds.len() {
                 //     Keybind { index: i, config }

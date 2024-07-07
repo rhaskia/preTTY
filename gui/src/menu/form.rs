@@ -3,6 +3,16 @@ use std::fmt::Display;
 use dioxus::prelude::*;
 use serde::ser::{SerializeStruct, Serializer, SerializeTupleStruct, Serialize, SerializeStructVariant, SerializeTupleVariant, SerializeSeq, SerializeTuple, SerializeMap};
 
+#[component]
+pub fn Form<T: Serialize + 'static + PartialEq>(value: Signal<T>) -> Element {
+    rsx! {
+        form { 
+            oninput: |i| println!("{i:?}"),
+            dangerous_inner_html: create_form(value).ok()? 
+        }
+    }
+}
+
 pub fn create_form<T>(value: Signal<T>) -> Result<String, Error>
 where
     T: Serialize,
@@ -10,6 +20,7 @@ where
     let mut serializer = FormBuilder {
         output: String::new(),
         current_id: String::new(),
+        nesting: vec![],
     };
     value.read().serialize(&mut serializer)?;
     Ok(serializer.output)
@@ -51,6 +62,7 @@ impl serde::ser::StdError for Error {
 pub struct FormBuilder {
     output: String,
     current_id: String,
+    nesting: Vec<String>,
 }
 
 impl<'a> Serializer for &'a mut FormBuilder {
@@ -67,15 +79,18 @@ impl<'a> Serializer for &'a mut FormBuilder {
     type SerializeStructVariant = Self;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "<input name=\"";
+        self.output += &self.current_id;
+        self.output += &format!("\" value = {v} type=\"checkbox\" /><br/>");
+        Ok(())
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_i64(i64::from(v))
     }
 
     fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_i64(i64::from(v))
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
@@ -90,31 +105,40 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_u64(u64::from(v))
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_u64(u64::from(v))
     }
 
     fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_u64(u64::from(v))
     }
 
     fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "<input name=\"";
+        self.output += &self.current_id;
+        self.output += &format!("\" value = {v} type=\"number\" /><br/>");
+        Ok(())
     }
 
     fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_f64(f64::from(v))
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "<input name=\"";
+        self.output += &self.current_id;
+        self.output += &format!("\" value = {v} type=\"number\" /><br/>");
+        Ok(())
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "<input max_length=1 name=\"";
+        self.output += &self.current_id;
+        self.output += &format!("\" value = {v:?}/><br/>");
+        Ok(())
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
@@ -129,13 +153,15 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        // TODO button that creates
+        self.serialize_unit()
     }
 
     fn serialize_some<T>(self, value: &T) -> Result<Self::Ok, Self::Error>
     where
         T: ?Sized + serde::Serialize {
-        todo!()
+        // remove button
+        value.serialize(self)
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -152,7 +178,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         variant_index: u32,
         variant: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_str(variant)
     }
 
     fn serialize_newtype_struct<T>(
@@ -162,7 +188,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     ) -> Result<Self::Ok, Self::Error>
     where
         T: ?Sized + serde::Serialize {
-        todo!()
+        value.serialize(self)
     }
 
     fn serialize_newtype_variant<T>(
@@ -174,7 +200,8 @@ impl<'a> Serializer for &'a mut FormBuilder {
     ) -> Result<Self::Ok, Self::Error>
     where
         T: ?Sized + serde::Serialize {
-        todo!()
+        //self.output += &format!("<label>{name}</label>");
+        value.serialize(self)
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
@@ -191,7 +218,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        todo!()
+        Ok(self)
     }
 
     fn serialize_tuple_variant(
@@ -201,7 +228,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
+        Ok(self) // should be fine?
     }
 
     fn serialize_map(mut self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
