@@ -3,6 +3,16 @@
     overflow-x:hidden;
 }
 
+option:checked {
+  background-color: lightblue; 
+  &::before {
+    content: "\e008"; 
+    font-size: 16px;
+    position: absolute;
+    right: 10px; 
+  }
+}
+
 /* menu */
 .menu {
     position: absolute;

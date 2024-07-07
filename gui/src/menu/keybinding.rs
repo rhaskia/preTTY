@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus::events::Modifiers;
 use config::keybindings::Keybinding;
 use crate::KEYBINDS;
 use strum::VariantNames;
@@ -20,12 +21,15 @@ pub fn Keybinds(keybinds: Signal<Vec<Keybinding>>) -> Element {
 #[component] 
 pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
     let mut recording_key = use_signal(|| false);
+    let modifiers = vec![Modifiers::ALT, Modifiers::CONTROL, Modifiers::META, Modifiers::SHIFT];
+
     rsx! {
         div {
             class: "keybinding",
             id: "keybinding-{index}",
 
             select {
+                name: "action[{index}]",
                 for action in config::TerminalAction::VARIANTS {
                     option { value: "{action}", "{action}" }
                 }
@@ -38,6 +42,16 @@ pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
                     // unfocus
                 },
                 "{keybinds()[index].key}"
+            }
+            select {
+                multiple: true,
+                display: "table-row",
+                size: "1",
+                id: "select-multiple",
+                name: "modifiers[{index}]",
+                for modifier in modifiers {
+                    option { value: "{modifier:?}", display: "table-cell", "{modifier:?}" }
+                }
             }
             br {}
         }

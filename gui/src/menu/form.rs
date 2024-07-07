@@ -148,7 +148,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         Ok(())
     }
 
-    fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
+    fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
         todo!()
     }
 
@@ -165,11 +165,11 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Ok(())
     }
 
     fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Ok(())
     }
 
     fn serialize_unit_variant(
@@ -210,7 +210,8 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        todo!()
+        self.output += "<div class = \"formtuple\">";
+        Ok(self)
     }
 
     fn serialize_tuple_struct(
@@ -252,7 +253,8 @@ impl<'a> Serializer for &'a mut FormBuilder {
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+        self.output += &format!("<fieldset name: {name:?} >");
+        Ok(self)
     }
 }
 
