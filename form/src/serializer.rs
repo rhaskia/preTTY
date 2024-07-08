@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use crate::Error;
 
 use dioxus::prelude::*;
 use serde::ser::{
@@ -6,15 +7,7 @@ use serde::ser::{
     SerializeTupleStruct, SerializeTupleVariant, Serializer,
 };
 
-#[component]
-pub fn Form<T: Serialize + 'static + PartialEq>(value: Signal<T>) -> Element {
-    rsx! {
-        form {
-            oninput: |i| println!("{i:?}"),
-            dangerous_inner_html: create_form(value).ok()?
-        }
-    }
-}
+
 
 pub fn create_form<T>(value: Signal<T>) -> Result<String, Error>
 where
@@ -46,36 +39,6 @@ fn readable(snake_case: &str) -> String {
     }
 
     readable
-}
-
-#[derive(Debug)]
-pub struct Error {
-    message: String,
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { self.message.fmt(f) }
-}
-
-impl serde::ser::Error for Error {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: Display,
-    {
-        Error {
-            message: msg.to_string(),
-        }
-    }
-}
-
-impl serde::ser::StdError for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> { None }
-
-    fn description(&self) -> &str { "description() is deprecated; use Display" }
-
-    fn cause(&self) -> Option<&dyn std::error::Error> { self.source() }
-
-    fn provide<'a>(&'a self, request: &mut std::error::Request<'a>) {}
 }
 
 pub struct FormBuilder {
