@@ -28,7 +28,7 @@ impl From<RawKeybinding> for Keybinding {
             match modifier.trim().to_lowercase().as_str() {
                 "ctrl" => modifiers.insert(Modifiers::CONTROL),
                 "alt" => modifiers.insert(Modifiers::ALT),
-                "super" => modifiers.insert(Modifiers::SUPER),
+                "meta" => modifiers.insert(Modifiers::META),
                 "shift" => modifiers.insert(Modifiers::SHIFT),
                 // TODO: more?
                 _ => { } // TODO: error
@@ -37,6 +37,20 @@ impl From<RawKeybinding> for Keybinding {
 
         Self {
             key: key.key,
+            modifiers,
+            action: value.action,
+        }
+    }
+}
+
+impl From<Keybinding> for RawKeybinding {
+    fn from(value: Keybinding) -> Self {
+        let key = value.key.to_string();
+
+        let mut modifiers = value.modifiers.iter_names().map(|(i, _)| i.to_string()).collect();
+        
+        Self {
+            key,
             modifiers,
             action: value.action,
         }

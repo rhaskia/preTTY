@@ -4,7 +4,7 @@ pub mod keybindings;
 mod loader;
 pub use actions::TerminalAction;
 use keybindings::Keybinding;
-pub use loader::{load_config, load_keybinds};
+pub use loader::{load_config, load_keybinds, save_keybinds};
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]

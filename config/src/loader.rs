@@ -1,5 +1,7 @@
-use crate::{Config, keybindings::Keybinding, TerminalAction};
 use serde::{Deserialize, Serialize};
+
+use crate::keybindings::Keybinding;
+use crate::{Config, TerminalAction};
 
 #[derive(Deserialize, Debug)]
 struct RawConfig {
@@ -21,7 +23,7 @@ pub struct RawKeybinds {
 
 pub fn load_config() -> Config {
     // will only fail on platforms that aren't supported anyway
-    let path = dirs::config_dir().unwrap().join("prettyterm"); 
+    let path = dirs::config_dir().unwrap().join("prettyterm/config");
     let config_file = match std::fs::read_to_string(path.join("config.toml")) {
         Ok(s) => s,
         Err(_) => return Config::default(),
@@ -29,11 +31,11 @@ pub fn load_config() -> Config {
 
     let config = toml::from_str(&config_file).unwrap();
 
-    config 
+    config
 }
 
 pub fn load_keybinds() -> Vec<Keybinding> {
-    let path = dirs::config_dir().unwrap().join("prettyterm"); 
+    let path = dirs::config_dir().unwrap().join("prettyterm/config");
     let keybind_file = match std::fs::read_to_string(path.join("keybinds.toml")) {
         Ok(s) => s,
         Err(_) => return Vec::new(),
@@ -41,6 +43,23 @@ pub fn load_keybinds() -> Vec<Keybinding> {
 
     let RawKeybinds { keybinds } = toml::from_str(&keybind_file).unwrap();
 
-    let keybinds = keybinds.clone().iter().map(|kb| Keybinding::from(kb.clone())).collect();
+    let keybinds = keybinds
+        .clone()
+        .iter()
+        .map(|kb| Keybinding::from(kb.clone()))
+        .collect();
     keybinds
+}
+
+pub fn save_keybinds(keybinds: Vec<Keybinding>) {
+    let raw = keybinds
+        .into_iter()
+        .map(|k| RawKeybinding::from(k))
+        .collect::<Vec<RawKeybinding>>();
+
+    let wrapper = RawKeybinds { keybinds: raw };
+    let path = dirs::config_dir().unwrap().join("prettyterm");
+    let file = toml::to_string(&wrapper).unwrap();
+    confy::store("prettyterm", Some("keybinds"), wrapper).unwrap();
+    println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("keybinds")).unwrap());
 }

@@ -25,7 +25,7 @@ struct Example2 {
 #[component]
 pub fn Menu(active: bool) -> Element {
     // Temporary config
-    let config = use_signal(|| CONFIG.cloned());
+    let mut config = use_signal(|| CONFIG.cloned());
     let keybinds = use_signal(|| KEYBINDS().clone());
     let value = use_signal(|| Example {amount:56,name:"hello".to_string(),keybinds:vec![2,3,4,56], nested: Example2 { amount: false, name: "john".to_string() } });
 
@@ -52,12 +52,19 @@ pub fn Menu(active: bool) -> Element {
                 width: "100%",
                 class: "savebar",
                 button {
+                    onclick: move |_| {
+                        *CONFIG.write() = config();
+                        *KEYBINDS.write() = keybinds();
+                        config::save_keybinds(keybinds().clone());
+                        // Save to file
+                    },
                     "Save Config"
                 }
                 button {
                     "Open Config Folder"
                 }
                 button {
+                    onclick: move |_| config.set(CONFIG()),
                     "Discard All"
                 }
             }
