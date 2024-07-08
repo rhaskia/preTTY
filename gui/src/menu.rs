@@ -34,15 +34,20 @@ pub fn Menu(active: bool) -> Element {
             class: "menu",
             display: if active { "block" } else { "none" },
             id: "menu",
+            div { 
+              id: "menuheader", 
+              class: "menuheader",
+              h2 { "Settings" }, 
+            }
             div {
                 class: "menucontent",
-                div { 
-                  id: "menuheader", 
-                  class: "menuheader",
-                  h2 { "Settings" }, 
-                }
                 Form { value: config }
                 Keybinds { keybinds }
+            }
+            div {
+                height: "20px",
+                color: "red",
+                width: "100%",
             }
         }
     }

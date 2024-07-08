@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+mod actions;
 pub mod keybindings;
 mod loader;
-mod actions;
 pub use actions::TerminalAction;
 use keybindings::Keybinding;
 pub use loader::{load_config, load_keybinds};
@@ -19,6 +19,13 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self { font_size: 14, max_scrollback: 1000, ..Default::default() }
+        Self {
+            font_size: 14,
+            max_scrollback: 1000,
+            default_cwd: String::from("~"),
+            start_up_command: String::new(),
+            term: String::from("xterm-256color"),
+            show_tabs: true,
+        }
     }
 }

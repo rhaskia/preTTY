@@ -1,14 +1,17 @@
 use std::fmt::Display;
 
 use dioxus::prelude::*;
-use serde::ser::{SerializeStruct, Serializer, SerializeTupleStruct, Serialize, SerializeStructVariant, SerializeTupleVariant, SerializeSeq, SerializeTuple, SerializeMap};
+use serde::ser::{
+    Serialize, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
+    SerializeTupleStruct, SerializeTupleVariant, Serializer,
+};
 
 #[component]
 pub fn Form<T: Serialize + 'static + PartialEq>(value: Signal<T>) -> Element {
     rsx! {
-        form { 
+        form {
             oninput: |i| println!("{i:?}"),
-            dangerous_inner_html: create_form(value).ok()? 
+            dangerous_inner_html: create_form(value).ok()?
         }
     }
 }
@@ -26,35 +29,51 @@ where
     Ok(serializer.output)
 }
 
+fn readable(snake_case: &str) -> String {
+    let mut readable = String::new();
+    let mut capitalize_next = true;
+
+    for c in snake_case.chars() {
+        if c == '_' {
+            capitalize_next = true;
+            readable.push(' ');
+        } else if capitalize_next {
+            readable.push(c.to_ascii_uppercase());
+            capitalize_next = false;
+        } else {
+            readable.push(c);
+        }
+    }
+
+    readable
+}
+
 #[derive(Debug)]
 pub struct Error {
     message: String,
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.message.fmt(f)
-    }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { self.message.fmt(f) }
 }
 
 impl serde::ser::Error for Error {
-    fn custom<T>(msg:T) -> Self where T:Display {
-       Error { message: msg.to_string() } 
+    fn custom<T>(msg: T) -> Self
+    where
+        T: Display,
+    {
+        Error {
+            message: msg.to_string(),
+        }
     }
 }
 
 impl serde::ser::StdError for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        None
-    }
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> { None }
 
-    fn description(&self) -> &str {
-        "description() is deprecated; use Display"
-    }
+    fn description(&self) -> &str { "description() is deprecated; use Display" }
 
-    fn cause(&self) -> Option<&dyn std::error::Error> {
-        self.source()
-    }
+    fn cause(&self) -> Option<&dyn std::error::Error> { self.source() }
 
     fn provide<'a>(&'a self, request: &mut std::error::Request<'a>) {}
 }
@@ -148,9 +167,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         Ok(())
     }
 
-    fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
+    fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> { todo!() }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
         // TODO button that creates
@@ -159,18 +176,15 @@ impl<'a> Serializer for &'a mut FormBuilder {
 
     fn serialize_some<T>(self, value: &T) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         // remove button
         value.serialize(self)
     }
 
-    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        Ok(())
-    }
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> { Ok(()) }
 
-    fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
-        Ok(())
-    }
+    fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> { Ok(()) }
 
     fn serialize_unit_variant(
         self,
@@ -187,7 +201,8 @@ impl<'a> Serializer for &'a mut FormBuilder {
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         value.serialize(self)
     }
 
@@ -199,8 +214,9 @@ impl<'a> Serializer for &'a mut FormBuilder {
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + serde::Serialize {
-        //self.output += &format!("<label>{name}</label>");
+        T: ?Sized + serde::Serialize,
+    {
+        // self.output += &format!("<label>{name}</label>");
         value.serialize(self)
     }
 
@@ -258,15 +274,19 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 }
 
-impl<'a> SerializeStruct for &'a mut FormBuilder  {
+impl<'a> SerializeStruct for &'a mut FormBuilder {
     type Ok = ();
 
     type Error = Error;
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
-        self.output += &format!("<label class=\"inputname\" for={key:?}>{key} </label>");
+        T: ?Sized + serde::Serialize,
+    {
+        self.output += &format!(
+            "<label class=\"inputname\" for={key:?}>{} </label>",
+            readable(key)
+        );
         self.current_id = key.to_string();
         value.serialize(&mut **self)?;
         Ok(())
@@ -278,66 +298,63 @@ impl<'a> SerializeStruct for &'a mut FormBuilder  {
     }
 }
 
-impl<'a> SerializeTupleStruct for &'a mut FormBuilder  {
+impl<'a> SerializeTupleStruct for &'a mut FormBuilder {
     type Ok = ();
 
     type Error = Error;
 
     fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         todo!()
     }
 
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
+    fn end(self) -> Result<Self::Ok, Self::Error> { todo!() }
 }
 
-impl<'a> SerializeStructVariant for &'a mut FormBuilder  {
+impl<'a> SerializeStructVariant for &'a mut FormBuilder {
     type Ok = ();
 
     type Error = Error;
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         todo!()
     }
 
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
+    fn end(self) -> Result<Self::Ok, Self::Error> { todo!() }
 }
 
-impl<'a> SerializeTupleVariant for &'a mut FormBuilder  {
+impl<'a> SerializeTupleVariant for &'a mut FormBuilder {
     type Ok = ();
 
     type Error = Error;
 
     fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         todo!()
     }
 
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
+    fn end(self) -> Result<Self::Ok, Self::Error> { todo!() }
 }
 
-impl<'a> SerializeTuple for &'a mut FormBuilder  {
+impl<'a> SerializeTuple for &'a mut FormBuilder {
     type Ok = ();
 
     type Error = Error;
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         self.current_id = "item".to_string();
         value.serialize(&mut **self)?;
         Ok(())
-
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
@@ -346,14 +363,15 @@ impl<'a> SerializeTuple for &'a mut FormBuilder  {
     }
 }
 
-impl<'a> SerializeSeq for &'a mut FormBuilder  {
+impl<'a> SerializeSeq for &'a mut FormBuilder {
     type Ok = ();
 
     type Error = Error;
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         self.current_id = "item".to_string();
         value.serialize(&mut **self)?;
         Ok(())
@@ -372,17 +390,17 @@ impl<'a> SerializeMap for &'a mut FormBuilder {
 
     fn serialize_key<T>(&mut self, key: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         todo!()
     }
 
     fn serialize_value<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize {
+        T: ?Sized + serde::Serialize,
+    {
         todo!()
     }
 
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
+    fn end(self) -> Result<Self::Ok, Self::Error> { todo!() }
 }
