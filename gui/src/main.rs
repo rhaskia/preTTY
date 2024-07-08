@@ -73,11 +73,11 @@ pub fn App() -> Element {
             div {
                 display: "flex",
                 flex_direction: "column",
-                flex_grow: 1,
+                width: "100%",
+                height: "100%",
                 Tabs { tabs, input, pty_system, current_tab }
                 div {
                     display: "flex",
-                    flex_direction: "row",
                     flex_grow: 1,
                     for tab in tabs().into_iter() {
                         if tab.settings {

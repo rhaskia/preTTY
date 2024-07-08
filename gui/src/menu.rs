@@ -32,7 +32,10 @@ pub fn Menu(active: bool) -> Element {
     rsx! {
         div {
             class: "menu",
-            display: if active { "block" } else { "none" },
+            display: if active { "flex" } else { "none" },
+            width: "100%",
+            display: "flex",
+            flex_direction: "column",
             id: "menu",
             div { 
               id: "menuheader", 
@@ -46,8 +49,17 @@ pub fn Menu(active: bool) -> Element {
             }
             div {
                 height: "20px",
-                color: "red",
                 width: "100%",
+                class: "savebar",
+                button {
+                    "Save Config"
+                }
+                button {
+                    "Open Config Folder"
+                }
+                button {
+                    "Discard All"
+                }
             }
         }
     }

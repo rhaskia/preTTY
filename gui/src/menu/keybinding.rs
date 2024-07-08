@@ -39,7 +39,11 @@ pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
             select {
                 name: "action[{index}]",
                 for action in config::TerminalAction::VARIANTS {
-                    option { value: "{action}", "{action}" }
+                    option { 
+                        value: "{action}",
+                        selected: if *action == keybinds()[index].action.as_ref() { true },
+                        "{action}"
+                    }
                 }
             }
             button { 

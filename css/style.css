@@ -68,13 +68,18 @@ option:checked {
 .menu {
     position: absolute;
     flex-grow: 1;
-    /* border: 1px #ffffff33 solid; */
-    /* box-shadow: 0px 0px 20px 0px #000000d1; */
-    /* border-radius: 10px; */
+    flex-direction: "column";
     color: var(--white);
     backdrop-filter: blur(7px);
     display: flex;
-    padding: 8px;
+    height: calc(100% - 21px)
+}
+
+.savebar {
+    overflow: hidden;
+    padding: 4px;
+    border-top: 1px solid var(--fg0);
+    height: 30px;
 }
 
 .menu h2 {
@@ -83,6 +88,7 @@ option:checked {
 }
 
 #menuheader {
+    padding: 4px;
     z-index: 101;
 }
 
@@ -112,6 +118,8 @@ option:checked {
     display: flex;
     flex-direction: column;
     width: 100%;
+    flex: 1;
+    padding: 4px;
 }
 
 .menuheader button {
