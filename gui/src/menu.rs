@@ -1,12 +1,10 @@
 mod settings;
 mod keybinding;
-mod form;
 use keybinding::Keybinds;
 use dioxus::prelude::*;
 use crate::{KEYBINDS, CONFIG};
 use serde::Serialize;
-use form::Form;
-//use ::create_form;
+use dioxus_form::Form;
 
 #[derive(Serialize, PartialEq, Clone)]
 struct Example {

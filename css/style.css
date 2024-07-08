@@ -5,7 +5,7 @@
 
 select {
     overflow: hidden;
-    border: 1px solid var(--fg0);
+    border: 1px solid var(--fg4);
     background: var(--bg0);
     color: var(--fg0);
     border-radius: 4px;
@@ -14,13 +14,17 @@ select {
 option {
     padding-left: 16px;
     background: var(--bg0);
-  color: var(--fg0);
+  accent-color: var(--fg0);
   &::before {
     content: ""; 
     font-size: 16px;
     left: -8px;
     position: relative;
   }
+}
+
+option:selected {
+    background: var(--bg4);
 }
 
 fieldset[name=Config] {
@@ -30,7 +34,7 @@ fieldset[name=Config] {
 
 button {
     min-width: 30px;
-    border: 1px solid var(--fg0);
+    border: 1px solid var(--bg4);
     background: var(--bg0);
     color: var(--fg0);
     border-radius: 4px;
@@ -43,7 +47,7 @@ button {
     height: 23px;
     overflow: hidden;
     border-radius: 0.25em;
-    border: 1px solid var(--fg2);
+    border: 1px solid var(--bg4);
     background: var(--bg0);
     color: var(--fg0);
     box-shadow: 0 2px 0 1px var(--fg2);
@@ -51,13 +55,32 @@ button {
     top: -1px;
 }
 
+input[type=checkbox] {
+    appearance: none;
+    background-color: var(--bg0);
+    border-radius: 2px !important;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: 0 !important;
+}
+
+input[type=checkbox]:checked {
+    appearance: revert;
+    accent-color: var(--fg4);
+}
+
 .keybutton:focus { 
     box-shadow: 0 1px 0 0.5px var(--fg2);
     top: 1px;
 }
 
+.savebar button {
+    margin: 4px;
+    margin-top: 0px;
+}
+
 option:checked {
-  background-color: var(--fg0); 
+  background-color: var(--fg4); 
   color: var(--bg0);
   &::before {
     content: ""; 
@@ -77,7 +100,7 @@ option:checked {
 
 .savebar {
     overflow: hidden;
-    padding: 4px;
+    padding: 8px;
     border-top: 1px solid var(--fg0);
     height: 30px;
 }
@@ -97,7 +120,8 @@ option:checked {
     background: transparent;
     color: #ffffff;
     margin-left: 4px;
-    border: 1px #ffffff33 solid;
+    margin-bottom: 4px;
+    border: 1px var(--bg4) solid;
 }
 
 .formlist {

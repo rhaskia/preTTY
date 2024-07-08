@@ -1,0 +1,8 @@
+[package]
+name = "dioxus_form"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.197", features = ["serde_derive"] }
+dioxus = { workspace = true }
