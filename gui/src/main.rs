@@ -59,6 +59,7 @@ pub fn App() -> Element {
                 TerminalAction::ToggleMenu => {
                     //menu_open.toggle();
                 }
+                TerminalAction::NoAction => {}
                 //action => info!("{:?} not yet implemented", action)
             },
 

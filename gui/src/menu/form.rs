@@ -233,7 +233,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_map(mut self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        self.output += "<fieldset name: \"map\" >";
+        self.output += "<fieldset name=\"map\" >";
         Ok(self)
     }
 
@@ -242,7 +242,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        self.output += &format!("<fieldset name: {name:?} >");
+        self.output += &format!("<fieldset name={name:?} >");
         Ok(self)
     }
 
@@ -253,7 +253,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        self.output += &format!("<fieldset name: {name:?} >");
+        self.output += &format!("<fieldset name={name:?} >");
         Ok(self)
     }
 }
@@ -334,11 +334,15 @@ impl<'a> SerializeTuple for &'a mut FormBuilder  {
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
         T: ?Sized + serde::Serialize {
-        todo!()
+        self.current_id = "item".to_string();
+        value.serialize(&mut **self)?;
+        Ok(())
+
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.output += "</div>";
+        Ok(())
     }
 }
 

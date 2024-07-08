@@ -3,13 +3,64 @@
     overflow-x:hidden;
 }
 
-option:checked {
-  background-color: lightblue; 
+select {
+    overflow: hidden;
+    border: 1px solid var(--fg0);
+    background: var(--bg0);
+    color: var(--fg0);
+    border-radius: 4px;
+}
+
+option {
+    padding-left: 16px;
+    background: var(--bg0);
+  color: var(--fg0);
   &::before {
-    content: "\e008"; 
+    content: ""; 
     font-size: 16px;
-    position: absolute;
-    right: 10px; 
+    left: -8px;
+    position: relative;
+  }
+}
+
+fieldset[name=Config] {
+    border: none;
+    padding: 0;
+}
+
+button {
+    min-width: 30px;
+    border: 1px solid var(--fg0);
+    background: var(--bg0);
+    color: var(--fg0);
+    border-radius: 4px;
+}
+
+.keybutton {
+    margin: 5px;
+    padding-top: 0;
+    min-width: 40px;
+    height: 23px;
+    overflow: hidden;
+    border-radius: 0.25em;
+    border: 1px solid var(--fg2);
+    background: var(--bg0);
+    color: var(--fg0);
+    box-shadow: 0 2px 0 1px var(--fg2);
+    position: relative;
+    top: -1px;
+}
+
+.keybutton:focus { 
+    box-shadow: 0 1px 0 0.5px var(--fg2);
+    top: 1px;
+}
+
+option:checked {
+  background-color: var(--fg0); 
+  color: var(--bg0);
+  &::before {
+    content: ""; 
   }
 }
 

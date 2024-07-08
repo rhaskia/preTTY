@@ -14,6 +14,10 @@ pub fn Keybinds(keybinds: Signal<Vec<Keybinding>>) -> Element {
             for index in 0..keybinds().len() {
                 Keybind { keybinds, index }
             }
+            button {
+                onclick: move |_| keybinds.push(Keybinding::default()), 
+                "+"
+            }
         }
     }
 }
@@ -21,12 +25,16 @@ pub fn Keybinds(keybinds: Signal<Vec<Keybinding>>) -> Element {
 #[component] 
 pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
     let mut recording_key = use_signal(|| false);
-    let modifiers = vec![Modifiers::ALT, Modifiers::CONTROL, Modifiers::META, Modifiers::SHIFT];
+    let modifier_values = vec![Modifiers::ALT, Modifiers::CONTROL, Modifiers::META, Modifiers::SHIFT];
+    let modifier_names = vec!["Alt", "Control", "Meta", "Shift"];
+    let modifiers = modifier_values.into_iter().zip(modifier_names);
 
     rsx! {
         div {
             class: "keybinding",
             id: "keybinding-{index}",
+            display: "flex",
+            align_items: "center",
 
             select {
                 name: "action[{index}]",
@@ -41,6 +49,7 @@ pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
                     println!("{:?}", keybinds()[index]);
                     // unfocus
                 },
+                class: "keybutton",
                 "{keybinds()[index].key}"
             }
             select {
@@ -49,8 +58,9 @@ pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
                 size: "1",
                 id: "select-multiple",
                 name: "modifiers[{index}]",
-                for modifier in modifiers {
-                    option { value: "{modifier:?}", display: "table-cell", "{modifier:?}" }
+                onchange: |e| println!("{e:?}"),
+                for (m, name) in modifiers {
+                    option { value: "{m.bits()}", display: "table-cell", "{name}" }
                 }
             }
             br {}

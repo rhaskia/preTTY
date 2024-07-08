@@ -27,9 +27,9 @@ pub fn load_config() -> Config {
         Err(_) => return Config::default(),
     };
 
-    let RawConfig { start_up_command, font_size } = toml::from_str(&config_file).unwrap();
+    let config = toml::from_str(&config_file).unwrap();
 
-    Config { font_size, start_up_command } 
+    config 
 }
 
 pub fn load_keybinds() -> Vec<Keybinding> {

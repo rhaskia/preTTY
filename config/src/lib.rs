@@ -9,12 +9,16 @@ pub use loader::{load_config, load_keybinds};
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]
 pub struct Config {
-    pub start_up_command: Option<String>,
-    pub font_size: i64,
+    pub default_cwd: String,
+    pub start_up_command: String,
+    pub term: String,
+    pub show_tabs: bool,
+    pub font_size: u64,
+    pub max_scrollback: u64,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { start_up_command: None, font_size: 14 }
+        Self { font_size: 14, max_scrollback: 1000, ..Default::default() }
     }
 }
