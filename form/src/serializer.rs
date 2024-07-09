@@ -65,8 +65,9 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
         self.output += &self.nesting.join(".");
-        self.output += ".b";
-        self.output += &format!("\" value = {v} type=\"checkbox\" /><br/>");
+        self.output += ".b\"";
+        if v { self.output += " checked"; }
+        self.output += &format!(" type=\"checkbox\" /><br/>");
         Ok(())
     }
 
@@ -352,7 +353,7 @@ impl<'a> SerializeSeq for &'a mut FormBuilder {
         self.list.last_mut().unwrap().0 -= 1;
         let list_idx = self.list.last().unwrap().1 - self.list.last().unwrap().0; 
         while self.nesting.last_mut().unwrap().pop() != Some('[') {}
-        self.nesting.last_mut().unwrap().push_str(&format!("[{}]", list_idx));
+        self.nesting.last_mut().unwrap().push_str(&format!("[{}]", list_idx - 1));
         value.serialize(&mut **self)?;
         Ok(())
     }

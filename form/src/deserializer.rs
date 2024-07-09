@@ -16,7 +16,7 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
     for (key, value) in values {
         let mut tree = key.split('.').collect::<Vec<&str>>();
         let t = tree.pop().unwrap();
-        let last = tree.pop().unwrap();
+        let mut last = tree.pop().unwrap().to_string();
         let mut current = &mut result;
 
         for branch in tree {
@@ -26,7 +26,16 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
                 let mut n = String::new();
                 while let Some(ch) = branch.pop() { if ch == '[' { break; }; n.push(ch); }
                 let number: usize = n.parse().unwrap();
-                current = &mut current.as_array_mut().unwrap()[number];
+
+                current = current
+                    .as_object_mut()
+                    .unwrap()
+                    .entry(branch.to_string())
+                    .or_insert(Value::Array(Vec::new()));
+
+                let arr = current.as_array_mut().unwrap();
+                if arr.len() >= number { arr.push(Value::Object(Map::new())); }
+                current = &mut arr[number];
             } else {
                 // REDO
                 current = current
@@ -35,20 +44,26 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
                     .entry(branch.to_string())
                     .or_insert(Value::Object(Map::new()))
             }
-            println!("{current:?}");
         }
 
         let v = match t {
             "s" => Value::String(value.0[0].clone()),
-            "b" => Value::Bool(value.0[0] == "true"),
+            "b" => Value::Bool(value.0[0] == "on"),
             "n" => Value::Number(FromStr::from_str(&value.0[0]).unwrap()),
             _ => Value::Array(value.0.into_iter().map(|s| Value::String(s)).collect()),
         };
 
-        match current {
-            Value::Array(ref mut arr) => arr.push(v),
-            Value::Object(ref mut object) => { object.insert(last.to_string(), v); }
-            _ => {}
+        if last.ends_with(']') {
+            while let Some(ch) = last.pop() { if ch == '[' { break; }; }
+            current = current
+                .as_object_mut()
+                .unwrap()
+                .entry(last.to_string())
+                .or_insert(Value::Array(Vec::new()));
+
+            current.as_array_mut().unwrap().push(v);
+        } else {
+            current.as_object_mut().unwrap().insert(last.to_string(), v);
         }
     }
 
