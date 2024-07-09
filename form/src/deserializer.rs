@@ -21,10 +21,14 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
 
         for branch in tree {
             let mut branch = branch.to_string();
-            if let Ok(number) = parse::<usize>(branch) {
+            if branch.ends_with(']') {
                 branch.pop();
-                current = current.as_array_mut().unwrap()[n];
+                let mut n = String::new();
+                while let Some(ch) = branch.pop() { if ch == '[' { break; }; n.push(ch); }
+                let number: usize = n.parse().unwrap();
+                current = &mut current.as_array_mut().unwrap()[number];
             } else {
+                // REDO
                 current = current
                     .as_object_mut()
                     .unwrap()
@@ -42,11 +46,10 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
         };
 
         match current {
-            Value::Array(ref mut arr) => arr[last.parse()].push(v),
-            Value::Object(ref mut object) => current.insert(last.to_string(), v),
+            Value::Array(ref mut arr) => arr.push(v),
+            Value::Object(ref mut object) => { object.insert(last.to_string(), v); }
             _ => {}
         }
-        current.insert(last.to_string(), v);
     }
 
     result
