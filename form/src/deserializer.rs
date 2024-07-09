@@ -11,7 +11,8 @@ use crate::Error;
 
 pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
     // let mut values = values.iter().map(|(key, value)| (key, FormInter::Value(value))).collect();
-    let mut result = Map::new();
+    let mut result = Value::Object(Map::new());
+
     for (key, value) in values {
         let mut tree = key.split('.').collect::<Vec<&str>>();
         let t = tree.pop().unwrap();
@@ -19,15 +20,17 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
         let mut current = &mut result;
 
         for branch in tree {
-            if branch.ends_with(']') { 
-
+            let mut branch = branch.to_string();
+            if let Ok(number) = parse::<usize>(branch) {
+                branch.pop();
+                current = current.as_array_mut().unwrap()[n];
             } else {
-
+                current = current
+                    .as_object_mut()
+                    .unwrap()
+                    .entry(branch.to_string())
+                    .or_insert(Value::Object(Map::new()))
             }
-            current = result
-                .entry(branch.to_string())
-                .or_insert(Value::Object(Map::new()))
-                .as_object_mut().unwrap();
             println!("{current:?}");
         }
 
@@ -37,10 +40,16 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
             "n" => Value::Number(FromStr::from_str(&value.0[0]).unwrap()),
             _ => Value::Array(value.0.into_iter().map(|s| Value::String(s)).collect()),
         };
+
+        match current {
+            Value::Array(ref mut arr) => arr[last.parse()].push(v),
+            Value::Object(ref mut object) => current.insert(last.to_string(), v),
+            _ => {}
+        }
         current.insert(last.to_string(), v);
     }
 
-    Value::Object(result)
+    result
 }
 
 pub fn from_values<'a, T>(values: HashMap<String, FormValue>) -> Result<T, Error>

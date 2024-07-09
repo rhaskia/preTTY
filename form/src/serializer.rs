@@ -192,7 +192,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        let len = len.unwrap();
+        let len = len.unwrap() - 1;
         let idx = self.nesting.len() - 1;
         self.list.push((len, len));
         self.nesting[idx] += "[0]";
