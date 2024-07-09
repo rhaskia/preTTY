@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::str::FromStr;
 
 use dioxus::html::FormValue;
 use serde::de::MapAccess;
@@ -18,17 +19,24 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
         let mut current = &mut result;
 
         for branch in tree {
+            if branch.ends_with(']') { 
+
+            } else {
+
+            }
             current = result
                 .entry(branch.to_string())
                 .or_insert(Value::Object(Map::new()))
                 .as_object_mut().unwrap();
+            println!("{current:?}");
         }
 
-        match t {
-
-            _ => {}
-        }
-        let v = Value::Array(value.0.into_iter().map(|s| Value::String(s)).collect());
+        let v = match t {
+            "s" => Value::String(value.0[0].clone()),
+            "b" => Value::Bool(value.0[0] == "true"),
+            "n" => Value::Number(FromStr::from_str(&value.0[0]).unwrap()),
+            _ => Value::Array(value.0.into_iter().map(|s| Value::String(s)).collect()),
+        };
         current.insert(last.to_string(), v);
     }
 
@@ -39,6 +47,7 @@ pub fn from_values<'a, T>(values: HashMap<String, FormValue>) -> Result<T, Error
 where
     T: for<'de> Deserialize<'de>,
 {
+    println!("Form {values:?}");
     let value = to_value(values.clone());
     println!("RAWVALUES {value:?}");
     let t = serde_json::from_value(value);

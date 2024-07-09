@@ -3,10 +3,10 @@ mod keybinding;
 use keybinding::Keybinds;
 use dioxus::prelude::*;
 use crate::{KEYBINDS, CONFIG};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use dioxus_form::Form;
 
-#[derive(Serialize, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 struct Example {
     pub amount: i64,
     pub name: String,
@@ -14,7 +14,7 @@ struct Example {
     pub nested: Example2,
 }
 
-#[derive(Serialize, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 struct Example2 {
     pub amount: bool,
     pub name: String,
@@ -42,7 +42,8 @@ pub fn Menu(active: bool) -> Element {
             }
             div {
                 class: "menucontent",
-                Form { value: config }
+                Form { value  }
+                "{value:?}"
                 Keybinds { keybinds }
             }
             div {

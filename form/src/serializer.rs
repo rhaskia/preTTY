@@ -17,6 +17,7 @@ where
         output: String::new(),
         current_id: String::new(),
         nesting: vec![],
+        list: vec![],
     };
     value.read().serialize(&mut serializer)?;
     Ok(serializer.output)
@@ -45,6 +46,7 @@ pub struct FormBuilder {
     output: String,
     current_id: String,
     nesting: Vec<String>,
+    list: Vec<(usize, usize)>,
 }
 
 impl<'a> Serializer for &'a mut FormBuilder {
@@ -63,6 +65,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
         self.output += &self.nesting.join(".");
+        self.output += ".b";
         self.output += &format!("\" value = {v} type=\"checkbox\" /><br/>");
         Ok(())
     }
@@ -82,6 +85,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
         self.output += &self.nesting.join(".");
+        self.output += ".n";
         self.output += &format!("\" value = {v} type=\"number\" /><br/>");
         Ok(())
     }
@@ -101,6 +105,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
         self.output += &self.nesting.join(".");
+        self.output += ".n";
         self.output += &format!("\" value = {v} type=\"number\" /><br/>");
         Ok(())
     }
@@ -112,6 +117,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
         self.output += &self.nesting.join(".");
+        self.output += ".n";
         self.output += &format!("\" value = {v} type=\"number\" /><br/>");
         Ok(())
     }
@@ -119,6 +125,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
         self.output += "<input max_length=1 name=\"";
         self.output += &self.nesting.join(".");
+        self.output += ".s";
         self.output += &format!("\" value = {v:?}/><br/>");
         Ok(())
     }
@@ -126,6 +133,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
         self.output += &self.nesting.join(".");
+        self.output += ".s";
         self.output += &format!("\" value = {v:?}/><br/>");
         Ok(())
     }
@@ -184,6 +192,10 @@ impl<'a> Serializer for &'a mut FormBuilder {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        let len = len.unwrap();
+        let idx = self.nesting.len() - 1;
+        self.list.push((len, len));
+        self.nesting[idx] += "[0]";
         self.output += "<div class = \"formlist\">";
         Ok(self)
     }
@@ -337,13 +349,17 @@ impl<'a> SerializeSeq for &'a mut FormBuilder {
     where
         T: ?Sized + serde::Serialize,
     {
-        self.current_id = "item".to_string();
+        self.list.last_mut().unwrap().0 -= 1;
+        let list_idx = self.list.last().unwrap().1 - self.list.last().unwrap().0; 
+        while self.nesting.last_mut().unwrap().pop() != Some('[') {}
+        self.nesting.last_mut().unwrap().push_str(&format!("[{}]", list_idx));
         value.serialize(&mut **self)?;
         Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         self.output += "</div>";
+        self.list.pop();
         Ok(())
     }
 }

@@ -7,14 +7,13 @@ use serializer::create_form;
 use std::fmt::{Display, Debug};
 
 #[component]
-pub fn Form<T: Serialize + 'static + PartialEq + Debug + for<'de> Deserialize<'de>>(value: Signal<T>) -> Element {
+pub fn Form<T: Serialize + 'static + PartialEq + for<'de> Deserialize<'de>>(value: Signal<T>) -> Element {
     rsx! {
         form {
-            oninput: |i| {
+            oninput: move |i| {
                 let values = i.values();
-                println!("VALUES {values:?}");
                 let result: T = deserializer::from_values(values).unwrap(); 
-                println!("res {result:?}");
+                value.set(result);
             },
             dangerous_inner_html: create_form(value).ok()?
         }
