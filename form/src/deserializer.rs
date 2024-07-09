@@ -54,14 +54,20 @@ pub fn to_value(mut values: HashMap<String, FormValue>) -> Value {
         };
 
         if last.ends_with(']') {
-            while let Some(ch) = last.pop() { if ch == '[' { break; }; }
+            last.pop();
+            let mut n = String::new();
+            while let Some(ch) = last.pop() { if ch == '[' { break; }; n.push(ch); }
+            let number: usize = n.parse().unwrap();
+
             current = current
                 .as_object_mut()
                 .unwrap()
                 .entry(last.to_string())
                 .or_insert(Value::Array(Vec::new()));
 
-            current.as_array_mut().unwrap().push(v);
+            let arr = current.as_array_mut().unwrap();
+            if number >= arr.len() { arr.resize(number + 1, Value::Null); }
+            arr[number] = v;
         } else {
             current.as_object_mut().unwrap().insert(last.to_string(), v);
         }

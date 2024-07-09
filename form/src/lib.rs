@@ -12,8 +12,12 @@ pub fn Form<T: Serialize + 'static + PartialEq + for<'de> Deserialize<'de>>(valu
         form {
             oninput: move |i| {
                 let values = i.values();
-                let result: T = deserializer::from_values(values).unwrap(); 
-                value.set(result);
+                //if !i.valid() { println!("INVALID RESPONSE {i:?}"); return; }
+                let result: T = deserializer::from_values(values); 
+                match result {
+                    Ok(v) => value.set(v),
+                    Err(r) => pritnln!("{e:?}"),
+                }
             },
             dangerous_inner_html: create_form(value).ok()?
         }

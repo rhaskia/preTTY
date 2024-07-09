@@ -67,7 +67,10 @@ impl<'a> Serializer for &'a mut FormBuilder {
         self.output += &self.nesting.join(".");
         self.output += ".b\"";
         if v { self.output += " checked"; }
-        self.output += &format!(" type=\"checkbox\" /><br/>");
+        self.output += &format!(" type=\"checkbox\" onclick=\"this.value = this.checked ? \"on\" : \"off\"\" /><br/>");
+        self.output += "<input type=hidden value=\"off\" name=\"";
+        self.output += &self.nesting.join(".");
+        self.output += ".b\"/>";
         Ok(())
     }
 
