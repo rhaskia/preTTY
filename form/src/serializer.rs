@@ -62,7 +62,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
-        self.output += &format!("{}.{}", self.nesting.join("."), &self.current_id);
+        self.output += &self.nesting.join(".");
         self.output += &format!("\" value = {v} type=\"checkbox\" /><br/>");
         Ok(())
     }
@@ -81,7 +81,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
-        self.output += &format!("{}.{}", self.nesting.join("."), &self.current_id);
+        self.output += &self.nesting.join(".");
         self.output += &format!("\" value = {v} type=\"number\" /><br/>");
         Ok(())
     }
@@ -100,7 +100,7 @@ impl<'a> Serializer for &'a mut FormBuilder {
 
     fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
-        self.output += &format!("{}.{}", self.nesting.join("."), &self.current_id);
+        self.output += &self.nesting.join(".");
         self.output += &format!("\" value = {v} type=\"number\" /><br/>");
         Ok(())
     }
@@ -111,21 +111,21 @@ impl<'a> Serializer for &'a mut FormBuilder {
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
-        self.output += &format!("{}.{}", self.nesting.join("."), &self.current_id);
+        self.output += &self.nesting.join(".");
         self.output += &format!("\" value = {v} type=\"number\" /><br/>");
         Ok(())
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
         self.output += "<input max_length=1 name=\"";
-        self.output += &format!("{}.{}", self.nesting.join("."), &self.current_id);
+        self.output += &self.nesting.join(".");
         self.output += &format!("\" value = {v:?}/><br/>");
         Ok(())
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
         self.output += "<input name=\"";
-        self.output += &format!("{}.{}", self.nesting.join("."), &self.current_id);
+        self.output += &self.nesting.join(".");
         self.output += &format!("\" value = {v:?}/><br/>");
         Ok(())
     }
@@ -221,7 +221,6 @@ impl<'a> Serializer for &'a mut FormBuilder {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        self.nesting.push(name.to_string());
         self.output += &format!("<fieldset name={name:?} >");
         Ok(self)
     }
@@ -251,8 +250,9 @@ impl<'a> SerializeStruct for &'a mut FormBuilder {
             "<label class=\"inputname\" for={key:?}>{} </label>",
             readable(key)
         );
-        self.current_id = key.to_string();
+        self.nesting.push(key.to_string());
         value.serialize(&mut **self)?;
+        self.nesting.pop();
         Ok(())
     }
 
