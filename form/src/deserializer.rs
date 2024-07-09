@@ -1,20 +1,45 @@
 use std::collections::HashMap;
 
 use dioxus::html::FormValue;
-use serde::{Deserializer, Deserialize};
+use serde::{Deserializer, Deserialize, de::MapAccess};
 use crate::Error;
+use std::fmt::Debug;
 
 pub struct FormDeserializer {
-    values: HashMap<String, FormValue>
+    values: FormInter,
+    current: FormInter,
 }
 
+#[derive(Debug, Clone)]
 pub enum FormInter {
     Nested(HashMap<String, FormInter>),
     Value(FormValue)
 }
 
-pub fn to_inter(values: HashMap<String, FormValue>) -> FormInter {
-    let mut values = HashMap::new();
+impl FormInter {
+    pub fn get_nested(&mut self) -> &mut HashMap<String, FormInter> {
+        match self {
+            Self::Nested(ref mut n) => n,
+            Self::Value(_) => panic!("Expected nested value"),
+        }
+    }
+}
+
+pub fn to_inter(mut values: HashMap<String, FormValue>) -> FormInter {
+    //let mut values = values.iter().map(|(key, value)| (key, FormInter::Value(value))).collect();
+    let mut result = HashMap::new();
+    for (key, value) in values {
+        let mut tree = key.split('.').collect::<Vec<&str>>();
+        let last = tree.pop().unwrap();
+        let mut current = &mut result;
+
+        for branch in tree {
+            current = result.entry(branch.to_string()).or_insert(FormInter::Nested(HashMap::new())).get_nested();
+        } 
+
+        current.insert(last.to_string(), FormInter::Value(value));
+    }
+
     FormInter::Nested(result)
 }
 
@@ -22,7 +47,8 @@ pub fn from_values<'a, T>(values: HashMap<String, FormValue>) -> Result<T, Error
 where
     T: Deserialize<'a>,
 {
-    let mut deserializer = FormDeserializer { values };
+    let nested = to_inter(values.clone());
+    let mut deserializer = FormDeserializer { values:nested, current: FormInter::Value(FormValue(Vec::new())) };
     let t = T::deserialize(&mut deserializer)?;
     Ok(t)
 }
@@ -190,7 +216,7 @@ impl<'a, 'de> Deserializer<'de> for &'a mut FormDeserializer {
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de> {
-        todo!()
+        visitor.visit_map(self)
     }
 
     fn deserialize_struct<V>(
@@ -203,7 +229,7 @@ impl<'a, 'de> Deserializer<'de> for &'a mut FormDeserializer {
         V: serde::de::Visitor<'de> {
         println!("{name}");
         println!("{fields:?}");
-        todo!();
+        self.deserialize_map(visitor)
     }
 
     fn deserialize_enum<V>(
@@ -220,12 +246,33 @@ impl<'a, 'de> Deserializer<'de> for &'a mut FormDeserializer {
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de> {
-        todo!()
+            // let values = self.values.get_nested().clone().into_iter().collect::<Vec<(String, FormInter)>>();
+            // let (key, value) = values.pop().unwrap();
+            // self.values = FormInter::Nested(values.into());
+            // self.current = value;
+            // Ok(key)
+            todo!()
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de> {
         todo!()
+    }
+}
+
+impl<'a, 'de> MapAccess<'de> for FormDeserializer {
+    type Error = Error;
+
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
+    where
+        K: serde::de::DeserializeSeed<'de> {
+        seed.deserialize(self).map(Some)
+    }
+
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::DeserializeSeed<'de> {
+        seed.deserialize(self)
     }
 }
