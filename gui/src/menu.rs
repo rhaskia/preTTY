@@ -43,16 +43,8 @@ pub fn Menu(active: bool) -> Element {
             }
             div {
                 class: "menucontent",
-                Form { value  }
-                "{value:?}"
+                Form { value: config  }
                 Keybinds { keybinds }
-                form {
-                    oninput: |i| println!("{i:?}"),
-                    input {
-                        r#type: "checkbox",
-                        name: "checkbox.b",
-                    }
-                }
             }
             div {
                 height: "20px",

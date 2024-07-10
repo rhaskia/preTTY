@@ -237,7 +237,9 @@ impl<'a> Serializer for &'a mut FormBuilder {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
+        let field = self.nesting.last().map(|s| readable(s)).unwrap_or(String::new());
         self.output += &format!("<fieldset name={name:?} >");
+        //self.output += &format!("<legend> {field:?} </legend>");
         Ok(self)
     }
 
