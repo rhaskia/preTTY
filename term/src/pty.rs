@@ -32,7 +32,7 @@ impl PseudoTerminalSystem {
     pub fn len(&self) -> usize { self.ptys.len() }
 
     /// Requires a sender to pull data out of it
-    pub fn spawn_new(&mut self) -> anyhow::Result<String> {
+    pub fn spawn_new(&mut self, startup_command: Option<String>) -> anyhow::Result<String> {
         // Create a new pty
         let pair = self.pty_system.openpty(PtySize {
             rows: 24,
@@ -42,18 +42,12 @@ impl PseudoTerminalSystem {
         })?;
 
         // Spawn a shell into the pty
-        let cmd = CommandBuilder::new(Self::default_shell());
+        let cmd = CommandBuilder::new(startup_command.unwrap_or(Self::default_shell()));
         let child = pair.slave.spawn_command(cmd)?;
 
         // Read and parse output from the pty with reader
         let master = &pair.master;
         let writer = master.take_writer().unwrap();
-        // let reader = master.try_clone_reader().unwrap();
-        //
-        // let (tx, rx) = async_channel::unbounded();
-        // let _reader_thread = thread::spawn(move || {
-        //     parse_terminal_output(tx, reader);
-        // });
 
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the

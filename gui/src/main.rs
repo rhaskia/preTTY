@@ -8,6 +8,7 @@ mod menu;
 mod tabs;
 mod terminal;
 
+use async_channel::Receiver;
 use config::keybindings::Keybinding;
 use config::{Config, TerminalAction};
 use dioxus::desktop::{use_window, WindowBuilder};
@@ -23,12 +24,20 @@ use crate::tabs::Tab;
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
 
+pub fn spawn_new(mut pty_system: Signal<PseudoTerminalSystem>) -> String {
+    let mut command = None;
+    if CONFIG.read().start_up_command.is_empty() {
+        command = Some(CONFIG.read().start_up_command.clone());
+    }
+    pty_system.write().spawn_new(command).unwrap()
+}
+
 #[component]
 pub fn App() -> Element {
     let input = use_signal(|| InputManager::new());
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_tab = use_signal(|| 0);
-    let mut tabs = use_signal(|| vec![Tab::new(0, pty_system.write().spawn_new().unwrap())]);
+    let mut tabs = use_signal(|| vec![Tab::new(spawn_new(pty_system))]);
 
     rsx! {
         div {
@@ -44,8 +53,8 @@ pub fn App() -> Element {
                     pty_system.write().get(&tab.pty).write(s);
                 }
                 TerminalAction::NewTab => {
-                    let id = pty_system.write().spawn_new().unwrap();
-                    tabs.write().push(Tab::new(current_tab + 1, id));
+                    let id = spawn_new(pty_system);
+                    tabs.write().push(Tab::new(id));
                     current_tab.set(tabs.read().len() - 1);
                 }
                 // TODO pty removal
@@ -53,7 +62,7 @@ pub fn App() -> Element {
                     tabs.write().remove(*current_tab.read());
                     // Maybe vector of last tabs open instead of decreasing tab number
                     // Also try trigger quit if only one tab left
-                    if current_tab() != 1 {  current_tab -= 1; }
+                    if current_tab() != 0 {  current_tab -= 1; }
                 }
                 TerminalAction::Quit => use_window().close(),
                 TerminalAction::ToggleMenu => {
@@ -79,11 +88,11 @@ pub fn App() -> Element {
             div {
                 display: "flex",
                 flex_grow: 1,
-                for tab in tabs().into_iter() {
+                for (i, tab) in tabs().into_iter().enumerate() {
                     if tab.settings {
-                        Menu { active: tab.index == current_tab() }
+                        Menu { active: i == current_tab() }
                     } else {
-                        TerminalApp { pty_system, input, hidden: tab.index != current_tab(), pty: tab.pty }
+                        TerminalApp { pty_system, input, hidden: i != current_tab(), pty: tab.pty, tabs, index: i }
                     }
                 }
             }

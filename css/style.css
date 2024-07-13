@@ -210,7 +210,7 @@ option:checked {
     overflow-x: visible;
 }
 
-.tab:nth-child(2n) {
+.tab:hover {
     --tab-colour: var(--bg0);
 }
 

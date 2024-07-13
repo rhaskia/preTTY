@@ -11,7 +11,7 @@ use dioxus::prelude::*;
 use pretty_hooks::{on_resize, DOMRectReadOnly};
 use serde::Deserialize;
 use crate::CONFIG;
-use crate::tabs::Tab;
+use crate::tabs::{Tab};
 use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
 use super::InputManager;
@@ -26,11 +26,15 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(pty: String, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>, hidden: bool) -> Element {
+pub fn TerminalApp(pty: String, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>, hidden: bool, tabs: Signal<Vec<Tab>>, index: usize) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
     let pty = use_signal(|| pty);
+
+    use_effect(move || {
+        tabs.write()[index].name = terminal.read().title.clone();
+    });
 
     // Cell Size Reader
     let mut size_style = use_signal(|| String::new());

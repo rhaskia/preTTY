@@ -5,17 +5,15 @@ use crate::menu::Menu;
 
 #[derive(Clone, PartialEq)]
 pub struct Tab {
-    pub index: usize, 
     pub name: String,
     pub settings: bool,
     pub pty: String,
 }
 
 impl Tab {
-    pub fn new(idx: usize, pty: String) -> Self {
+    pub fn new(pty: String) -> Self {
         Tab {
-            index: idx,
-            name: format!("terminal {idx}"),
+            name: format!("terminal"),
             settings: false,
             pty,
         }
@@ -66,8 +64,8 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
             button {
                 class: "barbutton",
                 onclick: move |_| {
-                    let id = pty_system.write().spawn_new().unwrap();
-                    tabs.write().push(Tab::new(current_tab + 1, id));
+                    let id = crate::spawn_new(pty_system);
+                    tabs.write().push(Tab::new(id));
                     current_tab.set(tabs.read().len() - 1);
                 },
                 ""
@@ -95,7 +93,7 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
                         button { 
                             onclick: move |_| {
                                 let index = tabs.len();
-                                tabs.write().push(Tab { index, name: "Settings".to_string(), settings: true, pty: String::new() });
+                                tabs.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
                                 current_tab.set(index);
                             },  
                             "Settings" 
