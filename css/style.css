@@ -214,6 +214,11 @@ option:checked {
     --tab-colour: var(--bg0);
 }
 
+.tabtext {
+    text-overflow: clip;
+    max-width: 100px;
+}
+
 .tab {
     background: var(--tab-colour);
     margin-right: 4px;

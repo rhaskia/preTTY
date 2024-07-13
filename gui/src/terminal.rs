@@ -17,6 +17,7 @@ use pretty_term::Terminal;
 use super::InputManager;
 use log::info;
 use std::thread;
+use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -26,14 +27,14 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(pty: String, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>, hidden: bool, tabs: Signal<Vec<Tab>>, index: usize) -> Element {
+pub fn TerminalApp(pty: String, input: Signal<InputManager>, hidden: bool, index: usize) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
     let pty = use_signal(|| pty);
 
     use_effect(move || {
-        tabs.write()[index].name = terminal.read().title.clone();
+        TABS.write()[index].name = terminal.read().title.clone();
     });
 
     // Cell Size Reader
@@ -56,7 +57,7 @@ pub fn TerminalApp(pty: String, pty_system: Signal<PseudoTerminalSystem>, input:
     on_resize(format!("split-{}", pty), move |size| {
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
-            let (rows, cols) = pty_system.write().get(&pty()).resize(width, height, cell.width, cell.height);
+            let (rows, cols) = PTY_SYSTEM.write().get(&pty()).resize(width, height, cell.width, cell.height);
             info!("Resize Event, {rows}:{cols}");
             terminal.write().resize(rows, cols);
         }
@@ -64,7 +65,7 @@ pub fn TerminalApp(pty: String, pty_system: Signal<PseudoTerminalSystem>, input:
 
     // ANSI code handler
     use_future(move || async move {
-        let reader = pty_system.write().get(&pty()).pair.master.try_clone_reader().unwrap();
+        let reader = PTY_SYSTEM.write().get(&pty()).pair.master.try_clone_reader().unwrap();
         let (tx, rx) = async_channel::unbounded();
         let _reader_thread = thread::spawn(move || {
             pretty_term::pty::parse_terminal_output(tx, reader);

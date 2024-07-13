@@ -2,6 +2,10 @@ use dioxus::prelude::*;
 use crate::input::InputManager;
 use pretty_term::pty::PseudoTerminalSystem;
 use crate::menu::Menu;
+use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
+use config::TerminalAction;
+use crate::handle_action;
+use crate::dioxus_elements::input_data::MouseButton;
 
 #[derive(Clone, PartialEq)]
 pub struct Tab {
@@ -21,29 +25,28 @@ impl Tab {
 }
 
 #[component] 
-pub fn Tab(tab: Tab, n: usize, current_tab: Signal<usize>) -> Element {
+pub fn Tab(tab: Tab, n: usize) -> Element {
     rsx!{
         span { 
             class: "tab",
             onmousedown: move |e| {
                 match e.trigger_button().unwrap() {
-                    dioxus_elements::input_data::MouseButton::Primary => current_tab.set(n),
-                    // dioxus_elements::input_data::MouseButton::Auxiliary => { 
-                    //     tabs.remove(n);
-                    // }
+                    MouseButton::Primary => *CURRENT_TAB.write() = n,
+                    MouseButton::Auxiliary => handle_action(TerminalAction::CloseTabSpecific(n)),
                     _ => {}
                 }
             },
-            style: if n == current_tab() { "--tab-colour: var(--bg1)" },
-            " {tab.name} "
+            style: if n == CURRENT_TAB() { "--tab-colour: var(--bg1)" },
+            div {
+                class: "tabtext",
+                " {tab.name} "
+            }
         }
     }
 }
 
 #[component]
-pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Signal<usize>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
-    let mut menu_open = use_signal(|| false);
-
+pub fn Tabs(input: Signal<InputManager>) -> Element {
     eval(r#"
         window.onclick = function(e) {
             var myDropdown = document.getElementById("bardropdown");
@@ -58,28 +61,20 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
             class: "tabs",
             display: "flex",
             font_size: "14px",
-            for (n, tab) in tabs.read().iter().enumerate() {
-                Tab { tab: tab.clone(), n, current_tab }
+            for (n, tab) in TABS.read().iter().enumerate() {
+                Tab { tab: tab.clone(), n }
             }
             button {
                 class: "barbutton",
-                onclick: move |_| {
-                    let id = crate::spawn_new(pty_system);
-                    tabs.write().push(Tab::new(id));
-                    current_tab.set(tabs.read().len() - 1);
-                },
+                onclick: move |_| handle_action(TerminalAction::NewTab),
                 ""
             } 
             div {
                 class: "dropdown",
                 button {
                     class: "barbutton",
-                    onclick: move |_| {
-                        menu_open.toggle();
+                    onclick: move |_| { 
                         eval(r#"document.getElementById("bardropdown").classList.toggle("show");"#);
-                        // let index = tabs.len();
-                        // tabs.write().push(Tab { name: "Settings".to_string(), index, settings: true, pty: -1 });
-                        // current_tab.set(index);
                     },
                     ""
                 } 
@@ -91,11 +86,7 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
                         // More shells (generated likely)
                         hr {}
                         button { 
-                            onclick: move |_| {
-                                let index = tabs.len();
-                                tabs.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
-                                current_tab.set(index);
-                            },  
+                            onclick: move |_| handle_action(TerminalAction::ToggleMenu),  
                             "Settings" 
                         }
                         button { "Command Palette" }

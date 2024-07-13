@@ -7,6 +7,7 @@ pub enum TerminalAction {
     NoAction,
     NewTab,
     CloseTab,
+    CloseTabSpecific(usize),
     Write(String),
     Quit,
     ToggleMenu,

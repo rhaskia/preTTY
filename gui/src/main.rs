@@ -23,21 +23,54 @@ use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
+pub static CURRENT_TAB: GlobalSignal<usize> = Signal::global(|| 0);
+pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
+pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_new())]);
 
-pub fn spawn_new(mut pty_system: Signal<PseudoTerminalSystem>) -> String {
+pub fn spawn_new() -> String {
     let mut command = None;
     if CONFIG.read().start_up_command.is_empty() {
         command = Some(CONFIG.read().start_up_command.clone());
     }
-    pty_system.write().spawn_new(command).unwrap()
+    PTY_SYSTEM.write().spawn_new(command).unwrap()
+}
+
+pub fn handle_action(action: TerminalAction) {
+    match action {
+        TerminalAction::Write(s) => {
+            let tab = &TABS()[*CURRENT_TAB.read()];
+            if tab.settings { return }
+            PTY_SYSTEM.write().get(&tab.pty).write(s);
+        }
+        TerminalAction::NewTab => {
+            let id = spawn_new();
+            TABS.write().push(Tab::new(id));
+            *CURRENT_TAB.write() = TABS.read().len() - 1;
+        }
+        // TODO pty removal
+        TerminalAction::CloseTab => {
+            TABS.write().remove(*CURRENT_TAB.read());
+            if CURRENT_TAB() != 0 { *CURRENT_TAB.write() -= 1; }
+            if TABS.read().len() == 0 { use_window().close(); }
+        }
+        TerminalAction::CloseTabSpecific(n) => {
+            TABS.write().remove(n);
+            if n <= CURRENT_TAB() { *CURRENT_TAB.write() -= 1; }
+            if TABS.read().len() == 0 { use_window().close(); }
+        }
+        TerminalAction::Quit => use_window().close(),
+        TerminalAction::ToggleMenu => {
+            let index = TABS.len();
+            TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
+            *CURRENT_TAB.write() = index;
+        }
+        TerminalAction::NoAction => {}
+    }
 }
 
 #[component]
 pub fn App() -> Element {
     let input = use_signal(|| InputManager::new());
-    let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
-    let mut current_tab = use_signal(|| 0);
-    let mut tabs = use_signal(|| vec![Tab::new(spawn_new(pty_system))]);
 
     rsx! {
         div {
@@ -46,31 +79,7 @@ pub fn App() -> Element {
             autofocus: true,
             tabindex: 0,
 
-            onkeydown: move |e| match input.read().handle_keypress(&e) {
-                TerminalAction::Write(s) => {
-                    let tab = &tabs()[*current_tab.read()];
-                    if tab.settings { return }
-                    pty_system.write().get(&tab.pty).write(s);
-                }
-                TerminalAction::NewTab => {
-                    let id = spawn_new(pty_system);
-                    tabs.write().push(Tab::new(id));
-                    current_tab.set(tabs.read().len() - 1);
-                }
-                // TODO pty removal
-                TerminalAction::CloseTab => {
-                    tabs.write().remove(*current_tab.read());
-                    // Maybe vector of last tabs open instead of decreasing tab number
-                    // Also try trigger quit if only one tab left
-                    if current_tab() != 0 {  current_tab -= 1; }
-                }
-                TerminalAction::Quit => use_window().close(),
-                TerminalAction::ToggleMenu => {
-                    //menu_open.toggle();
-                }
-                TerminalAction::NoAction => {}
-                //action => info!("{:?} not yet implemented", action)
-            },
+            onkeydown: move |e| handle_action(input.read().handle_keypress(&e)),
 
             style {{ include_str!("../../css/style.css") }}
             style {{ include_str!("../../css/gruvbox.css") }}
@@ -79,20 +88,16 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            // div {
-            //     display: "flex",
-            //     flex_direction: "column",
-            //     width: "100%",
-            //     height: "100%",
-            if CONFIG.read().show_tabs { Tabs { tabs, input, pty_system, current_tab } }
+            if CONFIG.read().show_tabs { Tabs { input } }
+
             div {
                 display: "flex",
                 flex_grow: 1,
-                for (i, tab) in tabs().into_iter().enumerate() {
+                for (i, tab) in TABS().into_iter().enumerate() {
                     if tab.settings {
-                        Menu { active: i == current_tab() }
+                        Menu { active: i == CURRENT_TAB() }
                     } else {
-                        TerminalApp { pty_system, input, hidden: i != current_tab(), pty: tab.pty, tabs, index: i }
+                        TerminalApp { input, hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
                     }
                 }
             }

@@ -24,9 +24,10 @@ impl From<RawKeybinding> for Keybinding {
             });
 
         let mut modifiers = Modifiers::empty();
+        println!("{:?}", value.modifiers);
         for modifier in value.modifiers {
             match modifier.trim().to_lowercase().as_str() {
-                "ctrl" => modifiers.insert(Modifiers::CONTROL),
+                "control" => modifiers.insert(Modifiers::CONTROL),
                 "alt" => modifiers.insert(Modifiers::ALT),
                 "meta" => modifiers.insert(Modifiers::META),
                 "shift" => modifiers.insert(Modifiers::SHIFT),
