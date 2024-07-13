@@ -1,11 +1,10 @@
 // type Keybinds = std::collections::Hashmap<Key, Action>;
 use dioxus::events::{Key, Modifiers};
-use serde::Deserialize;
-use toml::Table;
+use serde::{Deserialize, Serialize};
 use crate::loader::RawKeybinding;
 use crate::TerminalAction;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct Keybinding {
     pub key: Key,
     pub modifiers: Modifiers,
@@ -25,11 +24,12 @@ impl From<RawKeybinding> for Keybinding {
             });
 
         let mut modifiers = Modifiers::empty();
+        println!("{:?}", value.modifiers);
         for modifier in value.modifiers {
             match modifier.trim().to_lowercase().as_str() {
-                "ctrl" => modifiers.insert(Modifiers::CONTROL),
+                "control" => modifiers.insert(Modifiers::CONTROL),
                 "alt" => modifiers.insert(Modifiers::ALT),
-                "super" => modifiers.insert(Modifiers::SUPER),
+                "meta" => modifiers.insert(Modifiers::META),
                 "shift" => modifiers.insert(Modifiers::SHIFT),
                 // TODO: more?
                 _ => { } // TODO: error
@@ -43,3 +43,18 @@ impl From<RawKeybinding> for Keybinding {
         }
     }
 }
+
+impl From<Keybinding> for RawKeybinding {
+    fn from(value: Keybinding) -> Self {
+        let key = value.key.to_string();
+
+        let mut modifiers = value.modifiers.iter_names().map(|(i, _)| i.to_string()).collect();
+        
+        Self {
+            key,
+            modifiers,
+            action: value.action,
+        }
+    }
+}
+

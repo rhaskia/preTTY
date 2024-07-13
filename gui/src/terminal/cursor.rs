@@ -5,11 +5,12 @@ use serde_json::to_value;
 #[derive(Serialize)]
 pub struct CursorInfo {
     pub y: usize,
-    pub index: usize,
+    pub index: String,
 }
 
 #[component]
-pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
+pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: String) -> Element {
+    let index = use_signal(|| index);
     use_future(move || async move {
         loop {
             wait_for_next_render().await;
@@ -30,7 +31,7 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: usize) -> Element {
                 .send(
                     to_value(CursorInfo {
                         y: cursor_pos.read().1,
-                        index,
+                        index: index(),
                     })
                     .unwrap(),
                 )

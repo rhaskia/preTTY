@@ -1,15 +1,15 @@
 use std::fmt::Debug;
 use dioxus::prelude::*;
 use serde::Deserialize;
+use log::info;
 
 pub struct DomRectSignal {
     inner: Signal<Option<ResizeObserverEntry>>,
-    collector: UseFuture,
+    _collector: UseFuture,
 }
 
 impl DomRectSignal {
     pub fn value(&self) -> Option<ResizeObserverEntry> { self.inner.read().clone() }
-
     pub fn read(&self) -> ReadableRef<Signal<Option<ResizeObserverEntry>>> { self.inner.read() }
 }
 
@@ -96,6 +96,7 @@ pub fn on_resize(id: String, callback: impl FnMut(ResizeObserverEntry) + 'static
 
         loop {
             let div_info = js.recv().await.unwrap();
+            info!("Recieved json {div_info:?}");
             let parsed = serde_json::from_value::<ResizeObserverEntry>(div_info).unwrap();
             callback.write().call_mut((parsed,));
         }
@@ -106,7 +107,7 @@ pub fn use_div_size(id: String) -> DomRectSignal {
     let id = use_signal(|| id);
     let mut signal = use_signal(|| None);
 
-    let collector = use_future(move || async move {
+    let _collector = use_future(move || async move {
         wait_for_next_render().await;
 
         let mut js = resize_observer();
@@ -122,6 +123,6 @@ pub fn use_div_size(id: String) -> DomRectSignal {
 
     DomRectSignal {
         inner: signal,
-        collector,
+        _collector,
     }
 }

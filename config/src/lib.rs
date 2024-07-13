@@ -1,22 +1,31 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+mod actions;
 pub mod keybindings;
 mod loader;
-mod actions;
 pub use actions::TerminalAction;
 use keybindings::Keybinding;
-pub use loader::load_config;
+pub use loader::{load_config, load_keybinds, save_keybinds};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]
 pub struct Config {
-    pub start_up_command: Option<String>,
-    pub keybinds: Vec<Keybinding>,
-    pub font_size: i64,
+    pub default_cwd: String,
+    pub start_up_command: String,
+    pub term: String,
+    pub show_tabs: bool,
+    pub font_size: u64,
+    pub max_scrollback: u64,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { start_up_command: None, keybinds: Default::default(), font_size: 14 }
+        Self {
+            font_size: 14,
+            max_scrollback: 1000,
+            default_cwd: String::from("~"),
+            start_up_command: String::new(),
+            term: String::from("xterm-256color"),
+            show_tabs: true,
+        }
     }
-
 }

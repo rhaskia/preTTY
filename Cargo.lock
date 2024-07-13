@@ -543,10 +543,25 @@ dependencies = [
 name = "config"
 version = "0.1.0"
 dependencies = [
+ "confy",
  "dioxus",
  "dirs 5.0.1",
  "enum_derive",
  "serde",
+ "strum",
+ "strum_macros",
+ "toml 0.8.14",
+]
+
+[[package]]
+name = "confy"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45b1f4c00870f07dc34adcac82bb6a72cc5aabca8536ba1797e01df51d2ce9a0"
+dependencies = [
+ "directories",
+ "serde",
+ "thiserror",
  "toml 0.8.14",
 ]
 
@@ -920,6 +935,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dioxus-form"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "proc-macro2",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "dioxus-fullstack"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1076,6 +1101,15 @@ dependencies = [
  "quote",
  "server_fn_macro",
  "syn 2.0.58",
+]
+
+[[package]]
+name = "directories"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a49173b84e034382284f27f1af4dcbbd231ffa358c0fe316541a7337f376a35"
+dependencies = [
+ "dirs-sys 0.4.1",
 ]
 
 [[package]]
@@ -3273,6 +3307,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dioxus",
+ "log",
  "serde",
  "serde_json",
 ]
@@ -3286,6 +3321,7 @@ dependencies = [
  "log",
  "num-traits",
  "portable-pty",
+ "rand 0.8.5",
  "termwiz",
  "tokio",
 ]
@@ -3308,6 +3344,7 @@ dependencies = [
  "async-channel",
  "config",
  "dioxus",
+ "dioxus-form",
  "fern",
  "futures",
  "log",
@@ -3320,6 +3357,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
+ "strum",
  "termwiz",
 ]
 
@@ -3657,6 +3695,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustversion"
+version = "1.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "955d28af4278de8121b7ebeb796b6a45735dc01436d898801014aced2773a3d6"
+
+[[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3808,9 +3852,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.117"
+version = "1.0.120"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "455182ea6142b14f93f4bc5320a2b31c1f266b66a4a5c858b013302a5d8cbfc3"
+checksum = "4e0d21c9a8cae1235ad58a00c11cb40d4b1e5c784f1ef2c537876ed6ffd8b7c5"
 dependencies = [
  "itoa 1.0.11",
  "ryu",
@@ -4175,6 +4219,25 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "strum"
+version = "0.26.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
+
+[[package]]
+name = "strum_macros"
+version = "0.26.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.58",
+]
 
 [[package]]
 name = "syn"

@@ -1,48 +1,97 @@
 use dioxus::prelude::*;
 use crate::input::InputManager;
 use pretty_term::pty::PseudoTerminalSystem;
-use super::terminal::TerminalApp;
+use crate::menu::Menu;
+use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
+use config::TerminalAction;
+use crate::handle_action;
+use crate::dioxus_elements::input_data::MouseButton;
 
 #[derive(Clone, PartialEq)]
 pub struct Tab {
-    pub index: usize,
     pub name: String,
+    pub settings: bool,
+    pub pty: String,
 }
 
 impl Tab {
-    pub fn new(idx: usize) -> Self {
+    pub fn new(pty: String) -> Self {
         Tab {
-            index: idx,
-            name: format!("terminal {idx}")
+            name: format!("terminal"),
+            settings: false,
+            pty,
+        }
+    }
+}
+
+#[component] 
+pub fn Tab(tab: Tab, n: usize) -> Element {
+    rsx!{
+        span { 
+            class: "tab",
+            onmousedown: move |e| {
+                match e.trigger_button().unwrap() {
+                    MouseButton::Primary => *CURRENT_TAB.write() = n,
+                    MouseButton::Auxiliary => handle_action(TerminalAction::CloseTabSpecific(n)),
+                    _ => {}
+                }
+            },
+            style: if n == CURRENT_TAB() { "--tab-colour: var(--bg1)" },
+            div {
+                class: "tabtext",
+                " {tab.name} "
+            }
         }
     }
 }
 
 #[component]
-pub fn TerminalSplit(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, pty_system: Signal<PseudoTerminalSystem>) -> Element {
+pub fn Tabs(input: Signal<InputManager>) -> Element {
+    eval(r#"
+        window.onclick = function(e) {
+            var myDropdown = document.getElementById("bardropdown");
+            if (myDropdown.classList.contains('show')) {
+                myDropdown.classList.remove('show');
+            }
+        }
+     "#); 
 
     rsx! {
-        div {
+        pre {
+            class: "tabs",
             display: "flex",
-            flex_direction: "column",
-            flex_grow: 1,
-            pre {
-                class: "tabs",
-                display: "flex",
-                font_size: "14px",
-                for tab in tabs.read().iter() {
-                    span { 
-                        class: "tab",
-                        " {tab.name} "
-                    }
-                }
+            font_size: "14px",
+            for (n, tab) in TABS.read().iter().enumerate() {
+                Tab { tab: tab.clone(), n }
             }
+            button {
+                class: "barbutton",
+                onclick: move |_| handle_action(TerminalAction::NewTab),
+                ""
+            } 
             div {
-                display: "flex",
-                flex_direction: "row",
-                flex_grow: 1,
-                for tab in tabs.read().iter() {
-                    TerminalApp { tab: tab.clone(), pty_system, input }
+                class: "dropdown",
+                button {
+                    class: "barbutton",
+                    onclick: move |_| { 
+                        eval(r#"document.getElementById("bardropdown").classList.toggle("show");"#);
+                    },
+                    ""
+                } 
+                if true {
+                    div {
+                        class: "bardropdown",
+                        id: "bardropdown",
+                        button { "Powershell" }
+                        // More shells (generated likely)
+                        hr {}
+                        button { 
+                            onclick: move |_| handle_action(TerminalAction::ToggleMenu),  
+                            "Settings" 
+                        }
+                        button { "Command Palette" }
+                        button { "Help" }
+                    }
                 }
             }
         }

@@ -4,28 +4,73 @@
 // crate imports
 mod header;
 mod input;
+mod menu;
 mod tabs;
 mod terminal;
 
-use config::Config;
-use dioxus::desktop::{WindowBuilder, use_wry_event_handler, tao::{event::{Event, KeyEvent}, window::Window}, use_window};
+use async_channel::Receiver;
+use config::keybindings::Keybinding;
+use config::{Config, TerminalAction};
+use dioxus::desktop::{use_window, WindowBuilder};
 use dioxus::prelude::*;
 use input::InputManager;
-use tabs::TerminalSplit;
-use config::TerminalAction;
-use dioxus::desktop::tao::keyboard::ModifiersState;
+use menu::Menu;
 use pretty_term::pty::PseudoTerminalSystem;
-use log::info;
+use tabs::Tabs;
+use terminal::TerminalApp;
+
 use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
+pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
+pub static CURRENT_TAB: GlobalSignal<usize> = Signal::global(|| 0);
+pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
+pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_new())]);
+
+pub fn spawn_new() -> String {
+    let mut command = None;
+    if CONFIG.read().start_up_command.is_empty() {
+        command = Some(CONFIG.read().start_up_command.clone());
+    }
+    PTY_SYSTEM.write().spawn_new(command).unwrap()
+}
+
+pub fn handle_action(action: TerminalAction) {
+    match action {
+        TerminalAction::Write(s) => {
+            let tab = &TABS()[*CURRENT_TAB.read()];
+            if tab.settings { return }
+            PTY_SYSTEM.write().get(&tab.pty).write(s);
+        }
+        TerminalAction::NewTab => {
+            let id = spawn_new();
+            TABS.write().push(Tab::new(id));
+            *CURRENT_TAB.write() = TABS.read().len() - 1;
+        }
+        // TODO pty removal
+        TerminalAction::CloseTab => {
+            TABS.write().remove(*CURRENT_TAB.read());
+            if CURRENT_TAB() != 0 { *CURRENT_TAB.write() -= 1; }
+            if TABS.read().len() == 0 { use_window().close(); }
+        }
+        TerminalAction::CloseTabSpecific(n) => {
+            TABS.write().remove(n);
+            if n <= CURRENT_TAB() { *CURRENT_TAB.write() -= 1; }
+            if TABS.read().len() == 0 { use_window().close(); }
+        }
+        TerminalAction::Quit => use_window().close(),
+        TerminalAction::ToggleMenu => {
+            let index = TABS.len();
+            TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
+            *CURRENT_TAB.write() = index;
+        }
+        TerminalAction::NoAction => {}
+    }
+}
 
 #[component]
 pub fn App() -> Element {
-    let mut input = use_signal(|| InputManager::new());
-    let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
-    let mut current_pty = use_signal(|| 0);
-    let mut tabs = use_signal(|| vec![Tab::new(0)]);
+    let input = use_signal(|| InputManager::new());
 
     rsx! {
         div {
@@ -34,22 +79,7 @@ pub fn App() -> Element {
             autofocus: true,
             tabindex: 0,
 
-            onkeydown: move |e| match input.read().handle_keypress(&e) {
-                TerminalAction::Write(s) => pty_system.write().ptys[*current_pty.read()].write(s),
-                TerminalAction::NewTab => {
-                    tabs.write().push(Tab::new(90));
-                    current_pty += 1;
-                }
-                // TODO pty removal
-                TerminalAction::CloseTab => { 
-                    tabs.write().remove(*current_pty.read());
-                    // Maybe vector of last tabs open instead of decreasing tab number
-                    // Also try trigger quit if only one tab left
-                    current_pty -= 1;
-                }
-                TerminalAction::Quit => use_window().close(),
-                action => info!("{:?} not yet implemented", action)
-            },
+            onkeydown: move |e| handle_action(input.read().handle_keypress(&e)),
 
             style {{ include_str!("../../css/style.css") }}
             style {{ include_str!("../../css/gruvbox.css") }}
@@ -58,7 +88,19 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            TerminalSplit { tabs, input, pty_system }
+            if CONFIG.read().show_tabs { Tabs { input } }
+
+            div {
+                display: "flex",
+                flex_grow: 1,
+                for (i, tab) in TABS().into_iter().enumerate() {
+                    if tab.settings {
+                        Menu { active: i == CURRENT_TAB() }
+                    } else {
+                        TerminalApp { input, hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
+                    }
+                }
+            }
         }
     }
 }
@@ -73,7 +115,6 @@ fn setup_logger() -> Result<(), fern::InitError> {
                 Debug => 33,
                 Info => 33,
                 Trace => 35,
-                _ => 1,
             };
             out.finish(format_args!(
                 "\x1b[{}m[\x1b[1m{} {}]\x1b[m {}",

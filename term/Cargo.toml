@@ -11,3 +11,4 @@ num-traits = "0.2.18"
 termwiz = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
+rand = "0.8.5"

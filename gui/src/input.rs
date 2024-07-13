@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::rc::Rc;
 use config::keybindings::Keybinding;
 use config::TerminalAction;
@@ -6,7 +5,7 @@ use dioxus::events::{ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{Event, KeyboardData, MouseData, Readable};
 use log::*;
-use crate::CONFIG;
+use crate::KEYBINDS;
 
 pub struct InputManager {
     key_mode: KeyMode,
@@ -44,7 +43,7 @@ impl InputManager {
     ) -> String {
         let trail = if is_press { "M" } else { "m" };
         let button = mouse_info.trigger_button().unwrap_or(MouseButton::Unknown);
-        let mods = mouse_info.modifiers();
+        let _mods = mouse_info.modifiers();
 
         let code = match button {
             MouseButton::Primary => 0,
@@ -137,7 +136,7 @@ impl InputManager {
     }
 
     pub fn handle_keypress(&self, key_data: &Event<KeyboardData>) -> TerminalAction {
-        for keybind in &CONFIG.read().keybinds {
+        for keybind in KEYBINDS.read().iter() {
             if keybind.modifiers == key_data.modifiers() && keybind.key == key_data.key() {
                 return keybind.action.clone();
             }

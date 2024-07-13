@@ -9,13 +9,15 @@ use cursor::Cursor;
 use debug::TerminalDebug;
 use dioxus::prelude::*;
 use pretty_hooks::{on_resize, DOMRectReadOnly};
-use log::info;
 use serde::Deserialize;
 use crate::CONFIG;
-use crate::tabs::Tab;
+use crate::tabs::{Tab};
 use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
 use super::InputManager;
+use log::info;
+use std::thread;
+use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -25,15 +27,15 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Signal<InputManager>) -> Element {
+pub fn TerminalApp(pty: String, input: Signal<InputManager>, hidden: bool, index: usize) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
-    let mut debug = use_signal(|| false);
+    let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
+    let pty = use_signal(|| pty);
 
-    // Pseudoterminal Stuff
-    let (tx, rx) = async_channel::unbounded();
-    let mut rx = use_signal(|| rx);
-    let mut pty = use_signal(|| pty_system.write().spawn_new(tx).unwrap());
+    use_effect(move || {
+        TABS.write()[index].name = terminal.read().title.clone();
+    });
 
     // Cell Size Reader
     let mut size_style = use_signal(|| String::new());
@@ -52,18 +54,24 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
     });
 
     // Window Resize Event
-    on_resize(format!("split-{}", tab.index), move |size| {
+    on_resize(format!("split-{}", pty), move |size| {
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
         if let Some(cell) = &*cell_size.read() {
-            let (rows, cols) = pty_system.write().ptys[*pty.read()].resize(width, height, cell.width, cell.height);
+            let (rows, cols) = PTY_SYSTEM.write().get(&pty()).resize(width, height, cell.width, cell.height);
+            info!("Resize Event, {rows}:{cols}");
             terminal.write().resize(rows, cols);
         }
     });
 
     // ANSI code handler
     use_future(move || async move {
+        let reader = PTY_SYSTEM.write().get(&pty()).pair.master.try_clone_reader().unwrap();
+        let (tx, rx) = async_channel::unbounded();
+        let _reader_thread = thread::spawn(move || {
+            pretty_term::pty::parse_terminal_output(tx, reader);
+        });
         loop {
-            if let Ok(a) = rx.write().recv().await {
+            if let Ok(a) = rx.recv().await {
                 terminal.write().handle_actions(a.clone());
             }
         }
@@ -74,8 +82,9 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
             style: "{size_style.read()}",
             class: "terminal-split",
             class: if terminal.read().state.alt_screen { "alt-screen" },
-            id: "split-{tab.index}",
-            key: "split-{tab.index}",
+            id: "split-{pty}",
+            key: "split-{pty}",
+            hidden,
 
             if terminal.read().state.alt_screen {
                 CellGrid { terminal }
@@ -86,7 +95,7 @@ pub fn TerminalApp(tab: Tab, pty_system: Signal<PseudoTerminalSystem>, input: Si
             if terminal.read().state.show_cursor {
                 Cursor {
                     cursor_pos,
-                    index: tab.index,
+                    index: pty,
                 }
             }
         }

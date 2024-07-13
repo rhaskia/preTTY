@@ -1,9 +1,196 @@
 * {
     font-family: "JetBrainsMono Nerd Font";  
     overflow-x:hidden;
-    tab-index: -1;
 }
 
+select {
+    overflow: hidden;
+    border: 1px solid var(--fg4);
+    background: var(--bg0);
+    color: var(--fg0);
+    border-radius: 4px;
+}
+
+option {
+    padding-left: 16px;
+    background: var(--bg0);
+  accent-color: var(--fg0);
+  &::before {
+    content: ""; 
+    font-size: 16px;
+    left: -8px;
+    position: relative;
+  }
+}
+
+form {
+    overflow: visible;
+}
+
+.keybindings  {
+    overflow: visible;
+}
+
+option:selected {
+    background: var(--bg4);
+}
+
+fieldset[name=Config] {
+    border: none;
+    padding: 0;
+}
+
+button {
+    min-width: 30px;
+    border: 1px solid var(--bg4);
+    background: var(--bg0);
+    color: var(--fg0);
+    border-radius: 4px;
+}
+
+.keybutton {
+    margin: 5px;
+    padding-top: 0;
+    min-width: 40px;
+    height: 23px;
+    overflow: hidden;
+    border-radius: 0.25em;
+    border: 1px solid var(--bg4);
+    background: var(--bg0);
+    color: var(--fg0);
+    box-shadow: 0 2px 0 1px var(--fg2);
+    position: relative;
+    top: -1px;
+}
+
+input[type=checkbox] {
+    appearance: none;
+    background-color: var(--bg0);
+    border-radius: 2px !important;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: 0 !important;
+}
+
+input[type=checkbox]:checked {
+    appearance: revert;
+    accent-color: var(--fg4);
+}
+
+.keybutton:focus { 
+    box-shadow: 0 1px 0 0.5px var(--fg2);
+    top: 1px;
+}
+
+.savebar button {
+    margin: 4px;
+    margin-top: 0px;
+}
+
+option:checked {
+  background-color: var(--fg4); 
+  color: var(--bg0);
+  &::before {
+    content: ""; 
+  }
+}
+
+/* menu */
+.menu {
+    flex-grow: 1;
+    flex-direction: "column";
+    color: var(--white);
+    backdrop-filter: blur(7px);
+    display: flex;
+}
+
+.savebar {
+    overflow: hidden;
+    padding: 8px;
+    border-top: 1px solid var(--fg0);
+    height: 30px;
+}
+
+.menu h2 {
+    margin: 4px;
+    margin-right: 0;
+}
+
+#menuheader {
+    padding: 4px;
+    overflow: visible;
+    z-index: 101;
+}
+
+.menu input {
+    border-radius: 4px;
+    background: transparent;
+    color: #ffffff;
+    margin-left: 4px;
+    margin-bottom: 4px;
+    border: 1px var(--bg4) solid;
+}
+
+.formlist {
+    margin-left: 10px;
+}
+
+:focus-visible {
+    border: 1px #ffffff solid;
+    outline: none;
+}
+
+.menubar {
+    display: flex;
+    flex-direction: column;
+}
+
+.menucontent {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 4px;
+}
+
+.menuheader button {
+    background: #ffffff33;
+    border: none;
+    padding: none;
+    margin-left: auto;
+}
+
+.barbutton {
+    border: none;
+    padding: none;
+    background: none;
+    color: var(--fg);
+}
+
+.bardropdown {
+    width: auto;
+    height: auto;
+    background: var(--bg1);
+    position: absolute;
+    border-radius: 5px;
+    box-shadow: 0 0 8px 0 #00000055;
+    z-index: 15;
+    display: none;
+}
+
+.show {
+    display: block !important;
+}
+
+.bardropdown button {
+    background: none;
+    color: var(--fg);
+    display: block;
+    border: none;
+}
+
+.bardropdown button:hover {
+    background: #00000033
+}
 
 /* SPLIT STYLES */
 .terminal-split {
@@ -18,14 +205,53 @@
 
 .tabs {
     border-bottom: 1px solid var(--bg2);
+    min-height: 20px;
+    --tab-colour: var(--bg);
+    overflow-x: visible;
 }
 
-.tab:nth-child(2n) {
-    background: var(--bg1);
+.tab:hover {
+    --tab-colour: var(--bg0);
+}
+
+.tabtext {
+    text-overflow: clip;
+    max-width: 100px;
 }
 
 .tab {
-    background: var(--fg);
+    background: var(--tab-colour);
+    margin-right: 4px;
+    margin-left: 4px;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    overflow-x: visible;
+}
+
+.tab::before {
+    content: "";
+    position: absolute;
+    background-color: transparent;
+    width: 4px;
+    height: 4px;
+    left: -4px;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: 4px 4px 0 4px var(--tab-colour);
+    border-bottom-right-radius: 20px;
+}
+
+.tab::after {
+    content: "";
+    position: absolute;
+    background-color: transparent;
+    width: 4px;
+    height: 4px;
+    right: -4px;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: -4px 4px 0 4px var(--tab-colour);
+    border-bottom-left-radius: 20px;
 }
 
 /* COMMAND STYLES */
@@ -99,11 +325,10 @@ body {
 .app {
     overflow: hidden;
     display: flex;
-    flex-direction: row;
 }
 
 .app:focus {
-    outline: none;
+    border: none;
 }
 
 /* CURSOR STYLE */

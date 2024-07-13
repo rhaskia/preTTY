@@ -1,9 +1,14 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use strum_macros::{VariantNames, AsRefStr};
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, VariantNames, AsRefStr, Default)]
 pub enum TerminalAction {
+    #[default]
+    NoAction,
     NewTab,
     CloseTab,
+    CloseTabSpecific(usize),
     Write(String),
     Quit,
+    ToggleMenu,
 }

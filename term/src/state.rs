@@ -55,7 +55,7 @@ impl TerminalState {
 
     pub fn device_control(&mut self, device_command: DeviceControlMode) {
         match device_command {
-            DeviceControlMode::Enter(mode) => todo!(),
+            DeviceControlMode::Enter(_) => todo!(),
             DeviceControlMode::Exit => todo!(),
             DeviceControlMode::Data(_) => todo!(),
             DeviceControlMode::ShortDeviceControl(_) => todo!(),
@@ -71,19 +71,19 @@ impl TerminalState {
             ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
             SaveDecPrivateMode(pmode) => self.save_dec_private_mode(pmode),
             RestoreDecPrivateMode(pmode) => self.restore_dec_private_mode(pmode),
-            QueryDecPrivateMode(pmode) => todo!(),
+            QueryDecPrivateMode(pmode) => info!("Query Mode {:?}", pmode),
 
             SetMode(mode) => self.set_mode(mode, true),
             ResetMode(mode) => self.set_mode(mode, false),
             XtermKeyMode { resource, value } => self.set_key_mode(resource, value),
-            QueryMode(mode) => todo!(),
+            QueryMode(mode) => info!("Query Mode {:?}", mode),
         }
     }
 
     /// Switches dec private modes on or off
     /// Useful stuff like alt_screen, bracketed_paste etc
     pub fn set_dec_private_mode(&mut self, mode: DecPrivateMode, active: bool) {
-        info!("Set Dec Mode {mode:?} {active}");
+        //info!("Set Dec Mode {mode:?} {active}");
         let code = inner_mode!(mode);
 
         use termwiz::escape::csi::DecPrivateModeCode::*;
@@ -99,14 +99,14 @@ impl TerminalState {
     }
 
     pub fn save_dec_private_mode(&mut self, mode: DecPrivateMode) {
-        info!("Save Dec Mode {mode:?}");
+        //info!("Save Dec Mode {mode:?}");
         let code = inner_mode!(mode);
         self.dec_saves
             .insert(code.to_u16().unwrap(), self.dec_mode(code));
     }
 
     pub fn restore_dec_private_mode(&mut self, mode: DecPrivateMode) {
-        info!("Restore Dec Mode {mode:?}");
+        //info!("Restore Dec Mode {mode:?}");
         let code = inner_mode!(mode);
         self.dec_modes
             .insert(code.to_u16().unwrap(), self.dec_save(code));
