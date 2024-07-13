@@ -20,13 +20,13 @@ pub fn Menu(active: bool) -> Element {
             display: "flex",
             flex_direction: "column",
             id: "menu",
-            div { 
-              id: "menuheader", 
-              class: "menuheader",
-              h2 { "Settings" }, 
-            }
             div {
                 class: "menucontent",
+                div { 
+                  id: "menuheader", 
+                  class: "menuheader",
+                  h2 { "Settings" }, 
+                }
                 Form { value: config  }
                 Keybinds { keybinds }
             }

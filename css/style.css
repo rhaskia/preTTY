@@ -23,6 +23,14 @@ option {
   }
 }
 
+form {
+    overflow: visible;
+}
+
+.keybindings  {
+    overflow: visible;
+}
+
 option:selected {
     background: var(--bg4);
 }
@@ -95,7 +103,6 @@ option:checked {
     color: var(--white);
     backdrop-filter: blur(7px);
     display: flex;
-    height: calc(100% - 21px)
 }
 
 .savebar {
@@ -112,6 +119,7 @@ option:checked {
 
 #menuheader {
     padding: 4px;
+    overflow: visible;
     z-index: 101;
 }
 
@@ -141,7 +149,6 @@ option:checked {
 .menucontent {
     display: flex;
     flex-direction: column;
-    width: 100%;
     flex: 1;
     padding: 4px;
 }

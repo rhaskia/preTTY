@@ -52,7 +52,7 @@ pub fn App() -> Element {
                     tabs.write().remove(*current_tab.read());
                     // Maybe vector of last tabs open instead of decreasing tab number
                     // Also try trigger quit if only one tab left
-                    current_tab -= 1;
+                    if current_tab() != 1 {  current_tab -= 1; }
                 }
                 TerminalAction::Quit => use_window().close(),
                 TerminalAction::ToggleMenu => {

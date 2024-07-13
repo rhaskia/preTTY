@@ -9,7 +9,7 @@ use tokio::runtime::Runtime;
 
 pub struct PseudoTerminalSystem {
     pub pty_system: Box<dyn PtySystem + Send>,
-    pub ptys: Vec<PseudoTerminal>
+    pub ptys: Vec<PseudoTerminal> // Hashmap?
 }
 
 pub struct PseudoTerminal {
