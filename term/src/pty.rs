@@ -3,8 +3,8 @@ use std::io::{Read, Write};
 use std::ops::Deref;
 use std::thread::{self, JoinHandle};
 
-use async_channel::Sender;
-use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
+use async_channel::{Sender, Receiver};
+use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem, MasterPty};
 use rand::Rng;
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
@@ -18,7 +18,6 @@ pub struct PseudoTerminal {
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
     pub writer: Box<dyn Write + Send>,
-    pub reader: Box<dyn Read + Send>,
 }
 
 impl PseudoTerminalSystem {
@@ -49,7 +48,12 @@ impl PseudoTerminalSystem {
         // Read and parse output from the pty with reader
         let master = &pair.master;
         let writer = master.take_writer().unwrap();
-        let reader = master.try_clone_reader().unwrap();
+        // let reader = master.try_clone_reader().unwrap();
+        //
+        // let (tx, rx) = async_channel::unbounded();
+        // let _reader_thread = thread::spawn(move || {
+        //     parse_terminal_output(tx, reader);
+        // });
 
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
@@ -61,7 +65,6 @@ impl PseudoTerminalSystem {
                 pair,
                 child,
                 writer,
-                reader,
             },
         );
 
@@ -127,24 +130,24 @@ impl PseudoTerminal {
         (rows, cols)
     }
 
-    pub fn read_all(&mut self) -> Option<Vec<Action>> {
-        let mut buffer = [0u8; 1024]; // Buffer to hold a single character
-
-        let mut parser = termwiz::escape::parser::Parser::new();
-        let rt = Runtime::new().unwrap();
-
-        match self.reader.read(&mut buffer) {
-            Ok(0) => None,
-            Ok(n) => Some(parser.parse_as_vec(&buffer[..n])),
-            Err(err) => {
-                eprintln!("Error reading from Read object: {}", err);
-                None
-            }
-        }
-    }
-
     /// Writes input directly into the pty
     pub fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
 }
 
-pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {}
+pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {
+    let mut buffer = [0u8; 1024]; // Buffer to hold a single character
+
+    let mut parser = termwiz::escape::parser::Parser::new();
+    let rt = Runtime::new().unwrap();
+
+    loop {
+        match reader.read(&mut buffer) {
+            Ok(0) => {},
+            Ok(n) => rt.block_on(async { tx.send(parser.parse_as_vec(&buffer[..n])).await; }),
+            Err(err) => {
+                eprintln!("Error reading from Read object: {}", err);
+                break;
+            }
+        }
+    }
+}

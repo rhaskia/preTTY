@@ -66,10 +66,9 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
             button {
                 class: "barbutton",
                 onclick: move |_| {
-                    // let index = tabs.len();
-                    // tabs.write().push(Tab::new(index, pty_system.read().len()));
-                    // current_tab.set(index);
-                    // TODO trigger new tab
+                    let id = pty_system.write().spawn_new().unwrap();
+                    tabs.write().push(Tab::new(current_tab + 1, id));
+                    current_tab.set(tabs.read().len() - 1);
                 },
                 ""
             } 

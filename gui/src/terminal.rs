@@ -16,6 +16,7 @@ use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
 use super::InputManager;
 use log::info;
+use std::thread;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -59,8 +60,13 @@ pub fn TerminalApp(pty: String, pty_system: Signal<PseudoTerminalSystem>, input:
 
     // ANSI code handler
     use_future(move || async move {
+        let reader = pty_system.write().get(&pty()).pair.master.try_clone_reader().unwrap();
+        let (tx, rx) = async_channel::unbounded();
+        let _reader_thread = thread::spawn(move || {
+            pretty_term::pty::parse_terminal_output(tx, reader);
+        });
         loop {
-            if let Some(a) = pty_system.write().get(&pty()).read_all() {
+            if let Ok(a) = rx.recv().await {
                 terminal.write().handle_actions(a.clone());
             }
         }
