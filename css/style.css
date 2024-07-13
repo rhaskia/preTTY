@@ -97,7 +97,6 @@ option:checked {
 
 /* menu */
 .menu {
-    position: absolute;
     flex-grow: 1;
     flex-direction: "column";
     color: var(--white);
@@ -321,7 +320,6 @@ body {
 .app {
     overflow: hidden;
     display: flex;
-    flex-direction: row;
 }
 
 .app:focus {

@@ -1,22 +1,24 @@
+use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::ops::Deref;
 use std::thread::{self, JoinHandle};
 
 use async_channel::Sender;
 use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem};
+use rand::Rng;
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
 
 pub struct PseudoTerminalSystem {
     pub pty_system: Box<dyn PtySystem + Send>,
-    pub ptys: Vec<PseudoTerminal> // Hashmap?
+    pub ptys: HashMap<String, PseudoTerminal>, // Hashmap?
 }
 
 pub struct PseudoTerminal {
     pub pair: PtyPair,
     pub child: Box<dyn Child + Sync + Send>,
     pub writer: Box<dyn Write + Send>,
-    _reader_thread: JoinHandle<()>,
+    pub reader: Box<dyn Read + Send>,
 }
 
 impl PseudoTerminalSystem {
@@ -24,16 +26,14 @@ impl PseudoTerminalSystem {
     pub fn setup() -> PseudoTerminalSystem {
         PseudoTerminalSystem {
             pty_system: native_pty_system(),
-            ptys: Vec::new(),
+            ptys: HashMap::new(),
         }
     }
 
-    pub fn len(&self) -> usize {
-        self.ptys.len()
-    }
+    pub fn len(&self) -> usize { self.ptys.len() }
 
     /// Requires a sender to pull data out of it
-    pub fn spawn_new(&mut self, tx: Sender<Vec<Action>>) -> anyhow::Result<usize> {
+    pub fn spawn_new(&mut self) -> anyhow::Result<String> {
         // Create a new pty
         let pair = self.pty_system.openpty(PtySize {
             rows: 24,
@@ -51,21 +51,21 @@ impl PseudoTerminalSystem {
         let writer = master.take_writer().unwrap();
         let reader = master.try_clone_reader().unwrap();
 
-        let _reader_thread = thread::spawn(move || {
-            parse_terminal_output(tx, reader);
-        });
-
         // Pretty much everything needs to be kept in the struct,
         // else drop gets called on the terminal, causing the
         // program to hang on windows
-        self.ptys.push(PseudoTerminal {
-            pair,
-            child,
-            writer,
-            _reader_thread,
-        });
+        let id = generate_id();
+        self.ptys.insert(
+            id.clone(),
+            PseudoTerminal {
+                pair,
+                child,
+                writer,
+                reader,
+            },
+        );
 
-        Ok(self.ptys.len() - 1)
+        Ok(id)
     }
 
     /// Default shell as per ENV vars or whatever is default for the platform
@@ -79,14 +79,27 @@ impl PseudoTerminalSystem {
             }
         }
     }
+
+    pub fn sleep_pty() {}
+
+    pub fn kill_pty(index: usize) {}
+
+    pub fn get(&mut self, pty: &String) -> &mut PseudoTerminal {
+        self.ptys.get_mut(pty).unwrap()
+    }
+}
+
+fn generate_id() -> String {
+    let mut rng = rand::thread_rng();
+    let mut id_bytes: [u8; 16] = [0; 16]; // Array to hold 16 bytes (128 bits)
+    rng.fill(&mut id_bytes); // Fill the array with random bytes
+    return format!("{:x?}", id_bytes); // Convert bytes to hex string for easier display
 }
 
 impl Deref for PseudoTerminalSystem {
-    type Target = Vec<PseudoTerminal>;
+    type Target = HashMap<String, PseudoTerminal>;
 
-    fn deref(&self) -> &Self::Target {
-        &self.ptys
-    }
+    fn deref(&self) -> &Self::Target { &self.ptys }
 }
 
 impl PseudoTerminal {
@@ -114,28 +127,24 @@ impl PseudoTerminal {
         (rows, cols)
     }
 
+    pub fn read_all(&mut self) -> Option<Vec<Action>> {
+        let mut buffer = [0u8; 1024]; // Buffer to hold a single character
+
+        let mut parser = termwiz::escape::parser::Parser::new();
+        let rt = Runtime::new().unwrap();
+
+        match self.reader.read(&mut buffer) {
+            Ok(0) => None,
+            Ok(n) => Some(parser.parse_as_vec(&buffer[..n])),
+            Err(err) => {
+                eprintln!("Error reading from Read object: {}", err);
+                None
+            }
+        }
+    }
+
     /// Writes input directly into the pty
     pub fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
 }
 
-pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {
-    let mut buffer = [0u8; 1024]; // Buffer to hold a single character
-
-    let mut parser = termwiz::escape::parser::Parser::new();
-    let rt = Runtime::new().unwrap();
-
-    loop {
-        match reader.read(&mut buffer) {
-            Ok(0) => {}
-            Ok(n) => {
-                let actions = parser.parse_as_vec(&buffer[..n]);
-                rt.block_on(async { tx.send(actions.clone()).await })
-                    .unwrap();
-            }
-            Err(err) => {
-                eprintln!("Error reading from Read object: {}", err);
-                break;
-            }
-        }
-    }
-}
+pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {}

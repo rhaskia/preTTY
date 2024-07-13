@@ -28,7 +28,7 @@ pub fn App() -> Element {
     let input = use_signal(|| InputManager::new());
     let mut pty_system = use_signal(|| PseudoTerminalSystem::setup());
     let mut current_tab = use_signal(|| 0);
-    let mut tabs = use_signal(|| vec![Tab::new(0, 0)]);
+    let mut tabs = use_signal(|| vec![Tab::new(0, pty_system.write().spawn_new().unwrap())]);
 
     rsx! {
         div {
@@ -41,11 +41,12 @@ pub fn App() -> Element {
                 TerminalAction::Write(s) => {
                     let tab = &tabs()[*current_tab.read()];
                     if tab.settings { return }
-                    pty_system.write().ptys[tab.pty as usize].write(s);
+                    pty_system.write().get(&tab.pty).write(s);
                 }
                 TerminalAction::NewTab => {
-                    tabs.write().push(Tab::new(current_tab + 1, pty_system.read().len()));
-                    current_tab += 1;
+                    let id = pty_system.write().spawn_new().unwrap();
+                    tabs.write().push(Tab::new(current_tab + 1, id));
+                    current_tab.set(tabs.read().len() - 1);
                 }
                 // TODO pty removal
                 TerminalAction::CloseTab => {
@@ -69,21 +70,20 @@ pub fn App() -> Element {
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
+            // div {
+            //     display: "flex",
+            //     flex_direction: "column",
+            //     width: "100%",
+            //     height: "100%",
+            if CONFIG.read().show_tabs { Tabs { tabs, input, pty_system, current_tab } }
             div {
                 display: "flex",
-                flex_direction: "column",
-                width: "100%",
-                height: "100%",
-                if CONFIG.read().show_tabs { Tabs { tabs, input, pty_system, current_tab } }
-                div {
-                    display: "flex",
-                    flex_grow: 1,
-                    for tab in tabs().into_iter() {
-                        if tab.settings {
-                            Menu { active: tab.index == current_tab() }
-                        } else {
-                            TerminalApp { pty_system, input, hidden: tab.index != current_tab(), pty_no: tab.pty as usize }
-                        }
+                flex_grow: 1,
+                for tab in tabs().into_iter() {
+                    if tab.settings {
+                        Menu { active: tab.index == current_tab() }
+                    } else {
+                        TerminalApp { pty_system, input, hidden: tab.index != current_tab(), pty: tab.pty }
                     }
                 }
             }

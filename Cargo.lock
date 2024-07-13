@@ -3321,6 +3321,7 @@ dependencies = [
  "log",
  "num-traits",
  "portable-pty",
+ "rand 0.8.5",
  "termwiz",
  "tokio",
 ]

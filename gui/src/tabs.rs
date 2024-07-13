@@ -8,16 +8,16 @@ pub struct Tab {
     pub index: usize, 
     pub name: String,
     pub settings: bool,
-    pub pty: isize,
+    pub pty: String,
 }
 
 impl Tab {
-    pub fn new(idx: usize, pty: usize) -> Self {
+    pub fn new(idx: usize, pty: String) -> Self {
         Tab {
             index: idx,
             name: format!("terminal {idx}"),
             settings: false,
-            pty: pty as isize,
+            pty,
         }
     }
 }
@@ -66,9 +66,10 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
             button {
                 class: "barbutton",
                 onclick: move |_| {
-                    let index = tabs.len();
-                    tabs.write().push(Tab::new(index, pty_system.read().len()));
-                    current_tab.set(index);
+                    // let index = tabs.len();
+                    // tabs.write().push(Tab::new(index, pty_system.read().len()));
+                    // current_tab.set(index);
+                    // TODO trigger new tab
                 },
                 ""
             } 
@@ -95,7 +96,7 @@ pub fn Tabs(tabs: Signal<Vec<Tab>>, input: Signal<InputManager>, current_tab: Si
                         button { 
                             onclick: move |_| {
                                 let index = tabs.len();
-                                tabs.write().push(Tab { index, name: "Settings".to_string(), settings: true, pty: -1 });
+                                tabs.write().push(Tab { index, name: "Settings".to_string(), settings: true, pty: String::new() });
                                 current_tab.set(index);
                             },  
                             "Settings" 
