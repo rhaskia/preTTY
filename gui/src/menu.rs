@@ -6,27 +6,11 @@ use crate::{KEYBINDS, CONFIG};
 use serde::{Serialize, Deserialize};
 use dioxus_form::Form;
 
-#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
-struct Example {
-    pub amount: i64,
-    pub name: String,
-    pub keybinds: Vec<i64>,
-    pub nested: Example2,
-    pub b: bool,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
-struct Example2 {
-    pub amount: bool,
-    pub name: String,
-}
-
 #[component]
 pub fn Menu(active: bool) -> Element {
     // Temporary config
     let mut config = use_signal(|| CONFIG.cloned());
     let keybinds = use_signal(|| KEYBINDS().clone());
-    let value = use_signal(|| Example {amount:56,name:"hello".to_string(),keybinds:vec![2,3,4,56],nested:Example2{amount:true,name:"john".to_string()}, b: false });
 
     rsx! {
         div {
@@ -60,6 +44,7 @@ pub fn Menu(active: bool) -> Element {
                     "Save Config"
                 }
                 button {
+                    // TODO open config folder
                     "Open Config Folder"
                 }
                 button {

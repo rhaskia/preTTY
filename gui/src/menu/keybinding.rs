@@ -62,12 +62,27 @@ pub fn Keybind(keybinds: Signal<Vec<Keybinding>>, index: usize) -> Element {
                 size: "1",
                 id: "select-multiple",
                 name: "modifiers[{index}]",
-                onchange: |e| println!("{e:?}"),
+                onchange: move |e| keybinds.write()[index].modifiers = to_mod(e.data().value()),
                 for (m, name) in modifiers {
-                    option { value: "{m.bits()}", display: "table-cell", "{name}" }
+                    option { 
+                        value: "{m.bits()}",  
+                        selected: keybinds.read()[index].modifiers.contains(m),
+                        display: "table-cell", 
+                        "{name}"
+                    }
                 }
             }
             br {}
         }
     }
+}
+
+pub fn to_mod(s: String) -> Modifiers {
+    let split = s.split(',');
+    let mut m = Modifiers::empty();
+    for n in split {
+        let parsed = n.parse::<u32>().unwrap();
+        m.insert(Modifiers::from_bits(parsed).unwrap());
+    }
+    m
 }

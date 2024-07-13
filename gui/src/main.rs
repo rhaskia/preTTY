@@ -74,7 +74,7 @@ pub fn App() -> Element {
                 flex_direction: "column",
                 width: "100%",
                 height: "100%",
-                Tabs { tabs, input, pty_system, current_tab }
+                if CONFIG.read().show_tabs { Tabs { tabs, input, pty_system, current_tab } }
                 div {
                     display: "flex",
                     flex_grow: 1,

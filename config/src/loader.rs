@@ -58,8 +58,11 @@ pub fn save_keybinds(keybinds: Vec<Keybinding>) {
         .collect::<Vec<RawKeybinding>>();
 
     let wrapper = RawKeybinds { keybinds: raw };
-    let path = dirs::config_dir().unwrap().join("prettyterm");
-    let file = toml::to_string(&wrapper).unwrap();
     confy::store("prettyterm", Some("keybinds"), wrapper).unwrap();
     println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("keybinds")).unwrap());
+}
+
+pub fn save_config(config: Config) {
+    confy::store("prettyterm", Some("config"), config).unwrap();
+    println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("config")).unwrap());
 }

@@ -935,6 +935,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dioxus-form"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "proc-macro2",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "dioxus-fullstack"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1078,15 +1088,6 @@ dependencies = [
  "parking_lot",
  "rustc-hash",
  "tracing",
-]
-
-[[package]]
-name = "dioxus_form"
-version = "0.1.0"
-dependencies = [
- "dioxus",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -3342,7 +3343,7 @@ dependencies = [
  "async-channel",
  "config",
  "dioxus",
- "dioxus_form",
+ "dioxus-form",
  "fern",
  "futures",
  "log",

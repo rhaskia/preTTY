@@ -25,4 +25,4 @@ pretty_hooks = { workspace = true }
 anyhow = { workspace = true }
 dioxus = { workspace = true }
 async-channel = { workspace = true }
-dioxus_form = { workspace = true }
+dioxus-form = { workspace = true }
