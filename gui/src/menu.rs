@@ -1,4 +1,5 @@
 mod settings;
+pub mod palette;
 mod keybinding;
 use keybinding::Keybinds;
 use dioxus::prelude::*;

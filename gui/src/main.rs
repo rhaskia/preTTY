@@ -17,6 +17,7 @@ use input::InputManager;
 use menu::Menu;
 use pretty_term::pty::PseudoTerminalSystem;
 use tabs::Tabs;
+use menu::palette::CommandPalette;
 use terminal::TerminalApp;
 
 use crate::tabs::Tab;
@@ -24,8 +25,9 @@ use crate::tabs::Tab;
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
 pub static CURRENT_TAB: GlobalSignal<usize> = Signal::global(|| 0);
-pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
 pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_new())]);
+pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
+pub static COMMAND_PALETTE: GlobalSignal<bool> = Signal::global(|| false);
 
 pub fn spawn_new() -> String {
     let mut command = None;
@@ -89,6 +91,7 @@ pub fn App() -> Element {
             script { src: "/js/waitfor.js" }
 
             if CONFIG.read().show_tabs { Tabs { input } }
+            if COMMAND_PALETTE() { CommandPalette {} }
 
             div {
                 display: "flex",

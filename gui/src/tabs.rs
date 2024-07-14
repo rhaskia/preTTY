@@ -89,7 +89,10 @@ pub fn Tabs(input: Signal<InputManager>) -> Element {
                             onclick: move |_| handle_action(TerminalAction::ToggleMenu),  
                             "Settings" 
                         }
-                        button { "Command Palette" }
+                        button { 
+                            onclick: move |_| *crate::COMMAND_PALETTE.write() = true,
+                            "Command Palette"
+                        }
                         button { "Help" }
                     }
                 }
