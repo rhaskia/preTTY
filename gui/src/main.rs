@@ -75,17 +75,19 @@ pub fn App() -> Element {
     let input = use_signal(|| InputManager::new());
 
     rsx! {
+        style {{ include_str!("../../css/style.css") }}
+        style {{ include_str!("../../css/gruvbox.css") }}
+        style {{ include_str!("../../css/palette.css") }}
+
         div {
             id: "app",
             class: "app",
             autofocus: true,
             tabindex: 0,
 
-            onkeydown: move |e| handle_action(input.read().handle_keypress(&e)),
-
-            style {{ include_str!("../../css/style.css") }}
-            style {{ include_str!("../../css/gruvbox.css") }}
-            style {{ include_str!("../../css/palette.css") }}
+            onkeydown: move |e| if !COMMAND_PALETTE() {
+                handle_action(input.read().handle_keypress(&e)); 
+            },
 
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }

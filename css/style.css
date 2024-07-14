@@ -12,6 +12,8 @@
     background: var(--bg0);
     border-radius: 6px;
     box-shadow: 0 2px 2px 2px #00000033;
+    top: 25px;
+    left: calc(50vw - 200px);
 }
 
 select {
