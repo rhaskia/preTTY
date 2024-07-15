@@ -61,11 +61,12 @@ pub fn handle_action(action: TerminalAction) {
             if TABS.read().len() == 0 { use_window().close(); }
         }
         TerminalAction::Quit => use_window().close(),
-        TerminalAction::ToggleMenu => {
+        TerminalAction::OpenSettings => {
             let index = TABS.len();
             TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
             *CURRENT_TAB.write() = index;
         }
+        TerminalAction::ToggleCommandPalette => *COMMAND_PALETTE.write() = !COMMAND_PALETTE(),
         TerminalAction::NoAction => {}
     }
 }

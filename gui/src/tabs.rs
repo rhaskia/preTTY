@@ -86,7 +86,7 @@ pub fn Tabs(input: Signal<InputManager>) -> Element {
                         // More shells (generated likely)
                         hr {}
                         button { 
-                            onclick: move |_| handle_action(TerminalAction::ToggleMenu),  
+                            onclick: move |_| handle_action(TerminalAction::OpenSettings),  
                             "Settings" 
                         }
                         button { 
