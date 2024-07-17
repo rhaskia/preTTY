@@ -1,5 +1,6 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
+#![feature(inline_const)]
 
 // crate imports
 mod header;

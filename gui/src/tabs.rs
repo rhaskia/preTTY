@@ -25,7 +25,7 @@ impl Tab {
 }
 
 #[component] 
-pub fn Tab(tab: Tab, n: usize) -> Element {
+pub fn TabButton(tab: Tab, n: usize) -> Element {
     rsx!{
         span { 
             class: "tab",
@@ -62,7 +62,7 @@ pub fn Tabs(input: Signal<InputManager>) -> Element {
             display: "flex",
             font_size: "14px",
             for (n, tab) in TABS.read().iter().enumerate() {
-                Tab { tab: tab.clone(), n }
+                TabButton { tab: tab.clone(), n }
             }
             button {
                 class: "barbutton",
