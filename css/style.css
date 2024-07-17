@@ -25,7 +25,7 @@ select {
     border-radius: 4px;
 }
 
-option {
+.menu option {
     padding-left: 16px;
     background: var(--bg0);
   accent-color: var(--fg0);
@@ -45,7 +45,7 @@ form {
     overflow: visible;
 }
 
-option:selected {
+.menu option:selected {
     background: var(--bg4);
 }
 
@@ -127,7 +127,7 @@ input[type=checkbox]:checked {
     margin-top: 0px;
 }
 
-option:checked {
+.menu option:checked {
   background-color: var(--fg4); 
   color: var(--bg0);
   &::before {

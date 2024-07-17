@@ -18,9 +18,10 @@ pub fn CommandPalette() -> Element {
             .filter(|c| c.readable().to_lowercase().starts_with(&search().to_lowercase()))
             .collect::<Vec<TerminalAction>>()
     });
-    let mut selected = use_signal(|| 0);
+    let mut raw_selected = use_signal(|| 0.0);
+    let mut selected = use_memo(move || raw_selected() as usize);
 
-    use_future(|| async {
+    use_future(move || async move {
         wait_for_next_render().await;
 
         let mut clickoff = eval(
@@ -34,12 +35,13 @@ pub fn CommandPalette() -> Element {
         "#,
         );
 
+        //*raw_selected.write() = (matches().len()) as f64;
+
         loop {
             clickoff.recv().await;
             handle_action(TerminalAction::ToggleCommandPalette);
         }
     });
-
 
     rsx! {
         div {
@@ -49,30 +51,30 @@ pub fn CommandPalette() -> Element {
                 class: "commandsearch",
                 oninput: move |event| search.set(event.value()),
                 onkeydown: move |e| match e.key() {
-                    Key::ArrowUp if selected() != 0 => selected -= 1,
-                    Key::ArrowUp => *selected.write() = matches.read().len() - 1,
-                    Key::ArrowDown if selected() != matches.read().len() - 1 => selected += 1,
-                    Key::ArrowDown => *selected.write() = 0,
+                    Key::ArrowUp if selected() != 0 => raw_selected -= 1.0,
+                    Key::ArrowUp => *raw_selected.write() = matches.read().len() as f64 - 1.0,
+                    Key::ArrowDown if selected() != matches.read().len() - 1 => raw_selected += 1.0,
+                    Key::ArrowDown => *raw_selected.write() = 0.0,
                     Key::Enter => {
                         handle_action(matches.read()[selected()].clone());
-                        println!("Called action: {}", matches.read()[selected()].clone());
                         *COMMAND_PALETTE.write() = false;
                     }
                     _ => {}
                 }
             }
-            div {
+            select {
                 class: "searchresults",
                 id: "searchresults",
+                size: 999,
+                value: raw_selected,
                 for (i, result) in matches().into_iter().enumerate() {
-                    div {
+                    option {
                         class: "searchresult",
-                        class: if selected() == i { "selected" },
-                        // onmounted: move |_| if selected() == i { 
-                        //     eval(r#"
-                        //          document.getElementsByClassName("selected")[0].scrollIntoViewIfNeeded()
-                        //     "#);
-                        // },
+                        value: i as f64,
+                        onclick: move |_| {
+                            handle_action(matches.read()[i].clone());
+                            *COMMAND_PALETTE.write() = false;
+                        },
                         "{result}"
                     }
                 }
