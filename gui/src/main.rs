@@ -68,7 +68,19 @@ pub fn handle_action(action: TerminalAction) {
             *CURRENT_TAB.write() = index;
         }
         TerminalAction::ToggleCommandPalette => *COMMAND_PALETTE.write() = !COMMAND_PALETTE(),
+        TerminalAction::PasteText => todo!(),
+        TerminalAction::CopyText => todo!(),
+        TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
+        TerminalAction::NextTab => *CURRENT_TAB.write() += 1,
+        TerminalAction::PreviousTab => todo!(),
+        TerminalAction::CloseOtherTabs => todo!(),
         TerminalAction::NoAction => {}
+        TerminalAction::ScrollUp => todo!(),
+        TerminalAction::ScrollUpPage => todo!(),
+        TerminalAction::ScrollDown => todo!(),
+        TerminalAction::ScrollDownPage => todo!(),
+        TerminalAction::ScrollToBottom => todo!(),
+        TerminalAction::ScrollToTop => todo!(),
     }
 }
 

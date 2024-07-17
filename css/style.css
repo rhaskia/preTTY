@@ -67,6 +67,11 @@ button {
     height: 25px;
 }
 
+.searchresults {
+    max-height: 70vh;
+    scroll-behavior: smooth;
+}
+
 .searchresult {
     width: calc(100% - 16px);
     height: 30px;
@@ -76,7 +81,7 @@ button {
     flex-direction: column;
     padding-left: 16px;
     border-radius: 2px;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .searchresult.selected {

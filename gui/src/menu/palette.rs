@@ -40,6 +40,7 @@ pub fn CommandPalette() -> Element {
         }
     });
 
+
     rsx! {
         div {
             class: "commandpalette",
@@ -61,12 +62,18 @@ pub fn CommandPalette() -> Element {
                 }
             }
             div {
-                class: "results",
+                class: "searchresults",
+                id: "searchresults",
                 for (i, result) in matches().into_iter().enumerate() {
                     div {
                         class: "searchresult",
                         class: if selected() == i { "selected" },
-                        "{result}",
+                        // onmounted: move |_| if selected() == i { 
+                        //     eval(r#"
+                        //          document.getElementsByClassName("selected")[0].scrollIntoViewIfNeeded()
+                        //     "#);
+                        // },
+                        "{result}"
                     }
                 }
             }

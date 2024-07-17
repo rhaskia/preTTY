@@ -1,24 +1,64 @@
-use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+
+use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, VariantNames};
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, VariantNames, AsRefStr, Default)]
 pub enum TerminalAction {
     #[default]
     NoAction,
-    NewTab,
-    CloseTab,
     CloseTabSpecific(usize),
     Write(String),
+
     OpenSettings,
     ToggleCommandPalette,
+
+    PasteText,
+    CopyText,
+    ClearBuffer,
+
+    NewTab,
+    CloseTab,
+    NextTab,
+    PreviousTab,
+    CloseOtherTabs,
+
     Quit,
+
+    ScrollUp,
+    ScrollUpPage,
+    ScrollDown,
+    ScrollDownPage,
+    ScrollToBottom,
+    ScrollToTop,
 }
 
 impl TerminalAction {
     pub fn palette_usable() -> Vec<TerminalAction> {
         use TerminalAction::*;
-        vec![NewTab, CloseTab, Quit, OpenSettings]
+        vec![
+            OpenSettings,
+            ToggleCommandPalette,
+
+            PasteText,
+            CopyText,
+            ClearBuffer,
+
+            NewTab,
+            CloseTab,
+            NextTab,
+            PreviousTab,
+            CloseOtherTabs,
+
+            Quit,
+
+            ScrollUp,
+            ScrollUpPage,
+            ScrollDown,
+            ScrollDownPage,
+            ScrollToBottom,
+            ScrollToTop,
+        ]
     }
 
     // Produces a human readable version of the variant name
