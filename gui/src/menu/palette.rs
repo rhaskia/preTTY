@@ -35,11 +35,9 @@ pub fn CommandPalette() -> Element {
         "#,
         );
 
-        //*raw_selected.write() = (matches().len()) as f64;
-
         loop {
             clickoff.recv().await;
-            handle_action(TerminalAction::ToggleCommandPalette);
+            //if COMMAND_PALETTE() { handle_action(TerminalAction::ToggleCommandPalette); }
         }
     });
 
@@ -47,6 +45,7 @@ pub fn CommandPalette() -> Element {
         div {
             class: "commandpalette",
             id: "commandpalette",
+            hidden: !COMMAND_PALETTE(),
             input {
                 class: "commandsearch",
                 oninput: move |event| search.set(event.value()),
@@ -67,6 +66,7 @@ pub fn CommandPalette() -> Element {
                 id: "searchresults",
                 size: 999,
                 value: raw_selected,
+                onmounted: |_| eval("document.getElementById('searchresults').value = 0;"),
                 for (i, result) in matches().into_iter().enumerate() {
                     option {
                         class: "searchresult",

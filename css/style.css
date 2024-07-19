@@ -69,6 +69,7 @@ button {
 
 .searchresults {
     max-height: 70vh;
+    width: 100%;
     scroll-behavior: smooth;
 }
 

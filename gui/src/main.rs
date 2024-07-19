@@ -107,7 +107,7 @@ pub fn App() -> Element {
             script { src: "/js/waitfor.js" }
 
             if CONFIG.read().show_tabs { Tabs { input } }
-            if COMMAND_PALETTE() { CommandPalette {} }
+            CommandPalette {}
 
             div {
                 display: "flex",
