@@ -937,9 +937,10 @@ dependencies = [
 [[package]]
 name = "dioxus-form"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a0990913d0034cdd87813fc8ab707e275f91fd8a060a2bc85ab6c90683cdd6f"
 dependencies = [
  "dioxus",
- "proc-macro2",
  "serde",
  "serde_json",
 ]

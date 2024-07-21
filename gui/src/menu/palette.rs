@@ -66,7 +66,7 @@ pub fn CommandPalette() -> Element {
                 id: "searchresults",
                 size: 999,
                 value: raw_selected,
-                onmounted: |_| eval("document.getElementById('searchresults').value = 0;"),
+                onmounted: |_| { eval("document.getElementById('searchresults').value = 0;"); },
                 for (i, result) in matches().into_iter().enumerate() {
                     option {
                         class: "searchresult",
