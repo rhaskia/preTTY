@@ -32,7 +32,7 @@ impl PseudoTerminalSystem {
     pub fn len(&self) -> usize { self.ptys.len() }
 
     /// Requires a sender to pull data out of it
-    pub fn spawn_new(&mut self, startup_command: Option<String>) -> anyhow::Result<String> {
+    pub fn spawn_new(&mut self, mut startup_command: Option<String>) -> anyhow::Result<String> {
         // Create a new pty
         let pair = self.pty_system.openpty(PtySize {
             rows: 24,
@@ -42,7 +42,16 @@ impl PseudoTerminalSystem {
         })?;
 
         // Spawn a shell into the pty
-        let cmd = CommandBuilder::new(startup_command.unwrap_or(Self::default_shell()));
+        if let Some(ref c) = startup_command {
+            if c.is_empty() {
+                startup_command = None;
+            }
+        }
+
+        let shell = startup_command.unwrap_or(Self::default_shell());
+        log::info!("Opening shell {:?}", shell);
+
+        let cmd = CommandBuilder::new(shell);
         let child = pair.slave.spawn_command(cmd)?;
 
         // Read and parse output from the pty with reader

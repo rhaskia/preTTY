@@ -45,7 +45,7 @@ form {
     overflow: visible;
 }
 
-.menu option:selected {
+.menu option:checked {
     background: var(--bg4);
 }
 
@@ -71,6 +71,11 @@ button {
     max-height: 70vh;
     width: 100%;
     scroll-behavior: smooth;
+    border: none;
+}
+
+.searchresults:focus-visible {
+    border: none;
 }
 
 .searchresult {
@@ -85,7 +90,7 @@ button {
     font-size: 14px;
 }
 
-.searchresult.selected {
+.searchresult:checked {
     background: var(--bg3);
 }
 
