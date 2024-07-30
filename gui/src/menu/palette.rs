@@ -18,8 +18,11 @@ pub fn CommandPalette() -> Element {
             .filter(|c| c.readable().to_lowercase().starts_with(&search().to_lowercase()))
             .collect::<Vec<TerminalAction>>()
     });
-    let mut raw_selected = use_signal(|| 0.0);
+    let mut raw_selected = use_signal(|| 0.0f64);
     let mut selected = use_memo(move || raw_selected() as usize);
+    use_effect(move || if raw_selected() >= matches.read().len() as f64 {
+        *raw_selected.write() = (matches.read().len() - 1) as f64;
+    });
 
     use_future(move || async move {
         wait_for_next_render().await;
@@ -28,7 +31,7 @@ pub fn CommandPalette() -> Element {
             r#"
             document.addEventListener('click', function(event) {
                 const divElement = document.getElementById('commandpalette');
-                if (divElement && !divElement.contains(event.target)) {
+                if (!divElement.hidden && !divElement.contains(event.target)) {
                     dioxus.send({});
                 }
             });
@@ -36,8 +39,8 @@ pub fn CommandPalette() -> Element {
         );
 
         loop {
-            clickoff.recv().await;
-            //if COMMAND_PALETTE() { handle_action(TerminalAction::ToggleCommandPalette); }
+            clickoff.recv().await.ok();
+            if COMMAND_PALETTE() { handle_action(TerminalAction::ToggleCommandPalette); }
         }
     });
 
