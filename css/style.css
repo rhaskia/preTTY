@@ -1,6 +1,20 @@
 * {
-    font-family: "JetBrainsMono Nerd Font";  
-    overflow-x:hidden;
+    font-family: "JetBrainsMono Nerd Font";
+    overflow-x: hidden;
+}
+
+.commandpalette {
+    width: 400px;
+    max-width: 90%;
+    position: absolute;
+    z-index: 100;
+    min-height: 40px;
+    background: var(--bg0);
+    border-radius: 6px;
+    box-shadow: 0 2px 2px 2px #00000033;
+    top: 25px;
+    left: calc(50vw - 200px);
+    padding: 8px;
 }
 
 select {
@@ -11,27 +25,28 @@ select {
     border-radius: 4px;
 }
 
-option {
+.menu option {
     padding-left: 16px;
     background: var(--bg0);
-  accent-color: var(--fg0);
-  &::before {
-    content: ""; 
-    font-size: 16px;
-    left: -8px;
-    position: relative;
-  }
+    accent-color: var(--fg0);
+
+    &::before {
+        content: "";
+        font-size: 16px;
+        left: -8px;
+        position: relative;
+    }
 }
 
 form {
     overflow: visible;
 }
 
-.keybindings  {
+.keybindings {
     overflow: visible;
 }
 
-option:selected {
+.menu option:checked {
     background: var(--bg4);
 }
 
@@ -46,6 +61,59 @@ button {
     background: var(--bg0);
     color: var(--fg0);
     border-radius: 4px;
+}
+
+.commandsearch {
+    width: calc(100% - 16px);
+    height: 25px;
+}
+
+.searchresults {
+    max-height: 70vh;
+    width: 100%;
+    scroll-behavior: smooth;
+    border: none;
+    overflow: scroll;
+    overflow-x: hidden;
+}
+
+.searchresults:focus-visible {
+    border: none;
+}
+
+.searchresult {
+    width: calc(100% - 22px);
+    height: 30px;
+    color: var(--fg0);
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    padding-left: 16px;
+    border-radius: 2px;
+    font-size: 14px;
+}
+
+.searchresult:checked {
+    background: var(--bg3);
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg3);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bg4);
 }
 
 .keybutton {
@@ -77,7 +145,7 @@ input[type=checkbox]:checked {
     accent-color: var(--fg4);
 }
 
-.keybutton:focus { 
+.keybutton:focus {
     box-shadow: 0 1px 0 0.5px var(--fg2);
     top: 1px;
 }
@@ -87,12 +155,13 @@ input[type=checkbox]:checked {
     margin-top: 0px;
 }
 
-option:checked {
-  background-color: var(--fg4); 
-  color: var(--bg0);
-  &::before {
-    content: ""; 
-  }
+.menu option:checked {
+    background-color: var(--fg4);
+    color: var(--bg0);
+
+    &::before {
+        content: "";
+    }
 }
 
 /* menu */
@@ -122,7 +191,7 @@ option:checked {
     z-index: 101;
 }
 
-.menu input {
+input {
     border-radius: 4px;
     background: transparent;
     color: #ffffff;
@@ -262,8 +331,10 @@ option:checked {
     position: relative;
 }
 
-.command-fatal, .command-not-found, .command-error {
-    border-left-inline: var(--light-red) 2px solid; 
+.command-fatal,
+.command-not-found,
+.command-error {
+    border-left-inline: var(--light-red) 2px solid;
 }
 
 .command-button {
@@ -314,7 +385,10 @@ body {
     margin-left: 10px;
 }
 
-.app, #main, html, body {
+.app,
+#main,
+html,
+body {
     width: 100%;
     height: 100%;
     display: flex;
@@ -333,9 +407,11 @@ body {
 
 /* CURSOR STYLE */
 .cursor {
-    position: absolute; /* BAD */
+    position: absolute;
+    /* BAD */
     background: white;
-    /*transition: left 0.1s ease-out, top 0.1s ease-out*/;
+    /*transition: left 0.1s ease-out, top 0.1s ease-out*/
+    ;
 }
 
 /* TEXT STYLES */
@@ -406,7 +482,7 @@ span {
 }
 
 .wrapped {
-    /* border? */    
+    /* border? */
 }
 
 .hide {
@@ -438,7 +514,7 @@ span {
 @keyframes blink {
     50% {
         opacity: 0;
-    } 
+    }
 }
 
 /* .tabs { */

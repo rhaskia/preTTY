@@ -25,7 +25,7 @@ impl Tab {
 }
 
 #[component] 
-pub fn Tab(tab: Tab, n: usize) -> Element {
+pub fn TabButton(tab: Tab, n: usize) -> Element {
     rsx!{
         span { 
             class: "tab",
@@ -62,7 +62,7 @@ pub fn Tabs(input: Signal<InputManager>) -> Element {
             display: "flex",
             font_size: "14px",
             for (n, tab) in TABS.read().iter().enumerate() {
-                Tab { tab: tab.clone(), n }
+                TabButton { tab: tab.clone(), n }
             }
             button {
                 class: "barbutton",
@@ -86,10 +86,13 @@ pub fn Tabs(input: Signal<InputManager>) -> Element {
                         // More shells (generated likely)
                         hr {}
                         button { 
-                            onclick: move |_| handle_action(TerminalAction::ToggleMenu),  
+                            onclick: move |_| handle_action(TerminalAction::OpenSettings),  
                             "Settings" 
                         }
-                        button { "Command Palette" }
+                        button { 
+                            onclick: move |_| *crate::COMMAND_PALETTE.write() = true,
+                            "Command Palette"
+                        }
                         button { "Help" }
                     }
                 }

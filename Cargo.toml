@@ -7,10 +7,10 @@ config = { path = "./config" }
 pretty_hooks = { path = "./hooks" }
 pretty_term = { path = "./term" }
 prettyterm_gui = { path = "./gui" }
-dioxus-form = { path = "../form" }
+dioxus-form = "0.1.0"
 
 anyhow = "1.0.79"
-dioxus = { version = "0.5.0", features = ["desktop", "html", "hooks"] }
+dioxus = { version = "0.5.1", features = ["desktop", "html", "hooks"] }
 fern = "0.6.2"
 log = "0.4.21"
 async-channel = "2.2.0"
