@@ -80,9 +80,15 @@ pub fn load_palettes() -> HashMap<String, Palette> {
     let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
     std::fs::create_dir_all(&path);
     let read = std::fs::read_dir(path);
-    for c in read.unwrap() {
-        println!("{:?}", c);
+    let mut palettes = HashMap::new();
+
+    for file_maybe in read.unwrap() {
+        if let Ok(file) = file_maybe {
+            let file_string = std::fs::read_to_string(&file.path()).unwrap();
+            let palette = toml::from_str(&file_string).unwrap_or_default();
+            palettes.insert(file.file_name().to_str().unwrap().to_string(), palette); 
+        }
     }
     
-    HashMap::new()
+    palettes
 }

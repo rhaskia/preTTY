@@ -7,7 +7,7 @@ pub fn ColourPalette() -> Element {
         div {
             overflow: "visible",
 
-            h2 { "Colour Palette" }
+            h3 { "Colour Palette" }
             select {
                 for (name, palette) in PALETTES.read().iter() {
                     option {
@@ -18,8 +18,12 @@ pub fn ColourPalette() -> Element {
             button {
                 "Create New"
             }
-            label { "red" }
-            input { r#type: "color", }
+            label { "red" } input { r#type: "color", }
+            label { "orange" } input { r#type: "color", }
+            label { "yellow" } input { r#type: "color", }
+            label { "green" } input { r#type: "color", }
+            label { "cyan" } input { r#type: "color", }
+            label { "purple" } input { r#type: "color", }
         }
     }
 }
