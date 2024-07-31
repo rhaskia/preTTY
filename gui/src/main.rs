@@ -90,8 +90,8 @@ pub fn App() -> Element {
 
     rsx! {
         style {{ include_str!("../../css/style.css") }}
-        style {{ include_str!("../../css/gruvbox.css") }}
         style {{ include_str!("../../css/palette.css") }}
+        style {{ config::load_palette(&CONFIG.read().palette).to_css() }}
 
         div {
             id: "app",

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-
+use crate::colour_pal::Palette;
 use crate::keybindings::Keybinding;
 use crate::{Config, TerminalAction};
 
@@ -65,4 +65,10 @@ pub fn save_keybinds(keybinds: Vec<Keybinding>) {
 pub fn save_config(config: Config) {
     confy::store("prettyterm", Some("config"), config).unwrap();
     println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("config")).unwrap());
+}
+pub fn load_palette(name: &str) -> Palette {
+    let path = confy::get_configuration_file_path("prettyterm", Some("palettes")).unwrap();
+    let pal_file = std::fs::read_to_string(path.join(name.to_owned() +".toml")).unwrap_or_default();
+
+    toml::from_str(&pal_file).unwrap_or_default()
 }

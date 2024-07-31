@@ -59,7 +59,7 @@ button {
     min-width: 30px;
     border: 1px solid var(--bg4);
     background: var(--bg0);
-    color: var(--fg0);
+    color: var(--palette);
     border-radius: 4px;
 }
 
@@ -168,7 +168,7 @@ input[type=checkbox]:checked {
 .menu {
     flex-grow: 1;
     flex-direction: "column";
-    color: var(--white);
+    color: var(--fg0);
     backdrop-filter: blur(7px);
     display: flex;
 }
@@ -232,7 +232,7 @@ input {
     border: none;
     padding: none;
     background: none;
-    color: var(--fg);
+    color: var(--fg0);
 }
 
 .bardropdown {
@@ -252,7 +252,7 @@ input {
 
 .bardropdown button {
     background: none;
-    color: var(--fg);
+    color: var(--fg0);
     display: block;
     border: none;
 }
@@ -275,7 +275,7 @@ input {
 .tabs {
     border-bottom: 1px solid var(--bg2);
     min-height: 20px;
-    --tab-colour: var(--bg);
+    --tab-colour: var(--bg0);
     overflow-x: visible;
 }
 
@@ -338,8 +338,8 @@ input {
 }
 
 .command-button {
-    background-color: var(--black);
-    color: var(--white);
+    background-color: var(--bg0);
+    color: var(--fg0);
     border: none;
 }
 
@@ -368,7 +368,7 @@ hr {
 }
 
 body {
-    background-color: var(--black);
+    background-color: var(--bg0);
     margin: 0;
 }
 
@@ -440,14 +440,14 @@ dim {
 
 pre {
     margin: 0;
-    color: var(--white);
+    color: var(--fg0);
     font-size: 0px;
     overflow: hidden;
 }
 
 span {
-    color: var(--fg);
-    background-color: var(--bg);
+    color: var(--fg0);
+    background-color: var(--bg0);
 }
 
 /*Cell Attributes*/
@@ -464,8 +464,8 @@ span {
 }
 
 .invert {
-    color: var(--bg);
-    background: var(--fg);
+    color: var(--bg0);
+    background: var(--fg0);
 }
 
 /*TODO combinations of the below 3*/
@@ -528,7 +528,7 @@ span {
 }
 
 table {
-    color: var(--white);
+    color: var(--fg0);
     font-size: 14px;
 }
 
