@@ -1,7 +1,9 @@
 mod settings;
 pub mod palette;
 mod keybinding;
+pub mod colour;
 use keybinding::Keybinds;
+use colour::ColourPalette;
 use dioxus::prelude::*;
 use crate::{KEYBINDS, CONFIG};
 use serde::{Serialize, Deserialize};
@@ -30,6 +32,7 @@ pub fn Menu(active: bool) -> Element {
                 }
                 Form { value: config  }
                 Keybinds { keybinds }
+                ColourPalette { }
             }
             div {
                 height: "20px",
