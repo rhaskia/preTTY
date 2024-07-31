@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use crate::colour_pal::Palette;
 use crate::keybindings::Keybinding;
@@ -74,12 +76,13 @@ pub fn load_palette(name: &str) -> Palette {
     toml::from_str(&pal_file).unwrap_or_default()
 }
 
-pub fn load_palettes() -> Vec<Palette> {
+pub fn load_palettes() -> HashMap<String, Palette> {
     let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
+    std::fs::create_dir_all(&path);
     let read = std::fs::read_dir(path);
     for c in read.unwrap() {
         println!("{:?}", c);
     }
     
-    Vec::new()
+    HashMap::new()
 }
