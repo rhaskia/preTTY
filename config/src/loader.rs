@@ -66,9 +66,20 @@ pub fn save_config(config: Config) {
     confy::store("prettyterm", Some("config"), config).unwrap();
     println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("config")).unwrap());
 }
+
 pub fn load_palette(name: &str) -> Palette {
     let path = confy::get_configuration_file_path("prettyterm", Some("palettes")).unwrap();
     let pal_file = std::fs::read_to_string(path.join(name.to_owned() +".toml")).unwrap_or_default();
 
     toml::from_str(&pal_file).unwrap_or_default()
+}
+
+pub fn load_palettes() -> Vec<Palette> {
+    let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
+    let read = std::fs::read_dir(path);
+    for c in read.unwrap() {
+        println!("{:?}", c);
+    }
+    
+    Vec::new()
 }

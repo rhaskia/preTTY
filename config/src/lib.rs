@@ -5,7 +5,7 @@ pub mod colour_pal;
 mod loader;
 pub use actions::TerminalAction;
 use keybindings::Keybinding;
-pub use loader::{load_config, load_keybinds, save_keybinds, load_palette};
+pub use loader::*;
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]

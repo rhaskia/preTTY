@@ -93,12 +93,11 @@ impl Default for Palette {
             fg2: String::from("#cfcfd4"),
             fg3: String::from("#a5a5ad"),
             fg4: String::from("#94949c"),
-
-            bg0: String::from("#1b1b1f"),
-            bg1: String::from("#2a2a2e"),
-            bg2: String::from("#47474d"),
-            bg3: String::from("#616169"),
             bg4: String::from("#777780"),
+            bg3: String::from("#616169"),
+            bg2: String::from("#47474d"),
+            bg1: String::from("#2a2a2e"),
+            bg0: String::from("#1b1b1f"),
         }
     }
 }

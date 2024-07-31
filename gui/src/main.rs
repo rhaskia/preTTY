@@ -87,11 +87,15 @@ pub fn handle_action(action: TerminalAction) {
 #[component]
 pub fn App() -> Element {
     let input = use_signal(|| InputManager::new());
+    let palettes = use_signal(|| config::load_palettes());
 
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
         style {{ config::load_palette(&CONFIG.read().palette).to_css() }}
+        div {
+            "{palettes.len():?}"
+        }
 
         div {
             id: "app",
