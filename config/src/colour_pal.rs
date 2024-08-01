@@ -15,7 +15,7 @@ pub fn to_css(pal: &Palette) -> String {
     )
 }                 
 
-fn default_pal() -> Palette {
+pub fn default_pal() -> Palette {
     HashMap::from([
          (String::from("red"), String::from("#eb4034")),
          (String::from("orange"), String::from("#eb9c34")),

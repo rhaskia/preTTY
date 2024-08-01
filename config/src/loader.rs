@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use crate::colour_pal::Palette;
+use crate::colour_pal::{Palette, default_pal};
 use crate::keybindings::Keybinding;
 use crate::{Config, TerminalAction};
 
@@ -28,7 +28,9 @@ pub fn load_config() -> Config {
     let path = dirs::config_dir().unwrap().join("prettyterm/config");
     let config_file = match std::fs::read_to_string(path.join("config.toml")) {
         Ok(s) => s,
-        Err(_) => return Config::default(),
+        Err(err) => {
+            return Config::default()
+        },
     };
 
     let config = toml::from_str(&config_file).unwrap();
@@ -81,13 +83,16 @@ pub fn load_palettes() -> HashMap<String, Palette> {
     std::fs::create_dir_all(&path);
     let read = std::fs::read_dir(path);
     let mut palettes = HashMap::new();
+    palettes.insert("default".to_string(), default_pal());
 
     for file_maybe in read.unwrap() {
         if let Ok(file) = file_maybe {
-            let file_string = std::fs::read_to_string(&file.path()).unwrap();
+            let path = file.path();
+            let file_string = std::fs::read_to_string(&path).unwrap();
             let palette = toml::from_str(&file_string).unwrap_or_default();
+            let name = path.file_stem().unwrap().to_str().unwrap();
             // fill out empty values with default
-            palettes.insert(file.file_name().to_str().unwrap().to_string(), palette); 
+            palettes.insert(name.to_string(), palette); 
         }
     }
     

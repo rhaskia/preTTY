@@ -99,7 +99,7 @@ pub fn App() -> Element {
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
-        style {{ to_css(&config::load_palette(&CONFIG.read().palette)) }}
+        style {{ to_css(&PALETTES.read()[&CONFIG.read().palette]) }}
 
         div {
             id: "app",

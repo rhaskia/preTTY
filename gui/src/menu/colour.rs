@@ -3,7 +3,7 @@ use crate::PALETTES;
 
 #[component]
 pub fn ColourPalette() -> Element {
-    let editing = use_signal(|| 0);
+    let editing = use_signal(|| "default");
 
     rsx! {
         div {
@@ -21,12 +21,9 @@ pub fn ColourPalette() -> Element {
                 "Create New"
             }
 
-            label { "red" } input { r#type: "color", }
-            label { "orange" } input { r#type: "color", }
-            label { "yellow" } input { r#type: "color", }
-            label { "green" } input { r#type: "color", }
-            label { "cyan" } input { r#type: "color", }
-            label { "purple" } input { r#type: "color", }
+            for (name, colour) in PALETTES.read()[editing()].iter() {
+
+            }
         }
     }
 }
