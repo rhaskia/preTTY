@@ -86,6 +86,7 @@ pub fn load_palettes() -> HashMap<String, Palette> {
         if let Ok(file) = file_maybe {
             let file_string = std::fs::read_to_string(&file.path()).unwrap();
             let palette = toml::from_str(&file_string).unwrap_or_default();
+            // fill out empty values with default
             palettes.insert(file.file_name().to_str().unwrap().to_string(), palette); 
         }
     }

@@ -52,6 +52,8 @@ pub fn CommandPalette() -> Element {
             input {
                 class: "commandsearch",
                 oninput: move |event| search.set(event.value()),
+                onmounted: |_| { eval("document.getElementById('commandsearch').focus();"); },
+                tabindex: 0,
                 onkeydown: move |e| match e.key() {
                     Key::ArrowUp if selected() != 0 => raw_selected -= 1.0,
                     Key::ArrowUp => *raw_selected.write() = matches.read().len() as f64 - 1.0,

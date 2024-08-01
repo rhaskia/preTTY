@@ -22,7 +22,7 @@ use pretty_term::pty::PseudoTerminalSystem;
 use tabs::Tabs;
 use menu::palette::CommandPalette;
 use terminal::TerminalApp;
-
+use config::to_css;
 use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
@@ -70,7 +70,12 @@ pub fn handle_action(action: TerminalAction) {
             TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
             *CURRENT_TAB.write() = index;
         }
-        TerminalAction::ToggleCommandPalette => *COMMAND_PALETTE.write() = !COMMAND_PALETTE(),
+        TerminalAction::ToggleCommandPalette => {
+            *COMMAND_PALETTE.write() = !COMMAND_PALETTE();
+            // eval(r#"
+            //     document.getElementById("commandsearch").focus();
+            // "#);
+        }
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
@@ -94,7 +99,7 @@ pub fn App() -> Element {
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
-        style {{ config::load_palette(&CONFIG.read().palette).to_css() }}
+        style {{ to_css(&config::load_palette(&CONFIG.read().palette)) }}
 
         div {
             id: "app",

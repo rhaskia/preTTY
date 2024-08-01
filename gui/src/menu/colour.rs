@@ -3,6 +3,8 @@ use crate::PALETTES;
 
 #[component]
 pub fn ColourPalette() -> Element {
+    let editing = use_signal(|| 0);
+
     rsx! {
         div {
             overflow: "visible",
@@ -18,6 +20,7 @@ pub fn ColourPalette() -> Element {
             button {
                 "Create New"
             }
+
             label { "red" } input { r#type: "color", }
             label { "orange" } input { r#type: "color", }
             label { "yellow" } input { r#type: "color", }
