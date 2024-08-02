@@ -360,6 +360,13 @@ input {
     z-index: 1;
 }
 
+.colorinput {
+    display: flex;
+    align-items: center; /* Vertically align label and input */
+    gap: 10px; /* Optional spacing between label and input */
+    justify-content: space-between;
+}
+
 hr {
     border: none;
     border-top: 1px solid var(--bg4);
