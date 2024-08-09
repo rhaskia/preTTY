@@ -1,10 +1,15 @@
 use config::colour_pal::pal_groups;
 use dioxus::prelude::*;
-use crate::PALETTES;
+use crate::{CONFIG, PALETTES};
 
 #[component]
 pub fn ColourPalette() -> Element {
-    let editing = use_signal(|| "default");
+    let mut editing = use_signal(|| "default".to_string());
+    let mut new_pal_name = use_signal(String::new);
+    use_future(|| async {
+        wait_for_next_render().await;
+        eval(r#"document.getElementById("paletteselect").value = "default""#);
+    });
 
     rsx! {
         div {
@@ -12,16 +17,35 @@ pub fn ColourPalette() -> Element {
 
             h3 { "Colour Palette" }
             select {
-                for (name, palette) in PALETTES.read().iter() {
+                id: "paletteselect",
+                value: "default",
+                onchange: move |v| { 
+                    println!("{:?}", v.value());
+                    editing.set(v.value());
+                },
+                for (name, _) in PALETTES.read().iter() {
                     option {
+                        value: "{name}",
                         "{name}"
                     }
                 }
             }
+
+            input {
+                placeholder: "Palette Name",
+                onchange: move |v| new_pal_name.set(v.value()), 
+            }
+
             button {
+                onclick: move |_| {
+                    PALETTES.write().insert(new_pal_name(), config::default_pal());
+                    editing.set(new_pal_name());
+                    eval(&format!("document.getElementById(\"paletteselect\").value = \"{}\"", new_pal_name()));
+                },
                 "Create New"
             }
 
+            // TODO: flatten out
             div {
                 display: "flex",
                 flex_direction: "row",
@@ -36,9 +60,9 @@ pub fn ColourPalette() -> Element {
                                 label { "{readable(name)}" }
                                 input { 
                                     r#type: "color",
-                                    value: PALETTES.read()[editing()][name].clone(),
+                                    value: PALETTES.read()[&editing()][name].clone(),
                                     onchange: move |v| { 
-                                        PALETTES.write().get_mut(editing()).unwrap().insert(name.to_string(), v.value());
+                                        PALETTES.write().get_mut(&editing()).unwrap().insert(name.to_string(), v.value());
                                     }
                                 }
                             }

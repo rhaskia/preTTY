@@ -6,7 +6,7 @@ mod loader;
 pub use actions::TerminalAction;
 use keybindings::Keybinding;
 pub use loader::*;
-pub use colour_pal::to_css;
+pub use colour_pal::{to_css, default_pal};
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]

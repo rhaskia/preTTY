@@ -18,12 +18,12 @@ pub fn to_css(pal: &Palette) -> String {
 pub fn default_pal() -> Palette {
     HashMap::from([
          (String::from("red"), String::from("#eb4034")),
-         //(String::from("warning"), String::from("#eb9c34")),
+         //(String::from("orange""), String::from("#eb9c34")),
          (String::from("yellow"), String::from("#ebe234")),
          (String::from("green"), String::from("#5feb34")),
          (String::from("cyan"), String::from("#34e5eb")),
-         (String::from("blue"), String::from("#6234eb")),
-         (String::from("purple"), String::from("#ae34eb")),
+         (String::from("blue"), String::from("#4C13F6")),
+         (String::from("purple"), String::from("#E666FF")),
 
          (String::from("bright_red"), String::from("#ff7f7a")),
          //(String::from("bright_orange"), String::from("#ffc078")),

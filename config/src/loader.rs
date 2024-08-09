@@ -80,7 +80,7 @@ pub fn load_palette(name: &str) -> Palette {
 
 pub fn load_palettes() -> HashMap<String, Palette> {
     let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
-    std::fs::create_dir_all(&path);
+    std::fs::create_dir_all(&path).ok();
     let read = std::fs::read_dir(path);
     let mut palettes = HashMap::new();
     palettes.insert("default".to_string(), default_pal());
@@ -95,6 +95,31 @@ pub fn load_palettes() -> HashMap<String, Palette> {
             palettes.insert(name.to_string(), palette); 
         }
     }
+
+    println!("{palettes:?}");
     
     palettes
+}
+
+pub fn save_palettes(palettes: HashMap<String, Palette>) {
+    let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
+
+    for (key, palette) in palettes {
+        let pal_str =  serialize_pal_ordered(palette);
+        std::fs::write(path.join(key + ".toml"), pal_str).unwrap();
+    }
+}
+
+pub fn serialize_pal_ordered(pal: Palette) -> String {
+    let mut toml = String::new();
+    let order = crate::colour_pal::pal_groups().into_iter().flatten();
+
+    for key in order {
+        let val = &pal.get(key);
+        if let Some(colour) = val {
+            toml.push_str(&format!("{key} = \"{colour}\" \n"));
+        }
+    }
+
+    toml
 }

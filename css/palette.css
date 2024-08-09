@@ -14,11 +14,11 @@
 
     --palette-8: var(--grey);
 
-    --palette-9: var(--light-red);
-    --palette-10: var(--light-yellow); 
-    --palette-11: var(--light-green); 
+    --palette-9: var(--bright-red);
+    --palette-10: var(--bright-yellow); 
+    --palette-11: var(--bright-green); 
 
-    --palette-12: var(--light-blue); 
-    --palette-12: var(--light-cyan); 
-    --palette-14: var(--light-purple); 
+    --palette-12: var(--bright-blue); 
+    --palette-12: var(--bright-cyan); 
+    --palette-14: var(--bright-purple); 
 }

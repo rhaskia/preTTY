@@ -5,8 +5,7 @@ pub mod colour;
 use keybinding::Keybinds;
 use colour::ColourPalette;
 use dioxus::prelude::*;
-use crate::{KEYBINDS, CONFIG};
-use serde::{Serialize, Deserialize};
+use crate::{KEYBINDS, CONFIG, PALETTES};
 use dioxus_form::Form;
 
 #[component]
@@ -43,6 +42,7 @@ pub fn Menu(active: bool) -> Element {
                         *CONFIG.write() = config();
                         *KEYBINDS.write() = keybinds();
                         config::save_keybinds(keybinds().clone());
+                        config::save_palettes(PALETTES());
                         // Save to file
                     },
                     "Save Config"
