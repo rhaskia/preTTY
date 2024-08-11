@@ -1,6 +1,5 @@
 use config::TerminalAction;
 use dioxus::prelude::*;
-use log::log;
 use crate::{handle_action, COMMAND_PALETTE};
 
 #[component]
@@ -19,7 +18,7 @@ pub fn CommandPalette() -> Element {
             .collect::<Vec<TerminalAction>>()
     });
     let mut raw_selected = use_signal(|| 0.0f64);
-    let mut selected = use_memo(move || raw_selected() as usize);
+    let selected = use_memo(move || raw_selected() as usize);
     use_effect(move || if raw_selected() >= matches.read().len() as f64 {
         *raw_selected.write() = (matches.read().len() - 1) as f64;
     });

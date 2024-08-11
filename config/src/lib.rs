@@ -5,7 +5,6 @@ pub mod keybindings;
 pub mod colour_pal;
 mod loader;
 pub use actions::TerminalAction;
-use keybindings::Keybinding;
 pub use loader::*;
 pub use colour_pal::{to_css, default_pal};
 

@@ -11,7 +11,6 @@ mod terminal;
 
 use std::collections::HashMap;
 
-use async_channel::Receiver;
 use config::keybindings::Keybinding;
 use config::{Config, TerminalAction, colour_pal::Palette};
 use dioxus::desktop::{use_window, WindowBuilder};

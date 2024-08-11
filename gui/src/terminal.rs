@@ -11,13 +11,11 @@ use dioxus::prelude::*;
 use pretty_hooks::{on_resize, DOMRectReadOnly};
 use serde::Deserialize;
 use crate::CONFIG;
-use crate::tabs::{Tab};
-use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
 use super::InputManager;
 use log::info;
 use std::thread;
-use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
+use crate::{TABS, PTY_SYSTEM};
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {

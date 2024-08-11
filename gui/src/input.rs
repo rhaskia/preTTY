@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use config::keybindings::Keybinding;
 use config::TerminalAction;
-use dioxus::events::{ModifiersInteraction, PointerInteraction};
+use dioxus::events::{Modifiers, ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{Event, KeyboardData, MouseData, Readable};
 use log::*;
@@ -10,7 +10,6 @@ use crate::KEYBINDS;
 pub struct InputManager {
     key_mode: KeyMode,
     mouse_mode: MouseMode,
-    keybinds: Vec<Keybinding>,
 }
 
 pub enum KeyMode {
@@ -30,7 +29,6 @@ impl InputManager {
         InputManager {
             key_mode: KeyMode::Legacy,
             mouse_mode: MouseMode::SGR,
-            keybinds: Vec::new(),
         }
     }
 
@@ -114,6 +112,8 @@ impl InputManager {
         let ctrl = modifiers.ctrl();
         let alt = modifiers.alt();
 
+        if self.key_mode == KeyMode::Kitty { return self.kitty_key(keyboard_data); }
+
         use dioxus::events::Key::*;
         match keyboard_data.key() {
             Character(char) => self.handle_mod_key(char, alt, ctrl),
@@ -133,6 +133,24 @@ impl InputManager {
                 String::new()
             }
         }
+    }
+
+    pub fn kitty_key(&self, keyboard_data: &Event<KeyboardData>) -> String {
+        let modifier = keyboard_data.modifiers();
+    }
+
+    pub fn kitty_modifiers(&self, mods: Modifiers) -> u8 {
+        let result = 0;
+        set_nth_bit(result, 1, mods.alt());
+
+        result
+    }
+
+    fn set_nth_bit(mut num: u8, n: usize, value: bool) -> u8 {
+        let mask = 1 << n;
+        num &= !mask; // Clear the nth bit
+        num |= (value as u32) << n; // Set the nth bit based on the boolean value
+        num
     }
 
     pub fn handle_keypress(&self, key_data: &Event<KeyboardData>) -> TerminalAction {

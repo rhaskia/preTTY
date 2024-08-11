@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::ops::Deref;
-use std::thread::{self, JoinHandle};
 
-use async_channel::{Sender, Receiver};
-use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize, PtySystem, MasterPty};
+use async_channel::Sender;
+use portable_pty::{
+    native_pty_system, Child, CommandBuilder, MasterPty, PtyPair, PtySize, PtySystem,
+};
 use rand::Rng;
 use termwiz::escape::Action;
 use tokio::runtime::Runtime;
@@ -90,16 +91,18 @@ impl PseudoTerminalSystem {
 
     pub fn kill_pty(index: usize) {}
 
-    pub fn get(&mut self, pty: &String) -> &mut PseudoTerminal {
-        self.ptys.get_mut(pty).unwrap()
-    }
+    pub fn get(&mut self, pty: &String) -> &mut PseudoTerminal { self.ptys.get_mut(pty).unwrap() }
 }
 
 fn generate_id() -> String {
     let mut rng = rand::thread_rng();
-    let mut id_bytes: [u8; 16] = [0; 16]; // Array to hold 16 bytes (128 bits)
-    rng.fill(&mut id_bytes); // Fill the array with random bytes
-    return format!("{:x?}", id_bytes); // Convert bytes to hex string for easier display
+    let mut id_bytes: [u8; 16] = [0; 16];
+    rng.fill(&mut id_bytes);
+    return id_bytes
+        .iter()
+        .map(|b| format!("{:x?}", b))
+        .collect::<Vec<String>>()
+        .join("");
 }
 
 impl Deref for PseudoTerminalSystem {
@@ -145,8 +148,10 @@ pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read +
 
     loop {
         match reader.read(&mut buffer) {
-            Ok(0) => {},
-            Ok(n) => rt.block_on(async { tx.send(parser.parse_as_vec(&buffer[..n])).await; }),
+            Ok(0) => {}
+            Ok(n) => rt.block_on(async {
+                tx.send(parser.parse_as_vec(&buffer[..n])).await;
+            }),
             Err(err) => {
                 eprintln!("Error reading from Read object: {}", err);
                 break;

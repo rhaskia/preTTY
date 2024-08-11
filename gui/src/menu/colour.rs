@@ -1,15 +1,11 @@
 use config::colour_pal::pal_groups;
 use dioxus::prelude::*;
-use crate::{CONFIG, PALETTES};
+use crate::PALETTES;
 
 #[component]
 pub fn ColourPalette() -> Element {
     let mut editing = use_signal(|| "default".to_string());
     let mut new_pal_name = use_signal(String::new);
-    use_future(|| async {
-        wait_for_next_render().await;
-        eval(r#"document.getElementById("paletteselect").value = "default""#);
-    });
 
     rsx! {
         div {
@@ -19,7 +15,10 @@ pub fn ColourPalette() -> Element {
             select {
                 id: "paletteselect",
                 value: "default",
-                onchange: move |v| { 
+                onmounted: |_| {
+                    eval(r#"document.getElementById("paletteselect").value = "default""#);
+                },
+                onchange: move |v| {  
                     println!("{:?}", v.value());
                     editing.set(v.value());
                 },
@@ -38,6 +37,7 @@ pub fn ColourPalette() -> Element {
 
             button {
                 onclick: move |_| {
+                    if new_pal_name.read().is_empty() { return; }
                     PALETTES.write().insert(new_pal_name(), config::default_pal());
                     editing.set(new_pal_name());
                     eval(&format!("document.getElementById(\"paletteselect\").value = \"{}\"", new_pal_name()));
