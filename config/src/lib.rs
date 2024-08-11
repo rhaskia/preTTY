@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 mod actions;
 pub mod keybindings;
 pub mod colour_pal;
@@ -32,4 +33,8 @@ impl Default for Config {
             palette: String::from("default")
         }
     }
+}
+
+pub fn dir() -> PathBuf {
+    dirs::config_dir().unwrap().join("prettyterm")
 }

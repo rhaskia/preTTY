@@ -1,12 +1,13 @@
-mod settings;
-pub mod palette;
-mod keybinding;
 pub mod colour;
-use keybinding::Keybinds;
+mod keybinding;
+pub mod palette;
+mod settings;
 use colour::ColourPalette;
 use dioxus::prelude::*;
-use crate::{KEYBINDS, CONFIG, PALETTES};
 use dioxus_form::Form;
+use keybinding::Keybinds;
+
+use crate::{CONFIG, KEYBINDS, PALETTES};
 
 #[component]
 pub fn Menu(active: bool) -> Element {
@@ -24,10 +25,10 @@ pub fn Menu(active: bool) -> Element {
             id: "menu",
             div {
                 class: "menucontent",
-                div { 
-                  id: "menuheader", 
+                div {
+                  id: "menuheader",
                   class: "menuheader",
-                  h2 { "Settings" }, 
+                  h2 { "Settings" },
                 }
                 Form { value: config  }
                 Keybinds { keybinds }
@@ -49,6 +50,7 @@ pub fn Menu(active: bool) -> Element {
                 }
                 button {
                     // TODO open config folder
+                    onclick: |_| open_file_explorer(),
                     "Open Config Folder"
                 }
                 button {
@@ -58,4 +60,21 @@ pub fn Menu(active: bool) -> Element {
             }
         }
     }
+}
+
+pub fn open_file_explorer() {
+    let directory = config::dir();
+    let command = if cfg!(windows) {
+        "explorer"
+    } else {
+        if cfg!(macos) {
+            "open"
+        } else {
+            "xdg-open"
+        }
+    };
+    std::process::Command::new(command)
+        .arg(directory) // <- Specify the directory you'd like to open.
+        .spawn()
+        .unwrap();
 }

@@ -22,7 +22,7 @@ use pretty_term::pty::PseudoTerminalSystem;
 use tabs::Tabs;
 use menu::palette::CommandPalette;
 use terminal::TerminalApp;
-use config::to_css;
+use config::{to_css, default_pal};
 use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
@@ -99,7 +99,7 @@ pub fn App() -> Element {
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
-        style {{ to_css(&PALETTES.read()[&CONFIG.read().palette]) }}
+        style {{ to_css(&PALETTES.read().get(&CONFIG.read().palette).unwrap_or(&default_pal())) }}
 
         div {
             id: "app",

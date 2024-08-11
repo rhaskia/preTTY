@@ -89,16 +89,20 @@ pub fn load_palettes() -> HashMap<String, Palette> {
         if let Ok(file) = file_maybe {
             let path = file.path();
             let file_string = std::fs::read_to_string(&path).unwrap();
-            let palette = toml::from_str(&file_string).unwrap_or_default();
+            let mut palette = toml::from_str(&file_string).unwrap_or_default();
             let name = path.file_stem().unwrap().to_str().unwrap();
-            // fill out empty values with default
+            fill_out_pal(&mut palette);
             palettes.insert(name.to_string(), palette); 
         }
     }
-
-    println!("{palettes:?}");
     
     palettes
+}
+
+pub fn fill_out_pal(pal: &mut Palette) {
+    for (key, colour) in default_pal() {
+        pal.entry(key).or_insert_with(|| colour);
+    }
 }
 
 pub fn save_palettes(palettes: HashMap<String, Palette>) {
