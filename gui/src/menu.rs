@@ -64,10 +64,10 @@ pub fn Menu(active: bool) -> Element {
 
 pub fn open_file_explorer() {
     let directory = config::dir();
-    let command = if cfg!(windows) {
+    let command = if cfg!(target_os = "windows") {
         "explorer"
     } else {
-        if cfg!(macos) {
+        if cfg!(target_os = "macos") {
             "open"
         } else {
             "xdg-open"

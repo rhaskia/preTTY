@@ -1,5 +1,6 @@
 [workspace]
 members = ["gui", "term", "hooks", "config"]
+exclude = ["test-programs/kitty-key"]
 resolver = "2"
 
 [workspace.dependencies]

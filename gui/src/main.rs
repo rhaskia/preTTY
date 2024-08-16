@@ -31,6 +31,7 @@ pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_
 pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
 pub static COMMAND_PALETTE: GlobalSignal<bool> = Signal::global(|| false);
 pub static PALETTES: GlobalSignal<HashMap<String, Palette>> = Signal::global(|| config::load_palettes());
+pub static INPUT: GlobalSignal<InputManager> = Signal::global(InputManager::new);
 
 pub fn spawn_new() -> String {
     let mut command = None;
@@ -93,7 +94,6 @@ pub fn handle_action(action: TerminalAction) {
 
 #[component]
 pub fn App() -> Element {
-    let input = use_signal(|| InputManager::new());
 
     rsx! {
         style {{ include_str!("../../css/style.css") }}
@@ -107,13 +107,13 @@ pub fn App() -> Element {
             tabindex: 0,
 
             onkeydown: move |e| if !COMMAND_PALETTE() {
-                handle_action(input.read().handle_keypress(&e)); 
+                handle_action(INPUT.read().handle_keypress(&e)); 
             },
 
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            if CONFIG.read().show_tabs { Tabs { input } }
+            if CONFIG.read().show_tabs { Tabs { } }
             CommandPalette {}
 
             div {
@@ -123,7 +123,7 @@ pub fn App() -> Element {
                     if tab.settings {
                         Menu { active: i == CURRENT_TAB() }
                     } else {
-                        TerminalApp { input, hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
+                        TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
                     }
                 }
             }

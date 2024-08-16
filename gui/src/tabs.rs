@@ -44,7 +44,7 @@ pub fn TabButton(tab: Tab, n: usize) -> Element {
 }
 
 #[component]
-pub fn Tabs(input: Signal<InputManager>) -> Element {
+pub fn Tabs() -> Element {
     eval(r#"
         window.onclick = function(e) {
             var myDropdown = document.getElementById("bardropdown");

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use log::info;
 use num_traits::cast::ToPrimitive;
 use termwiz::escape::csi::{
-    DecPrivateMode, DecPrivateModeCode, Mode, TerminalMode, XtermKeyModifierResource,
+    DecPrivateMode, DecPrivateModeCode, Keyboard, KittyKeyboardFlags, KittyKeyboardMode, Mode, TerminalMode, XtermKeyModifierResource
 };
 use termwiz::escape::DeviceControlMode;
 
@@ -21,6 +21,7 @@ pub struct TerminalState {
     pub bracketed_paste: bool,
     pub show_cursor: bool,
     pub alt_keypad: bool,
+    pub kitty_state: u16,
 }
 
 macro_rules! inner_mode {
@@ -120,5 +121,20 @@ impl TerminalState {
     /// Handles XtermKeyModes
     pub fn set_key_mode(&mut self, mode: XtermKeyModifierResource, value: Option<i64>) {
         info!("Set Key Mode {mode:?}, {value:?}");
+    }
+
+    pub fn handle_kitty_keyboard(&mut self, command: Keyboard) {
+        info!("Kitty Keyboard Mode set {command:?}");
+        match command {
+            Keyboard::SetKittyState { flags, mode } => match mode {
+                KittyKeyboardMode::AssignAll => self.kitty_state = flags.bits(),
+                KittyKeyboardMode::SetSpecified => self.kitty_state |= flags.bits(), // bitwise or over the bits to set
+                KittyKeyboardMode::ClearSpecified => self.kitty_state &= !flags.bits(), //bitwise and over a mask of the bits to keep
+            },
+            Keyboard::PushKittyState { flags, mode } => self.kitty_state = flags.bits(),
+            Keyboard::PopKittyState(state) => self.kitty_state = 0,
+            Keyboard::QueryKittySupport => todo!(),
+            Keyboard::ReportKittyState(state) => info!("Pseudoterminal reported kitty state {state:?}"),
+        }
     }
 }
