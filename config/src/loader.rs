@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use crate::colour_pal::{Palette, default_pal};
+use crate::colour_pal::{Palette, default_pal, default_pal_hc};
 use crate::keybindings::Keybinding;
 use crate::{Config, TerminalAction};
 
@@ -84,6 +84,7 @@ pub fn load_palettes() -> HashMap<String, Palette> {
     let read = std::fs::read_dir(path);
     let mut palettes = HashMap::new();
     palettes.insert("default".to_string(), default_pal());
+    palettes.insert("highcontrast".to_string(), default_pal_hc());
 
     for file_maybe in read.unwrap() {
         if let Ok(file) = file_maybe {

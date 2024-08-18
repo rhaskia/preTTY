@@ -133,7 +133,7 @@ impl TerminalState {
             },
             Keyboard::PushKittyState { flags, mode } => self.kitty_state = flags.bits(),
             Keyboard::PopKittyState(state) => self.kitty_state = 0,
-            Keyboard::QueryKittySupport => todo!(),
+            Keyboard::QueryKittySupport => {} // TODO write CSI ? 0 u (increase as support),
             Keyboard::ReportKittyState(state) => info!("Pseudoterminal reported kitty state {state:?}"),
         }
     }
