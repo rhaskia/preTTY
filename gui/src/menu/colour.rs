@@ -45,6 +45,14 @@ pub fn ColourPalette() -> Element {
                 "Create New"
             }
 
+            button {
+                onclick: move |_| {
+                    PALETTES.write().remove(editing());
+                    // TODO popup confirm
+                }
+                "Delete Palette"
+            }
+
             // TODO: flatten out
             div {
                 display: "flex",

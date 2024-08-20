@@ -1,6 +1,6 @@
 :root {
-    --fg-default: var(--fg);
-    --bg-default: var(--bg);
+    --fg-default: var(--fg0);
+    --bg-default: var(--bg0);
 
     --palette-1: var(--red); 
     --palette-2: var(--green); 
