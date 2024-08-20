@@ -12,6 +12,7 @@ pub struct Tab {
     pub pty: String,
 }
 
+#[derive(Clone, PartialEq)]
 pub enum TabType {
     Menu,
     Terminal,

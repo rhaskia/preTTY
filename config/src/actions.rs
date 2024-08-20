@@ -11,6 +11,7 @@ pub enum TerminalAction {
     Write(String),
 
     OpenSettings,
+    OpenPluginMenu,
     ToggleCommandPalette,
 
     PasteText,

@@ -23,6 +23,8 @@ use menu::palette::CommandPalette;
 use terminal::TerminalApp;
 use config::{to_css, default_pal};
 use crate::tabs::Tab;
+use crate::tabs::TabType;
+use menu::plugins::PluginsMenu;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
@@ -45,7 +47,7 @@ pub fn handle_action(action: TerminalAction) {
     match action {
         TerminalAction::Write(s) => {
             let tab = &TABS()[*CURRENT_TAB.read()];
-            if tab.settings { return }
+            if tab.tab_type != TabType::Terminal { return }
             PTY_SYSTEM.write().get(&tab.pty).write(s);
         }
         TerminalAction::NewTab => {
@@ -67,7 +69,12 @@ pub fn handle_action(action: TerminalAction) {
         TerminalAction::Quit => use_window().close(),
         TerminalAction::OpenSettings => {
             let index = TABS.len();
-            TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
+            TABS.write().push(Tab { name: "Settings".to_string(), tab_type: tabs::TabType::Menu, pty: String::new() });
+            *CURRENT_TAB.write() = index;
+        }
+        TerminalAction::OpenPluginMenu => {
+            let index = TABS.len();
+            TABS.write().push(Tab { name: "Plugins".to_string(), tab_type: tabs::TabType::PluginMenu, pty: String::new() });
             *CURRENT_TAB.write() = index;
         }
         TerminalAction::ToggleCommandPalette => {
@@ -121,9 +128,9 @@ pub fn App() -> Element {
                 flex_grow: 1,
                 for (i, tab) in TABS().into_iter().enumerate() {
                     match tab.tab_type {
-                        TabType::Menu => Menu { active: i == CURRENT_TAB() },
-                        TabType::PluginMenu => PluginMenu {},
-                        _ => TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i },
+                        TabType::Menu => rsx!{ Menu { active: i == CURRENT_TAB() } },
+                        TabType::PluginMenu => rsx!{PluginsMenu {}},
+                        _ => rsx!{TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }},
                     }
                 }
             }

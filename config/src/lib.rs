@@ -8,7 +8,7 @@ mod loader;
 pub use actions::TerminalAction;
 pub use loader::*;
 pub use colour_pal::{to_css, default_pal};
-pub use plugins::{available_plugins, Plugin};
+pub use plugins::*;
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]

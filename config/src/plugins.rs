@@ -1,23 +1,25 @@
-use git2::Repository;
+use std::collections::HashMap;
 
+#[derive(Clone, PartialEq)]
 pub struct Plugin {
-    name: String,
-    version: String,
-    categories: Vec<String>,
-    git_repo: String,
+    pub name: String,
+    pub version: String,
+    pub categories: Vec<String>,
+    pub git_repo: String,
 }
 
-pub fn available_plugins() -> Result<Vec<String>, anyhow::Error> {
-    let repo = Repository::open("https://github.com/rhaskia/preTTYplugins.git")?;
+pub fn available_plugins() -> Result<HashMap<String, String>, String> {
+    let mut plugins = HashMap::new();
 
-    let mut folders = Vec::new();
-    for entry in repo.tree(repo.head()?.target().unwrap())? {
-        let entry = entry?;
-        if entry.kind() == git2::ObjectType::Tree {
-            let path = entry.name().unwrap().to_owned();
-            folders.push(path);
-        }
-    }
+    Ok(plugins)
+}
 
-    Ok(folders)
+pub fn installed_plugins() -> Result<HashMap<String, String>, String> {
+    let mut plugins = HashMap::new();
+
+    Ok(plugins)
+}
+
+pub fn get_plugin_desc(plugin: Plugin) -> Result<String, String> {
+    Ok(String::from("Not yet implemented"))
 }
