@@ -3,10 +3,12 @@ use std::path::PathBuf;
 mod actions;
 pub mod keybindings;
 pub mod colour_pal;
+pub mod plugins;
 mod loader;
 pub use actions::TerminalAction;
 pub use loader::*;
 pub use colour_pal::{to_css, default_pal};
+pub use plugins::{available_plugins, Plugin};
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]

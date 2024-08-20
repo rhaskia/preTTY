@@ -8,15 +8,21 @@ use crate::dioxus_elements::input_data::MouseButton;
 #[derive(Clone, PartialEq)]
 pub struct Tab {
     pub name: String,
-    pub settings: bool,
+    pub tab_type: TabType,
     pub pty: String,
+}
+
+pub enum TabType {
+    Menu,
+    Terminal,
+    PluginMenu,
 }
 
 impl Tab {
     pub fn new(pty: String) -> Self {
         Tab {
             name: format!("terminal"),
-            settings: false,
+            tab_type: TabType::Terminal,
             pty,
         }
     }

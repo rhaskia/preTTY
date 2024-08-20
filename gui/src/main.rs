@@ -120,10 +120,10 @@ pub fn App() -> Element {
                 display: "flex",
                 flex_grow: 1,
                 for (i, tab) in TABS().into_iter().enumerate() {
-                    if tab.settings {
-                        Menu { active: i == CURRENT_TAB() }
-                    } else {
-                        TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
+                    match tab.tab_type {
+                        TabType::Menu => Menu { active: i == CURRENT_TAB() },
+                        TabType::PluginMenu => PluginMenu {},
+                        _ => TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i },
                     }
                 }
             }
