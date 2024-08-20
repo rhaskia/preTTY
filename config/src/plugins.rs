@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Plugin {
     pub name: String,
     pub version: String,
@@ -8,13 +8,13 @@ pub struct Plugin {
     pub git_repo: String,
 }
 
-pub fn available_plugins() -> Result<HashMap<String, String>, String> {
+pub fn available_plugins() -> Result<HashMap<String, Plugin>, String> {
     let mut plugins = HashMap::new();
 
     Ok(plugins)
 }
 
-pub fn installed_plugins() -> Result<HashMap<String, String>, String> {
+pub fn installed_plugins() -> Result<HashMap<String, Plugin>, String> {
     let mut plugins = HashMap::new();
 
     Ok(plugins)

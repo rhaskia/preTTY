@@ -98,6 +98,10 @@ pub fn Tabs() -> Element {
                             onclick: move |_| *crate::COMMAND_PALETTE.write() = true,
                             "Command Palette"
                         }
+                        button {
+                            onclick: move |_| handle_action(TerminalAction::OpenPluginMenu),
+                            "Plugins Menu"
+                        }
                         button { "Help" }
                     }
                 }

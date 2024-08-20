@@ -4,35 +4,47 @@ use config::Plugin;
 
 #[component]
 pub fn PluginsMenu() -> Element {
-    let available_plugins = config::available_plugins();
-    let installed_plugins = config::installed_plugins();
-    let current = use_signal(|| true);
-    let plugins = use_memo(|| if current() { available_plugins } else { installed_plugins });
-    let selected_plugin = use_signal(|| None);
+    let available_plugins = use_signal(|| config::available_plugins());
+    let installed_plugins = use_signal(|| config::installed_plugins());
+    let mut current = use_signal(|| true);
+    let plugins = use_memo(move || if current() { available_plugins } else { installed_plugins });
+    let selected_plugin = use_signal(|| Some(String::from("plugin")));
 
     rsx!{
-        "{available_plugins:?}"
-        select {
-            class: "switchplugins",
-            option {
-                "Installed"
-            }
-            option {
-                "Available"
-            }
-        }
 
         div {
-            "pluginsideview"
-            for plugin in plugins {
-                "{plugin.name}"
+            class: "plugins",
+            "{plugins:?}"
+            div {
+                class: "pluginsideview",
+                div {
+                    class: "switchplugins",
+                    button {
+                        onclick: move |_| current.set(false),
+                        "Installed"
+                    }
+                    button {
+                        onclick: move |_| current.set(true),
+                        "Available"
+                    }
+                }
+                if let Ok(plugins) = plugins.read()() {
+                    for (name, plugin) in plugins.iter() {
+                        "{plugin.name}"
+                    }
+                }
+            }
+
+            div {
+                class: "pluginview"
             }
         }
 
-        match selected_plugin.read() {
-            Some(plugin) => PluginView { plugins[selected_plugin()] },
-            None => {}
-        }
+
+        // match selected_plugin() {
+        //     Some(plugin) => rsx!{ PluginView { plugin: plugins[selected_plugin()] }},
+        //     None => rsx!{}
+        // }
     }
 }
 

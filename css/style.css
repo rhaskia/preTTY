@@ -50,6 +50,22 @@ form {
     background: var(--bg4);
 }
 
+.pluginsideview {
+    display: flex;
+    flex: 1;
+}
+
+.pluginview {
+    display: flex;
+    flex: 3;
+}
+
+.plugins {
+    display: flex;
+    flex: 1;
+flex-direction: row;
+}
+
 fieldset[name=Config] {
     border: none;
     padding: 0;
