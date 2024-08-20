@@ -15,7 +15,7 @@ use line::Line;
 use log::info;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
-use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, Keyboard, CSI};
+use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{Action, ControlCode, Esc, KittyImage, OperatingSystemCommand, Sixel};
 use window::WindowHandler;
@@ -164,6 +164,7 @@ impl Terminal {
             DecDoubleHeightBottomHalfLine => self.current_line().set_double(true),
             DecNormalKeyPad => self.state.alt_keypad = false,
             DecApplicationKeyPad => self.state.alt_keypad = true,
+            AsciiCharacterSetG0 => {}
             _ => info!("ESC {:?}", code),
         }
     }

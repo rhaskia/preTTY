@@ -1,4 +1,3 @@
-use config::available_plugins;
 use dioxus::prelude::*;
 use config::Plugin;
 
@@ -28,10 +27,8 @@ pub fn PluginsMenu() -> Element {
                         "Available"
                     }
                 }
-                if let Ok(plugins) = plugins.read()() {
-                    for (name, plugin) in plugins.iter() {
-                        "{plugin.name}"
-                    }
+                for (name, plugin) in plugins.read().read().iter() {
+                    "{plugin.name}"
                 }
             }
 

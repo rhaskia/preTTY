@@ -1,16 +1,13 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
-#![feature(inline_const)]
-
-// crate imports
 mod header;
 mod input;
 mod menu;
 mod tabs;
 mod terminal;
+mod plugins;
 
 use std::collections::HashMap;
-
 use config::keybindings::Keybinding;
 use config::{Config, TerminalAction, colour_pal::Palette};
 use dioxus::desktop::{use_window, WindowBuilder};
@@ -25,6 +22,7 @@ use config::{to_css, default_pal};
 use crate::tabs::Tab;
 use crate::tabs::TabType;
 use menu::plugins::PluginsMenu;
+use plugins::PluginManager;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
@@ -106,6 +104,7 @@ pub fn App() -> Element {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
         style {{ to_css(&PALETTES.read().get(&CONFIG.read().palette).unwrap_or(&default_pal())) }}
+        PluginManager {}
 
         div {
             id: "app",

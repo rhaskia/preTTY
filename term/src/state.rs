@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use log::info;
 use num_traits::cast::ToPrimitive;
 use termwiz::escape::csi::{
-    DecPrivateMode, DecPrivateModeCode, Keyboard, KittyKeyboardFlags, KittyKeyboardMode, Mode, TerminalMode, XtermKeyModifierResource
+    DecPrivateMode, DecPrivateModeCode, Keyboard, KittyKeyboardMode, Mode, TerminalMode, XtermKeyModifierResource
 };
 use termwiz::escape::DeviceControlMode;
 

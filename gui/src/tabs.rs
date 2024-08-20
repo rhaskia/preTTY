@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use crate::input::InputManager;
 use crate::{CURRENT_TAB, TABS};
 use config::TerminalAction;
 use crate::handle_action;
