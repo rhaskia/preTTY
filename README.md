@@ -21,3 +21,4 @@ You can also install through on the following package managers as well:
 
 # Plugins
 
+# PreTTY Plugins
