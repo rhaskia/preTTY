@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use pretty_term::command::{CommandSlice, CommandStatus};
 use pretty_term::Terminal;
+use log::info;
 use super::cell::CellLine;
 
 #[component]
@@ -47,7 +48,7 @@ pub fn Command(
             onmouseleave: move  |_| hovering.set(false),
 
             pre {
-                for y in command.range(terminal.read().screen().len()) {
+                for y in command.range(terminal.read().screen().scrollback_len()) {
                     CellLine { terminal, y }
                 }
             }
@@ -56,7 +57,7 @@ pub fn Command(
                 class: "command-bar",
                 button {
                     class: "command-button copy",
-                    onclick: |_| println!("copied to system"),
+                    onclick: |_| info!("Copy not yet implemented"),
                     hidden: !command.finished() || !hovering(),
                     ""
                 }

@@ -11,7 +11,6 @@ mod terminal;
 
 use std::collections::HashMap;
 
-use async_channel::Receiver;
 use config::keybindings::Keybinding;
 use config::{Config, TerminalAction, colour_pal::Palette};
 use dioxus::desktop::{use_window, WindowBuilder};
@@ -22,7 +21,7 @@ use pretty_term::pty::PseudoTerminalSystem;
 use tabs::Tabs;
 use menu::palette::CommandPalette;
 use terminal::TerminalApp;
-
+use config::{to_css, default_pal};
 use crate::tabs::Tab;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
@@ -32,6 +31,7 @@ pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_
 pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
 pub static COMMAND_PALETTE: GlobalSignal<bool> = Signal::global(|| false);
 pub static PALETTES: GlobalSignal<HashMap<String, Palette>> = Signal::global(|| config::load_palettes());
+pub static INPUT: GlobalSignal<InputManager> = Signal::global(InputManager::new);
 
 pub fn spawn_new() -> String {
     let mut command = None;
@@ -70,7 +70,12 @@ pub fn handle_action(action: TerminalAction) {
             TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
             *CURRENT_TAB.write() = index;
         }
-        TerminalAction::ToggleCommandPalette => *COMMAND_PALETTE.write() = !COMMAND_PALETTE(),
+        TerminalAction::ToggleCommandPalette => {
+            *COMMAND_PALETTE.write() = !COMMAND_PALETTE();
+            // eval(r#"
+            //     document.getElementById("commandsearch").focus();
+            // "#);
+        }
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
@@ -89,12 +94,11 @@ pub fn handle_action(action: TerminalAction) {
 
 #[component]
 pub fn App() -> Element {
-    let input = use_signal(|| InputManager::new());
 
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
-        style {{ config::load_palette(&CONFIG.read().palette).to_css() }}
+        style {{ to_css(&PALETTES.read().get(&CONFIG.read().palette).unwrap_or(&default_pal())) }}
 
         div {
             id: "app",
@@ -103,13 +107,13 @@ pub fn App() -> Element {
             tabindex: 0,
 
             onkeydown: move |e| if !COMMAND_PALETTE() {
-                handle_action(input.read().handle_keypress(&e)); 
+                handle_action(INPUT.read().handle_keypress(&e)); 
             },
 
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
 
-            if CONFIG.read().show_tabs { Tabs { input } }
+            if CONFIG.read().show_tabs { Tabs { } }
             CommandPalette {}
 
             div {
@@ -119,7 +123,7 @@ pub fn App() -> Element {
                     if tab.settings {
                         Menu { active: i == CURRENT_TAB() }
                     } else {
-                        TerminalApp { input, hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
+                        TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }
                     }
                 }
             }

@@ -127,7 +127,7 @@ impl Terminal {
             CSI::Cursor(cursor) => self.handle_cursor(cursor),
             CSI::Edit(edit) => self.handle_edit(edit),
             CSI::Device(device) => self.handle_device(device),
-            CSI::Keyboard(keyboard) => self.handle_kitty_keyboard(keyboard),
+            CSI::Keyboard(keyboard) => self.state.handle_kitty_keyboard(keyboard),
             CSI::Mouse(_) => {} // These are input only
             CSI::Window(command) => self.window.csi_window(command),
             // ECMA-48 SCP (not secure contain protect)
@@ -228,8 +228,6 @@ impl Terminal {
         }
     }
 
-    fn handle_kitty_keyboard(&mut self, command: Keyboard) { info!("Kitty Keyboard {command:?}") }
-
     fn handle_device(&mut self, device_command: Box<Device>) {
         info!("Device Command {device_command:?}")
     }
@@ -270,6 +268,8 @@ impl Terminal {
 
     /// ITerm2 Profiles
     fn set_profile(&mut self, profile: String) { info!("Set Iterm2 Profile {profile}") }
+
+    pub fn kitty_state(&self) -> u16 { self.state.kitty_state }
 }
 
 // Prompt Management

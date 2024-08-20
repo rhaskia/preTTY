@@ -48,7 +48,7 @@ impl From<Keybinding> for RawKeybinding {
     fn from(value: Keybinding) -> Self {
         let key = value.key.to_string();
 
-        let mut modifiers = value.modifiers.iter_names().map(|(i, _)| i.to_string()).collect();
+        let modifiers = value.modifiers.iter_names().map(|(i, _)| i.to_string()).collect();
         
         Self {
             key,

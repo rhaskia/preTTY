@@ -1,8 +1,6 @@
 use dioxus::prelude::*;
 use crate::input::InputManager;
-use pretty_term::pty::PseudoTerminalSystem;
-use crate::menu::Menu;
-use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
+use crate::{CURRENT_TAB, TABS};
 use config::TerminalAction;
 use crate::handle_action;
 use crate::dioxus_elements::input_data::MouseButton;
@@ -46,7 +44,7 @@ pub fn TabButton(tab: Tab, n: usize) -> Element {
 }
 
 #[component]
-pub fn Tabs(input: Signal<InputManager>) -> Element {
+pub fn Tabs() -> Element {
     eval(r#"
         window.onclick = function(e) {
             var myDropdown = document.getElementById("bardropdown");

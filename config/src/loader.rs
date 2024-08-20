@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use crate::colour_pal::Palette;
+use crate::colour_pal::{Palette, default_pal, default_pal_hc};
 use crate::keybindings::Keybinding;
 use crate::{Config, TerminalAction};
 
@@ -28,7 +28,9 @@ pub fn load_config() -> Config {
     let path = dirs::config_dir().unwrap().join("prettyterm/config");
     let config_file = match std::fs::read_to_string(path.join("config.toml")) {
         Ok(s) => s,
-        Err(_) => return Config::default(),
+        Err(err) => {
+            return Config::default()
+        },
     };
 
     let config = toml::from_str(&config_file).unwrap();
@@ -78,17 +80,51 @@ pub fn load_palette(name: &str) -> Palette {
 
 pub fn load_palettes() -> HashMap<String, Palette> {
     let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
-    std::fs::create_dir_all(&path);
+    std::fs::create_dir_all(&path).ok();
     let read = std::fs::read_dir(path);
     let mut palettes = HashMap::new();
+    palettes.insert("default".to_string(), default_pal());
+    palettes.insert("highcontrast".to_string(), default_pal_hc());
 
     for file_maybe in read.unwrap() {
         if let Ok(file) = file_maybe {
-            let file_string = std::fs::read_to_string(&file.path()).unwrap();
-            let palette = toml::from_str(&file_string).unwrap_or_default();
-            palettes.insert(file.file_name().to_str().unwrap().to_string(), palette); 
+            let path = file.path();
+            let file_string = std::fs::read_to_string(&path).unwrap();
+            let mut palette = toml::from_str(&file_string).unwrap_or_default();
+            let name = path.file_stem().unwrap().to_str().unwrap();
+            fill_out_pal(&mut palette);
+            palettes.insert(name.to_string(), palette); 
         }
     }
     
     palettes
+}
+
+pub fn fill_out_pal(pal: &mut Palette) {
+    for (key, colour) in default_pal() {
+        pal.entry(key).or_insert_with(|| colour);
+    }
+}
+
+pub fn save_palettes(palettes: HashMap<String, Palette>) {
+    let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
+
+    for (key, palette) in palettes {
+        let pal_str =  serialize_pal_ordered(palette);
+        std::fs::write(path.join(key + ".toml"), pal_str).unwrap();
+    }
+}
+
+pub fn serialize_pal_ordered(pal: Palette) -> String {
+    let mut toml = String::new();
+    let order = crate::colour_pal::pal_groups().into_iter().flatten();
+
+    for key in order {
+        let val = &pal.get(key);
+        if let Some(colour) = val {
+            toml.push_str(&format!("{key} = \"{colour}\" \n"));
+        }
+    }
+
+    toml
 }

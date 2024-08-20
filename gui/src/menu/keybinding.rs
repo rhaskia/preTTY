@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use dioxus::events::Modifiers;
 use config::keybindings::Keybinding;
-use crate::KEYBINDS;
 use strum::VariantNames;
 
 #[component] 

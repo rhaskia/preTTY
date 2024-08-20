@@ -1,5 +1,6 @@
 [workspace]
 members = ["gui", "term", "hooks", "config"]
+exclude = ["test-programs/kitty-key"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -7,7 +8,7 @@ config = { path = "./config" }
 pretty_hooks = { path = "./hooks" }
 pretty_term = { path = "./term" }
 prettyterm_gui = { path = "./gui" }
-dioxus-form = "0.1.0"
+dioxus-form = "0.1.1"
 
 anyhow = "1.0.79"
 dioxus = { version = "0.5.1", features = ["desktop", "html", "hooks"] }

@@ -122,9 +122,9 @@ impl Screen {
         }
     }
 
-    /// Bad bad bad bad
+    /// Whole range of the screen
     pub fn scroll_range(&self, _back: usize) -> Range<usize> {
-        self.scrollback_offset..self.scrollback_offset + self.rows
+        0..self.cells.len()
     }
 
     /// Length of whole scrollback
@@ -151,11 +151,10 @@ impl Screen {
 
     pub fn phys_line(&self, index: usize) -> usize { self.visible_start() + index }
 
-    /// Reference to a line within the visible screen
-    /// TODO fix this
+    /// Reference to a line within the screen
     pub fn line(&self, index: usize) -> Option<&Line> {
-        let vis_index = self.visible_start() + index;
-        self.cells.get(vis_index)
+        //let vis_index = self.visible_start() + index;
+        self.cells.get(index)
     }
 
     /// Pushes a new line onto the screen

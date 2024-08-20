@@ -11,13 +11,11 @@ use dioxus::prelude::*;
 use pretty_hooks::{on_resize, DOMRectReadOnly};
 use serde::Deserialize;
 use crate::CONFIG;
-use crate::tabs::{Tab};
-use pretty_term::pty::PseudoTerminalSystem;
 use pretty_term::Terminal;
 use super::InputManager;
 use log::info;
 use std::thread;
-use crate::{CURRENT_TAB, TABS, PTY_SYSTEM};
+use crate::{TABS, PTY_SYSTEM, INPUT};
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -27,11 +25,15 @@ pub struct CellSize {
 
 // TODO: split this up for the use of multiple ptys per terminal
 #[component]
-pub fn TerminalApp(pty: String, input: Signal<InputManager>, hidden: bool, index: usize) -> Element {
+pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
     let mut terminal = use_signal(|| Terminal::setup_no_window().unwrap());
     let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
     let pty = use_signal(|| pty);
+
+    use_effect(move || {
+        INPUT.write().set_kitty_state(terminal.read().kitty_state());
+    });
 
     use_effect(move || {
         TABS.write()[index].name = terminal.read().title.clone();

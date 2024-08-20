@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 mod actions;
 pub mod keybindings;
 pub mod colour_pal;
 mod loader;
 pub use actions::TerminalAction;
-use keybindings::Keybinding;
 pub use loader::*;
+pub use colour_pal::{to_css, default_pal};
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(default)]
@@ -31,4 +32,8 @@ impl Default for Config {
             palette: String::from("default")
         }
     }
+}
+
+pub fn dir() -> PathBuf {
+    dirs::config_dir().unwrap().join("prettyterm")
 }
