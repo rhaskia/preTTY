@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 #[derive(Clone, PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Plugin {
     pub name: String,
+    pub desc: String,
     pub version: String,
     pub categories: Vec<String>,
     pub git_repo: String,
@@ -47,4 +48,24 @@ pub fn installed_plugins() -> HashMap<String, Plugin> {
 
 pub fn get_plugin_desc(plugin: Plugin) -> Result<String, String> {
     Ok(String::from("Not yet implemented"))
+}
+
+pub fn get_plugin_js(plugin: &Plugin) -> Vec<String> {
+    let dir = crate::dir().join("plugins").join(&plugin.name);
+    let mut js_files = Vec::new();
+    for file in &plugin.js_files {
+        let string = std::fs::read_to_string(dir.join(file)).unwrap_or_default();
+        js_files.push(string);
+    }
+    js_files
+}
+
+pub fn get_plugin_css(plugin: &Plugin, path: &str) -> Vec<String> {
+    let dir = crate::dir().join("plugins").join(path);
+    let mut css_files = Vec::new();
+    for file in &plugin.css_files {
+        let string = std::fs::read_to_string(dir.join(file)).unwrap();
+        css_files.push(string);
+    }
+    css_files
 }

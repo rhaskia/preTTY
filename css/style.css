@@ -3,6 +3,16 @@
     overflow-x: hidden;
 }
 
+p {
+    color: var(--fg0);
+    margin: 8px;
+}
+
+h1, h2, h3 {
+    color: var(--fg0);
+    margin: 8px;
+}
+
 .commandpalette {
     width: 400px;
     max-width: 90%;
@@ -15,6 +25,17 @@
     top: 25px;
     left: calc(50vw - 200px);
     padding: 8px;
+}
+
+.switchplugins button {
+    display: flex;
+    flex: 1;
+    margin: 2px;
+    color: var(--fg0);
+}
+
+.switchplugins {
+    display: flex;
 }
 
 select {
@@ -52,12 +73,22 @@ form {
 
 .pluginsideview {
     display: flex;
+    flex-direction: column;
     flex: 1;
+    border-right: 1px solid var(--bg1);
 }
 
 .pluginview {
     display: flex;
+    flex-direction: column;
     flex: 3;
+}
+
+.pluginside {
+    margin: 2px;
+    color: var(--fg0);
+    border: none;
+    background: var(--bg1);
 }
 
 .plugins {

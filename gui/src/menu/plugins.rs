@@ -3,45 +3,45 @@ use config::Plugin;
 
 #[component]
 pub fn PluginsMenu() -> Element {
-    let available_plugins = use_signal(|| config::available_plugins());
-    let installed_plugins = use_signal(|| config::installed_plugins());
-    let mut current = use_signal(|| true);
-    let plugins = use_memo(move || if current() { available_plugins } else { installed_plugins });
-    let selected_plugin = use_signal(|| Some(String::from("plugin")));
+    let available_plugins = use_signal(config::available_plugins);
+    let installed_plugins = use_signal(config::installed_plugins);
+    let mut current = use_signal(|| false);
+    let mut selected_plugin = use_signal(|| None);
+    let plugins = || if current() { available_plugins } else { installed_plugins };
 
     rsx!{
-
         div {
             class: "plugins",
-            "{plugins:?}"
             div {
                 class: "pluginsideview",
                 div {
                     class: "switchplugins",
                     button {
-                        onclick: move |_| current.set(false),
+                        onclick: move |_| { current.set(false); selected_plugin.set(None) },
                         "Installed"
                     }
                     button {
-                        onclick: move |_| current.set(true),
+                        onclick: move |_| { current.set(true); selected_plugin.set(None) },
                         "Available"
                     }
                 }
-                for (name, plugin) in plugins.read().read().iter() {
-                    "{plugin.name}"
+                for (name, plugin) in plugins()() {
+                    button {
+                        class: "pluginside",
+                        onclick: move |_| selected_plugin.set(Some(name.clone())),
+                        "{plugin.name}"
+                    }
                 }
             }
 
             div {
-                class: "pluginview"
+                class: "pluginview",
+                match selected_plugin() {
+                    Some(plugin) => rsx!{ PluginView { plugin: plugins().read()[&plugin].clone() }},
+                    None => rsx!{}
+                }
             }
         }
-
-
-        // match selected_plugin() {
-        //     Some(plugin) => rsx!{ PluginView { plugin: plugins[selected_plugin()] }},
-        //     None => rsx!{}
-        // }
     }
 }
 
@@ -50,10 +50,9 @@ pub fn PluginView(plugin: Plugin) -> Element {
     let readme = config::get_plugin_desc(plugin.clone());
 
     rsx! {
-        div {
-            "pluginview",
-            h1 { "{plugin.name}" }
-            p { "{readme:?}" }
-        }
+        h3 { "{plugin.name}" }
+        p { "{plugin.desc}" }
+        hr {}
+        p { "{readme:?}" }
     }
 }
