@@ -1,0 +1,33 @@
+:root {
+    --bg0: #1d202166;
+    --bg1: #1d202188;
+    --bg2: #1d202188;
+}
+
+* {
+    text-shadow: 0px 0px 2px var(--fg);
+}
+
+body {
+    background: #1d202166 !important;
+    --bg-default: #00000000 !important;
+    background-filter: blur(1);
+}
+
+.commandpalette {
+    background: #1d202166 !important;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.searchresults {
+    background: none;
+}
+
+.searchresult:focus-visible {
+    color: var(--fg0) !important;
+}
+
+hr {
+    box-shadow: 2px 0px 5px #ffffff66;
+}

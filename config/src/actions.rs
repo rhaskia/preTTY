@@ -13,6 +13,7 @@ pub enum TerminalAction {
     OpenSettings,
     OpenPluginMenu,
     ToggleCommandPalette,
+    OpenDevTools,
 
     PasteText,
     CopyText,
@@ -40,6 +41,7 @@ impl TerminalAction {
         vec![
             OpenSettings,
             ToggleCommandPalette,
+            OpenDevTools,
 
             PasteText,
             CopyText,

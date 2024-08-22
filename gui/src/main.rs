@@ -81,6 +81,7 @@ pub fn handle_action(action: TerminalAction) {
             //     document.getElementById("commandsearch").focus();
             // "#);
         }
+        TerminalAction::OpenDevTools => use_window().devtool(),
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
@@ -99,7 +100,6 @@ pub fn handle_action(action: TerminalAction) {
 
 #[component]
 pub fn App() -> Element {
-
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}

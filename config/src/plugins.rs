@@ -50,11 +50,11 @@ pub fn get_plugin_desc(plugin: Plugin) -> Result<String, String> {
     Ok(String::from("Not yet implemented"))
 }
 
-pub fn get_plugin_js(plugin: &Plugin) -> Vec<String> {
-    let dir = crate::dir().join("plugins").join(&plugin.name);
+pub fn get_plugin_js(plugin: &Plugin, path: &str) -> Vec<String> {
+    let dir = crate::dir().join("plugins").join(path);
     let mut js_files = Vec::new();
     for file in &plugin.js_files {
-        let string = std::fs::read_to_string(dir.join(file)).unwrap_or_default();
+        let string = std::fs::read_to_string(dir.join(file)).unwrap();
         js_files.push(string);
     }
     js_files
