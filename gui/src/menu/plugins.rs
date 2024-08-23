@@ -39,7 +39,12 @@ pub fn PluginsMenu(hidden: bool) -> Element {
             div {
                 class: "pluginview",
                 match selected_plugin() {
-                    Some(plugin) => rsx!{ PluginView { plugin: plugins().read()[&plugin].clone() }},
+                    Some(plugin) => rsx!{ 
+                        PluginView { 
+                            plugin: plugins().read()[&plugin].clone(),
+                            installed: current()
+                        }
+                    },
                     None => rsx!{}
                 }
             }
@@ -48,7 +53,7 @@ pub fn PluginsMenu(hidden: bool) -> Element {
 }
 
 #[component]
-pub fn PluginView(plugin: Plugin) -> Element {
+pub fn PluginView(plugin: Plugin, installed: bool) -> Element {
     let p = plugin.clone();
     let readme = use_resource(move || {
         let p = p.clone();
@@ -58,17 +63,35 @@ pub fn PluginView(plugin: Plugin) -> Element {
     });
 
     rsx! {
-        h3 { "{plugin.name}" }
+        h2 { 
+            margin_bottom: "2px",
+            "{plugin.name}"
+        }
         p { "{plugin.desc}" }
-        hr {}
+        div { 
+            margin: "10px",
+            if installed {
+                button {
+                    "Uninstall"
+                }
+                button {
+                    "Disable"
+                }
+            } else {
+                button {
+                    "Install"
+                }
+            }
+        }
+        div { class: "pluginsep" }
         match &*readme.read_unchecked() {
             Some(Ok(text)) => rsx! {
-                div {
+                p {
                     dangerous_inner_html: markdown::to_html(text),
                 }
             },
-            Some(Err(_)) => rsx! { div { "Failed loading plugin information." } },
-            None => rsx! { div { "Loading plugin information..." } },
+            Some(Err(_)) => rsx! { p { "Failed loading plugin information." } },
+            None => rsx! { p { "Loading plugin information..." } },
         }
     }
 }
