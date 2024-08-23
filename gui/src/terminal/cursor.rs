@@ -22,7 +22,7 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: String) -> Element {
                 let cursor = document.getElementById("cursor-" + index);
                 if (line) {
                     let top = line.getBoundingClientRect().top;
-                    cursor.style.top = `calc(${top}px - var(--cell-height))`;
+                    cursor.style.setProperty("--line-height","" + top + "px");
                 }
                 "#,
             );
@@ -43,9 +43,7 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: String) -> Element {
         div {
             class: "cursor",
             id: "cursor-{index}",
-            left: "calc({cursor_pos().0} * var(--cell-width) + var(--padding))",
-            height: "var(--cell-height)",
-            width: "var(--cell-width)",
+            style: "--column: {cursor_pos().0}",
         }
     }
 }

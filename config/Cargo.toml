@@ -4,13 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-toml = { version = "0.8.19", features = ["preserve_order"] }
-serde = "1.0"
+serde = { workspace = true }
+dioxus = { workspace = true }
+anyhow ={ workspace = true }
 dirs = "5.0.1"
-dioxus = { version = "0.5.0", features = ["serde", "html", "hooks"] }
+toml = { version = "0.8.19", features = ["preserve_order"] }
 enum_derive = "0.1.7"
 strum_macros = "0.26.4"
 strum = "0.26.3"
 confy = "0.6.1"
-anyhow = "1.0.86"
-git2 = "0.19.0"
+reqwest = "0.12.7"
+markdown = "0.3.0"

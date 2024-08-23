@@ -48,9 +48,9 @@ pub fn CellLine(terminal: Signal<Terminal>, y: usize) -> Element {
             let fg = cell.attr.get_fg().to_hex("var(--fg-default)".to_string());
             let bg = cell.attr.get_bg().to_hex("var(--bg-default)".to_string());
             if open {
-                rendered.push_str("</fg>");
+                rendered.push_str("</span>");
             }
-            rendered.push_str(&format!("<span style=\"color: {fg}; background: {bg}\">"));
+            rendered.push_str(&format!("<span class= \"cellspan\" style=\"--fg: {fg}; --bg: {bg};\">"));
             open = true;
         }
 

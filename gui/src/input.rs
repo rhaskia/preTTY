@@ -6,7 +6,7 @@ use dioxus::prelude::{Event, KeyboardData, MouseData, Readable};
 use log::*;
 use termwiz::escape::csi::KittyKeyboardFlags;
 
-use crate::{KEYBINDS, PTY_SYSTEM, TABS, CURRENT_TAB};
+use crate::KEYBINDS;
 
 pub struct InputManager {
     key_mode: KeyMode,

@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use crate::input::InputManager;
 use crate::{CURRENT_TAB, TABS};
 use config::TerminalAction;
 use crate::handle_action;
@@ -12,6 +11,7 @@ pub struct Tab {
     pub pty: String,
 }
 
+#[derive(Clone, PartialEq)]
 pub enum TabType {
     Menu,
     Terminal,
@@ -96,6 +96,10 @@ pub fn Tabs() -> Element {
                         button { 
                             onclick: move |_| *crate::COMMAND_PALETTE.write() = true,
                             "Command Palette"
+                        }
+                        button {
+                            onclick: move |_| handle_action(TerminalAction::OpenPluginMenu),
+                            "Plugins Menu"
                         }
                         button { "Help" }
                     }

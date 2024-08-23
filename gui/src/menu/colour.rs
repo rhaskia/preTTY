@@ -47,9 +47,9 @@ pub fn ColourPalette() -> Element {
 
             button {
                 onclick: move |_| {
-                    PALETTES.write().remove(editing());
+                    PALETTES.write().remove(&editing());
                     // TODO popup confirm
-                }
+                },
                 "Delete Palette"
             }
 

@@ -1,16 +1,13 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
-#![feature(inline_const)]
-
-// crate imports
 mod header;
 mod input;
 mod menu;
 mod tabs;
 mod terminal;
+mod plugins;
 
 use std::collections::HashMap;
-
 use config::keybindings::Keybinding;
 use config::{Config, TerminalAction, colour_pal::Palette};
 use dioxus::desktop::{use_window, WindowBuilder};
@@ -23,6 +20,9 @@ use menu::palette::CommandPalette;
 use terminal::TerminalApp;
 use config::{to_css, default_pal};
 use crate::tabs::Tab;
+use crate::tabs::TabType;
+use menu::plugins::PluginsMenu;
+use plugins::PluginManager;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
@@ -45,7 +45,7 @@ pub fn handle_action(action: TerminalAction) {
     match action {
         TerminalAction::Write(s) => {
             let tab = &TABS()[*CURRENT_TAB.read()];
-            if tab.settings { return }
+            if tab.tab_type != TabType::Terminal { return }
             PTY_SYSTEM.write().get(&tab.pty).write(s);
         }
         TerminalAction::NewTab => {
@@ -67,7 +67,12 @@ pub fn handle_action(action: TerminalAction) {
         TerminalAction::Quit => use_window().close(),
         TerminalAction::OpenSettings => {
             let index = TABS.len();
-            TABS.write().push(Tab { name: "Settings".to_string(), settings: true, pty: String::new() });
+            TABS.write().push(Tab { name: "Settings".to_string(), tab_type: tabs::TabType::Menu, pty: String::new() });
+            *CURRENT_TAB.write() = index;
+        }
+        TerminalAction::OpenPluginMenu => {
+            let index = TABS.len();
+            TABS.write().push(Tab { name: "Plugins".to_string(), tab_type: tabs::TabType::PluginMenu, pty: String::new() });
             *CURRENT_TAB.write() = index;
         }
         TerminalAction::ToggleCommandPalette => {
@@ -76,6 +81,7 @@ pub fn handle_action(action: TerminalAction) {
             //     document.getElementById("commandsearch").focus();
             // "#);
         }
+        TerminalAction::OpenDevTools => use_window().devtool(),
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
@@ -94,11 +100,12 @@ pub fn handle_action(action: TerminalAction) {
 
 #[component]
 pub fn App() -> Element {
-
     rsx! {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
         style {{ to_css(&PALETTES.read().get(&CONFIG.read().palette).unwrap_or(&default_pal())) }}
+        style {{ config::get_user_css() }}
+        PluginManager {}
 
         div {
             id: "app",
@@ -121,9 +128,9 @@ pub fn App() -> Element {
                 flex_grow: 1,
                 for (i, tab) in TABS().into_iter().enumerate() {
                     match tab.tab_type {
-                        TabType::Menu => Menu { active: i == CURRENT_TAB() },
-                        TabType::PluginMenu => PluginMenu {},
-                        _ => TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i },
+                        TabType::Menu => rsx!{ Menu { active: i == CURRENT_TAB() } },
+                        TabType::PluginMenu => rsx!{PluginsMenu { hidden: i != CURRENT_TAB() }},
+                        _ => rsx!{TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }},
                     }
                 }
             }

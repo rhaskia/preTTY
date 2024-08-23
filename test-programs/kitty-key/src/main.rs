@@ -15,7 +15,6 @@ fn main() {
     ).unwrap();
     
     loop {
-        // `read()` blocks until an `Event` is available
         match read().unwrap() {
             Event::Key(event) => match event {
                 _ => println!("{:?}", event),

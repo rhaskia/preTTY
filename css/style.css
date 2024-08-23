@@ -1,6 +1,19 @@
 * {
     font-family: "JetBrainsMono Nerd Font";
     overflow-x: hidden;
+    --fg: var(--fg0);
+    --bg: var(--bg0);
+}
+
+p {
+    color: var(--fg0);
+    background: var(--bg);
+    margin: 8px;
+}
+
+h1, h2, h3 {
+    color: var(--fg0);
+    margin: 8px;
 }
 
 .commandpalette {
@@ -15,6 +28,17 @@
     top: 25px;
     left: calc(50vw - 200px);
     padding: 8px;
+}
+
+.switchplugins button {
+    display: flex;
+    flex: 1;
+    margin: 2px;
+    color: var(--fg0);
+}
+
+.switchplugins {
+    display: flex;
 }
 
 select {
@@ -48,6 +72,32 @@ form {
 
 .menu option:checked {
     background: var(--bg4);
+}
+
+.pluginsideview {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    border-right: 1px solid var(--bg1);
+}
+
+.pluginview {
+    display: flex;
+    flex-direction: column;
+    flex: 3;
+}
+
+.pluginside {
+    margin: 2px;
+    color: var(--fg0);
+    border: none;
+    background: var(--bg1);
+}
+
+.plugins {
+    display: flex;
+    flex: 1;
+flex-direction: row;
 }
 
 fieldset[name=Config] {
@@ -423,17 +473,21 @@ body {
     position: absolute;
     /* BAD */
     background: white;
-    /*transition: left 0.1s ease-out, top 0.1s ease-out*/
-    ;
+    left: calc(var(--column) * var(--cell-width) + var(--padding));
+    top: calc(var(--line-height) - var(--cell-height) * 1.5);
+    height: var(--cell-height);
+    width: var(--cell-width);
 }
 
 /* TEXT STYLES */
 .cellspan {
-    width: var(--cell-width);
-    height: var(--cell-height);
+    /* width: var(--cell-width); */
+    /* height: var(--cell-height); */
     font-size: 14px;
     display: inline-block;
     overflow: visible;
+    color: var(--fg);
+    background: var(--bg);
 }
 
 dim {
@@ -459,8 +513,7 @@ pre {
 }
 
 span {
-    color: var(--fg0);
-    background-color: var(--bg0);
+    color: var(--fg);
 }
 
 /*Cell Attributes*/
