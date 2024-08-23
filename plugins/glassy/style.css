@@ -1,18 +1,9 @@
-:root {
-    --bg0: #1d202166;
-    --bg1: #1d202188;
-    --bg2: #1d202188;
-}
 
 * {
     text-shadow: 0px 0px 2px var(--fg);
+--bg-default: none;
 }
 
-body {
-    background: #1d202166 !important;
-    --bg-default: #00000000 !important;
-    background-filter: blur(1);
-}
 
 .commandpalette {
     background: #1d202166 !important;
@@ -30,4 +21,76 @@ body {
 
 hr {
     box-shadow: 2px 0px 5px #ffffff66;
+}
+
+.tab::before {
+display: none;
+	}
+
+.tab::after {
+display: none;
+	}
+
+.tab {
+	border-radius: 4px;
+background: #1d202144;
+}
+
+body {
+background-color:#da99ff;
+background-image:
+radial-gradient(at 71% 46%, hsla(201,88%,71%,1) 0px, transparent 50%),
+radial-gradient(at 93% 7%, hsla(231,40%,64%,1) 0px, transparent 50%),
+radial-gradient(at 59% 91%, hsla(335,60%,72%,1) 0px, transparent 50%),
+radial-gradient(at 41% 39%, hsla(327,80%,69%,1) 0px, transparent 50%),
+radial-gradient(at 6% 80%, hsla(218,40%,74%,1) 0px, transparent 50%),
+radial-gradient(at 2% 51%, hsla(198,71%,62%,1) 0px, transparent 50%),
+radial-gradient(at 8% 34%, hsla(289,88%,73%,1) 0px, transparent 50%);
+}
+.app {
+background: #171d6961;
+}
+
+.tab {
+margin: 4px;
+background: none;
+margin-right: 0px;
+border-right: 2px solid #ffffff44;
+padding-right: 10px;
+border-radius: 0;
+}
+
+.command {
+box-shadow: 0 0 10px inset #ffffff44;
+border-radius: 10px;
+margin: 8px;
+padding: 10px;
+background: #ffffff22;
+}
+
+hr {
+display: none;
+margin: 0;
+}
+
+.tabs {
+min-height: 27px;
+}
+
+.barbutton {
+height: 100%;
+}
+
+.app {
+background: #00004466;
+}
+
+.bardropdown {
+background: #ffffff33;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.cursor {
+--padding: 18px;
 }

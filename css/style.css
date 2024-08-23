@@ -473,8 +473,10 @@ body {
     position: absolute;
     /* BAD */
     background: white;
-    /*transition: left 0.1s ease-out, top 0.1s ease-out*/
-    ;
+    left: calc(var(--column) * var(--cell-width) + var(--padding));
+    top: calc(var(--line-height) - var(--cell-height) * 1.5);
+    height: var(--cell-height);
+    width: var(--cell-width);
 }
 
 /* TEXT STYLES */

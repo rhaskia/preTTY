@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use config::Plugin;
 
 #[component]
-pub fn PluginsMenu() -> Element {
+pub fn PluginsMenu(hidden: bool) -> Element {
     let available_plugins = use_signal(config::available_plugins);
     let installed_plugins = use_signal(config::installed_plugins);
     let mut current = use_signal(|| false);
@@ -12,6 +12,8 @@ pub fn PluginsMenu() -> Element {
     rsx!{
         div {
             class: "plugins",
+            display: if hidden { "none" },
+            hidden,
             div {
                 class: "pluginsideview",
                 div {
@@ -47,12 +49,26 @@ pub fn PluginsMenu() -> Element {
 
 #[component]
 pub fn PluginView(plugin: Plugin) -> Element {
-    let readme = config::get_plugin_desc(plugin.clone());
+    let p = plugin.clone();
+    let readme = use_resource(move || {
+        let p = p.clone();
+        async move {
+            config::get_plugin_readme(p).await
+        }
+    });
 
     rsx! {
         h3 { "{plugin.name}" }
         p { "{plugin.desc}" }
         hr {}
-        p { "{readme:?}" }
+        match &*readme.read_unchecked() {
+            Some(Ok(text)) => rsx! {
+                div {
+                    dangerous_inner_html: markdown::to_html(text),
+                }
+            },
+            Some(Err(_)) => rsx! { div { "Failed loading plugin information." } },
+            None => rsx! { div { "Loading plugin information..." } },
+        }
     }
 }

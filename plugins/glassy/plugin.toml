@@ -1,7 +1,8 @@
 name = "Glassy"
 version = "0.1.0"
 categories = []
-git_repo = ""
+git_repo = "rhaskia/PreTTYExamplePlugin"
 js_files = []
 css_files = ["style.css"]
+palette_files = ["glassy.toml"]
 desc = ""

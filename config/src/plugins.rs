@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
+use reqwest::Client;
 
 #[derive(Clone, PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Plugin {
@@ -46,8 +47,13 @@ pub fn installed_plugins() -> HashMap<String, Plugin> {
     plugins
 }
 
-pub fn get_plugin_desc(plugin: Plugin) -> Result<String, String> {
-    Ok(String::from("Not yet implemented"))
+pub async fn get_plugin_readme(plugin: Plugin) -> Result<String, anyhow::Error> {
+    let url = format!("https://raw.githubusercontent.com/{}/main/README.md", plugin.git_repo);
+    let client = Client::new();
+    let response = client.get(url).send().await.unwrap();
+
+    let readme = response.text().await;
+    Ok(readme?)
 }
 
 pub fn get_plugin_js(plugin: &Plugin, path: &str) -> Vec<String> {
@@ -68,4 +74,10 @@ pub fn get_plugin_css(plugin: &Plugin, path: &str) -> Vec<String> {
         css_files.push(string);
     }
     css_files
+}
+
+pub fn get_user_css() -> String {
+    let path = crate::dir().join("user.css");
+    // default will return an empty string
+    std::fs::read_to_string(path).unwrap_or_default()
 }

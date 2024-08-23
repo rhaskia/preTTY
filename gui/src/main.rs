@@ -104,6 +104,7 @@ pub fn App() -> Element {
         style {{ include_str!("../../css/style.css") }}
         style {{ include_str!("../../css/palette.css") }}
         style {{ to_css(&PALETTES.read().get(&CONFIG.read().palette).unwrap_or(&default_pal())) }}
+        style {{ config::get_user_css() }}
         PluginManager {}
 
         div {
@@ -128,7 +129,7 @@ pub fn App() -> Element {
                 for (i, tab) in TABS().into_iter().enumerate() {
                     match tab.tab_type {
                         TabType::Menu => rsx!{ Menu { active: i == CURRENT_TAB() } },
-                        TabType::PluginMenu => rsx!{PluginsMenu {}},
+                        TabType::PluginMenu => rsx!{PluginsMenu { hidden: i != CURRENT_TAB() }},
                         _ => rsx!{TerminalApp { hidden: i != CURRENT_TAB(), pty: tab.pty, index: i }},
                     }
                 }
