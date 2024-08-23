@@ -16,9 +16,8 @@ The following command will work for any OS once I upload the project to crates.i
 on Linux you may also need the webkitgtk package for PreTTY to function.
 For now you will just have to run cargo run --release in the directory and move the executable into somewhere where the system will find it.
 
-You can also install through on the following package managers as well:
+You can also install it on the following package managers as well:
  * Nothing yet 
 
 # Plugins
-
-# PreTTY Plugins
+To use plugins, either use the plugin manager (not yet containing anything), or copy a plugin you find ([or make!](https://github.com/rhaskia/PreTTYExamplePlugin)) into the config folder for PreTTY.
