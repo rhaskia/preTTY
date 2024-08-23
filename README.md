@@ -10,6 +10,8 @@ Windows: WebView2 (packaged with Edge),
 
 MacOS: Built in
 
+You also need libxdo on linux and a nerd font for the icons to work.
+
 # Installation 
 The following command will work for any OS once I upload the project to crates.io:
 `cargo install --locked pretty-term`
