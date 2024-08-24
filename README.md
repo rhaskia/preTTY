@@ -1,5 +1,8 @@
 # PreTTY
-PreTTY is a Dioxus-based terminal emulator, with full customizability through JS and CSS.
+PreTTY is a Dioxus-based terminal emulator, with full customizability through JS and CSS. 
+|PreTTY running neovim|PreTTY with custom css styling |
+|-|-|
+|![Default Styling](./example.png)|![Styled Example](./image.png)|
 
 ## Dependencies 
 The main dependency is just a web view to render the app, which is usually these:
@@ -8,9 +11,9 @@ Linux: WebkitGtk,
 
 Windows: WebView2 (packaged with Edge),
 
-MacOS: Built in
+MacOS: Built-in
 
-You also need libxdo on linux and a nerd font for the icons to work.
+You also need libxdo on Linux and a nerd font for the icons to work.
 
 # Installation 
 The following command will work for any OS once I upload the project to crates.io:
