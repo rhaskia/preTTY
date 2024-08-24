@@ -15,9 +15,10 @@ use line::Line;
 use log::info;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
-use termwiz::escape::csi::{Cursor, Device, Edit, EraseInDisplay, EraseInLine, CSI};
+use termwiz::escape::csi::{CsiParam, Cursor, Device, Edit, EraseInDisplay, EraseInLine, Unspecified, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{Action, ControlCode, Esc, KittyImage, OperatingSystemCommand, Sixel};
+use termwiz::terminal;
 use window::WindowHandler;
 
 use self::command::CommandSlicer;
@@ -36,6 +37,7 @@ pub struct Terminal {
     pub window: Box<dyn WindowHandler>,
     pub marks: Vec<(usize, usize)>,
 
+    pub title_stack: Vec<String>,
     pub title: String,
 }
 
@@ -53,6 +55,7 @@ impl Terminal {
             user_vars: HashMap::new(),
             window,
             marks: Vec::new(),
+            title_stack: Vec::new(),
             title: "PreTTY".into(),
         })
     }
@@ -133,7 +136,25 @@ impl Terminal {
             // ECMA-48 SCP (not secure contain protect)
             // pretty sure this is RTL / LTR text, which the webview should implement
             CSI::SelectCharacterPath(_, _) => {}
-            CSI::Unspecified(bytes) => info!("Unknown CSI {bytes:?}"),
+            CSI::Unspecified(bytes) => self.handle_csi_unspecified(bytes),
+        }
+    }
+
+    fn handle_csi_unspecified(&mut self, unspecified: Box<Unspecified>) {
+        if unspecified.control != 't' || unspecified.parameters_truncated {
+            info!("Unknown CSI {unspecified:?}");
+            return;
+        }
+
+        if unspecified.params == [CsiParam::Integer(23)] { // Pop title
+            match self.title_stack.pop() {
+                Some(e) => self.title = e,
+                None => {},
+            }
+        } else if unspecified.params == [CsiParam::Integer(22)] { // Push title
+            self.title_stack.push(self.title.clone());
+        } else {
+            info!("Unknown CSI {unspecified:?}");
         }
     }
 
