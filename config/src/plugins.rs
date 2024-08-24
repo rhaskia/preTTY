@@ -81,3 +81,7 @@ pub fn get_user_css() -> String {
     // default will return an empty string
     std::fs::read_to_string(path).unwrap_or_default()
 }
+
+pub fn download_plugin(plugin: &Plugin) {
+    gitoxide::clone(plugin.)
+}
