@@ -108,13 +108,4 @@ a {
     --fg: var(--blue);
 }
 
-.pluginside {
-    background: var(--bg0);
-}
 
-.pluginsep {
-	border-bottom: 1px solid #ffffff44;
-    position: relative;
-    width: 100%;
-    height: 1px;
-}

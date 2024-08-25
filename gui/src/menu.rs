@@ -45,6 +45,7 @@ pub fn Menu(active: bool) -> Element {
                         *KEYBINDS.write() = keybinds();
                         config::save_keybinds(keybinds().clone());
                         config::save_palettes(PALETTES());
+                        config::save_config(CONFIG());
                         // Save to file
                     },
                     "Save Config"

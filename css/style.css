@@ -5,6 +5,11 @@
     --bg: var(--bg0);
 }
 
+a {
+    --fg: var(--bright_blue);
+    color: var(--fg);
+}
+
 p {
     color: var(--fg0);
     background: var(--bg);
@@ -92,12 +97,20 @@ form {
     color: var(--fg0);
     border: none;
     background: var(--bg1);
+    background: var(--bg0);
 }
 
 .plugins {
     display: flex;
     flex: 1;
-flex-direction: row;
+    flex-direction: row;
+}
+
+.pluginsep {
+	border-bottom: 1px solid #ffffff44;
+    position: relative;
+    width: 100%;
+    height: 1px;
 }
 
 fieldset[name=Config] {
@@ -109,8 +122,9 @@ button {
     min-width: 30px;
     border: 1px solid var(--bg4);
     background: var(--bg0);
-    color: var(--palette);
+    color: var(--fg0);
     border-radius: 4px;
+    justify-content: center;
 }
 
 .commandsearch {

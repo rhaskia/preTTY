@@ -16,8 +16,20 @@ pub struct Plugin {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct PluginConfig {
-    disabled_plugins: Vec<String>,
+    pub disabled_plugins: Vec<String>,
     allow_js: bool,
+}
+
+impl PluginConfig {
+    pub fn disable_plugin(&mut self, name: &str) {
+        println!("{name}");
+        self.disabled_plugins.push(name.to_string());
+        println!("{:?}", self.disabled_plugins);
+    }
+
+    pub fn enable_plugin(&mut self, name: &str) {
+        self.disabled_plugins.retain(|e| e != name)
+    }
 }
 
 pub fn available_plugins() -> HashMap<String, Plugin> {
@@ -26,11 +38,15 @@ pub fn available_plugins() -> HashMap<String, Plugin> {
     plugins
 }
 
+pub fn plugin_config() -> PluginConfig {
+    let dir = crate::dir().join("plugins");
+    let config_str = std::fs::read_to_string(dir.join("plugins.toml")).unwrap_or_default();
+    toml::from_str(&config_str).unwrap_or_default()
+}
+
 pub fn installed_plugins() -> HashMap<String, Plugin> {
     let mut plugins = HashMap::new();
     let dir = crate::dir().join("plugins");
-    let config_str = std::fs::read_to_string(dir.join("plugins.toml")).unwrap_or_default();
-    let plugins_config: PluginConfig = toml::from_str(&config_str).unwrap_or_default(); 
     let mut read_dir = std::fs::read_dir(dir.clone()).unwrap();
     
     while let Some(Ok(entry)) = read_dir.next() {
@@ -39,7 +55,6 @@ pub fn installed_plugins() -> HashMap<String, Plugin> {
             let plugin_file = std::fs::read_to_string(dir.join("plugin.toml")).unwrap_or_default();
             let plugin = toml::from_str(&plugin_file).unwrap_or_default();
             let name = entry.file_name().into_string().unwrap();
-            if plugins_config.disabled_plugins.contains(&name) { continue; }
             plugins.insert(name, plugin);
         }
     }
@@ -83,5 +98,10 @@ pub fn get_user_css() -> String {
 }
 
 pub fn download_plugin(plugin: &Plugin) {
-    gitoxide::clone(plugin.)
+    let dir = crate::dir().join("plugins").join(plugin.name.clone());
+    let url = gix::prepare_clone(plugin.git_repo.clone(), dir).unwrap();
+}
+
+pub fn is_plugin_installed(plugin: String) -> bool {
+    crate::dir().join("plugins").join(plugin).exists()
 }
