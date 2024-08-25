@@ -1,5 +1,5 @@
 pub mod colour;
-pub mod plugins;
+pub mod confirm;
 mod keybinding;
 pub mod palette;
 mod settings;

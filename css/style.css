@@ -92,6 +92,14 @@ form {
     flex: 3;
 }
 
+.pluginviewbuttons {
+    margin: 10px;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 7px;
+}
+
 .pluginside {
     margin: 2px;
     color: var(--fg0);

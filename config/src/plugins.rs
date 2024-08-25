@@ -5,12 +5,17 @@ use reqwest::Client;
 #[derive(Clone, PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Plugin {
     pub name: String,
+    pub display_name: String,
     pub desc: String,
+    pub author: String,
+    pub git_repo: String,
     pub version: String,
     pub categories: Vec<String>,
-    pub git_repo: String,
+    pub icon: String,
+
     pub js_files: Vec<String>,
     pub css_files: Vec<String>,
+    pub palette_files: Vec<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Default)]

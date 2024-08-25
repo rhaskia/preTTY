@@ -4,6 +4,8 @@ use std::path::Path;
 use config::Plugin;
 use dioxus::prelude::*;
 
+use crate::menu::confirm::Confirm;
+
 pub const PLUGIN_CONFIG: GlobalSignal<config::PluginConfig> = Signal::global(config::plugin_config);
 
 #[component]
@@ -116,10 +118,12 @@ pub fn PluginView(plugin: Plugin, installed: bool) -> Element {
         p { "{plugin.desc}" }
         div {
             margin: "10px",
+            class: "pluginviewbuttons",
             if installed {
                 button {
                     "Uninstall"
                 }
+                Confirm {}
                 if PLUGIN_CONFIG.read().disabled_plugins.contains(&plugin.name) {
                     button {
                         onclick: move |_| crate::plugins::enable(&plugin.name),
