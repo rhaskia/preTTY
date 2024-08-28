@@ -21,6 +21,30 @@ h1, h2, h3 {
     margin: 8px;
 }
 
+.confirmselect {
+    max-width: 210px;
+    position: absolute;
+    margin: auto;
+    z-index: 100;
+    background: var(--bg0);
+    border-radius: 6px;
+    box-shadow: 0 2px 2px 2px #00000033;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -70%);
+    padding: 8px;
+}
+
+.confirmselect p {
+    font-size: 14px;
+    margin: 4px;
+}
+
+.confirmselect button {
+    margin: 4px;
+    width: calc(50% - 8px);
+}
+
 .commandpalette {
     width: 400px;
     max-width: 90%;

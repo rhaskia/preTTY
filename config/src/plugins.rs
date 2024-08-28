@@ -110,3 +110,9 @@ pub fn download_plugin(plugin: &Plugin) {
 pub fn is_plugin_installed(plugin: String) -> bool {
     crate::dir().join("plugins").join(plugin).exists()
 }
+
+pub fn uninstall_plugin(plugin: Plugin) {
+    let dir = crate::dir().join("plugins").join(plugin.name);
+    log::info!("Uninstalled plugin at path {dir:?}");
+    std::fs::remove_dir_all(dir).unwrap();
+}

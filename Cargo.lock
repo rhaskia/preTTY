@@ -591,6 +591,7 @@ dependencies = [
  "dirs 5.0.1",
  "enum_derive",
  "gix",
+ "log",
  "markdown",
  "reqwest 0.12.7",
  "serde",

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use config::Plugin;
+use config::{uninstall_plugin, Plugin};
 use dioxus::prelude::*;
 
 use crate::menu::confirm::Confirm;
@@ -36,14 +36,19 @@ pub fn PluginManager() -> Element {
     }
 }
 
-pub fn disable(name: &str) {
+pub fn disable(plugin: Plugin) {
     PLUGIN_CONFIG
         .write()
         .disabled_plugins
-        .push(name.to_string());
+        .push(plugin.name);
 }
 
-pub fn enable(name: &str) { PLUGIN_CONFIG.write().disabled_plugins.retain(|e| e != name) }
+pub fn enable(plugin: Plugin) {
+    PLUGIN_CONFIG
+        .write()
+        .disabled_plugins
+        .retain(|e| *e != plugin.name)
+}
 
 #[component]
 pub fn PluginsMenu(hidden: bool) -> Element {
@@ -77,7 +82,7 @@ pub fn PluginsMenu(hidden: bool) -> Element {
                         "Available"
                     }
                 }
-                for (name, plugin) in plugins()() {
+                for (_, plugin) in plugins()() {
                     button {
                         class: "pluginside",
                         onclick: move |_| selected_plugin.set(Some(plugin.clone())),
@@ -104,34 +109,32 @@ pub fn PluginsMenu(hidden: bool) -> Element {
 
 #[component]
 pub fn PluginView(plugin: Plugin, installed: bool) -> Element {
-    let p = plugin.clone();
-    let readme = use_resource(move || {
-        let p = p.clone();
-        async move { config::get_plugin_readme(p).await }
-    });
+    let plugin = use_signal(|| plugin);
+    let readme = use_resource(move || async move { config::get_plugin_readme(plugin()).await });
+    let mut confirm = use_signal(|| false);
 
     rsx! {
         h2 {
             margin_bottom: "2px",
-            "{plugin.name}"
+            "{plugin.read().name}"
         }
-        p { "{plugin.desc}" }
+        p { "{plugin.read().desc}" }
         div {
             margin: "10px",
             class: "pluginviewbuttons",
             if installed {
                 button {
+                    onclick: move |_| confirm.set(true),
                     "Uninstall"
                 }
-                Confirm {}
-                if PLUGIN_CONFIG.read().disabled_plugins.contains(&plugin.name) {
+                if PLUGIN_CONFIG.read().disabled_plugins.contains(&plugin.read().name) {
                     button {
-                        onclick: move |_| crate::plugins::enable(&plugin.name),
+                        onclick: move |_| crate::plugins::enable(plugin()),
                         "Enable"
                     }
                 } else {
                     button {
-                        onclick: move |_| crate::plugins::disable(&plugin.name),
+                        onclick: move |_| crate::plugins::disable(plugin()),
                         "Disable"
                     }
                 }
@@ -146,6 +149,13 @@ pub fn PluginView(plugin: Plugin, installed: bool) -> Element {
             },
             Some(Err(_)) => rsx! { p { "Failed loading plugin information." } },
             None => rsx! { p { "Loading plugin information..." } },
+        }
+        if confirm() {
+            Confirm {
+                open: confirm,
+                onconfirm: move |_| config::uninstall_plugin(plugin()),
+                message: "Are you sure you want to uninstall this plugin?"
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 serde = { workspace = true }
 dioxus = { workspace = true }
+log = { workspace = true }
 anyhow ={ workspace = true }
 dirs = "5.0.1"
 toml = { version = "0.8.19", features = ["preserve_order"] }
