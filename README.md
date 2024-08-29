@@ -1,8 +1,15 @@
 # PreTTY
-PreTTY is a Dioxus-based terminal emulator, with full customizability through JS and CSS. 
+PreTTY is a fully customizable terminal emulator running off web technologies with the speed of rust (thanks to dioxus!). Current features include tabs, keybinding, command palette, fully-featured settings, a plugin system currently only supporting custom css, js, and palettes. 
 |PreTTY running neovim|PreTTY with custom css styling |
 |-|-|
 |![Default Styling](./example.png)|![Styled Example](./image.png)|
+
+# Installation 
+The following command will work for any OS once I upload the project to crates.io:
+`cargo install --locked pretty-term`
+on Linux you may also need the webkitgtk package for PreTTY to function.
+For now you will just have to run cargo run --release in the directory and move the executable into somewhere where the system will find it.
+Plans are to put this on major package managers in the future to make the installation process simpler.
 
 ## Dependencies 
 The main dependency is just a web view to render the app, which is usually these:
@@ -15,14 +22,9 @@ MacOS: Built-in
 
 You also need libxdo on Linux and a nerd font for the icons to work.
 
-# Installation 
-The following command will work for any OS once I upload the project to crates.io:
-`cargo install --locked pretty-term`
-on Linux you may also need the webkitgtk package for PreTTY to function.
-For now you will just have to run cargo run --release in the directory and move the executable into somewhere where the system will find it.
-
-You can also install it on the following package managers as well:
- * Nothing yet 
+# Contributions
+Feel free to contribute anything you want or need out of this! 
 
 # Plugins
 To use plugins, either use the plugin manager (not yet containing anything), or copy a plugin you find ([or make!](https://github.com/rhaskia/PreTTYExamplePlugin)) into the config folder for PreTTY.
+Future hopes with the plugin system is to also support communication with the terminal itself through js plugins.
