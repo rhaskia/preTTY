@@ -1,5 +1,5 @@
 # PreTTY
-PreTTY is a fully customizable terminal emulator running off web technologies with the speed of rust (thanks to Dioxus!). PreTTY is designed to be as friendly to new users as possible with comprehensive menus while supporting a completely plain-text-based config.Current features include tabs, keybinding, a command palette, fully-featured settings, and a plugin system currently supporting custom CSS, js, and palettes. 
+PreTTY is a fully customizable terminal emulator running off web technologies with the speed of rust (thanks to Dioxus!). PreTTY is designed to be as friendly to new users as possible with comprehensive menus while supporting a completely plain-text-based config. Current features include tabs, keybinding, a command palette, fully-featured settings, and a plugin system currently supporting custom CSS, JS, and palettes. 
 |PreTTY running neovim|PreTTY with custom css styling |
 |-|-|
 |![Default Styling](./example.png)|![Styled Example](./image.png)|
