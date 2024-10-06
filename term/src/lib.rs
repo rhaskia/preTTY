@@ -119,6 +119,7 @@ impl Terminal {
             ControlCode::Backspace => self.backspace(),
             ControlCode::Null => info!("Read NULL char"),
             ControlCode::Bell => self.window.bell(),
+            ControlCode::HorizontalTab => self.print_str("    ".to_string()),
             _ => info!("Unimplemented: {control_code:?}"),
         }
     }

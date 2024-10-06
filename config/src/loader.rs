@@ -63,12 +63,12 @@ pub fn save_keybinds(keybinds: Vec<Keybinding>) {
 
     let wrapper = RawKeybinds { keybinds: raw };
     confy::store("prettyterm", Some("keybinds"), wrapper).unwrap();
-    println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("keybinds")).unwrap());
+    log::info!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("keybinds")).unwrap());
 }
 
 pub fn save_config(config: Config) {
     confy::store("prettyterm", Some("config"), config).unwrap();
-    println!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("config")).unwrap());
+    log::info!("Saved to {:?}", confy::get_configuration_file_path("prettyterm", Some("config")).unwrap());
 }
 
 pub fn load_palette(name: &str) -> Palette {

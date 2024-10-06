@@ -21,7 +21,7 @@ use terminal::TerminalApp;
 use config::{to_css, default_pal};
 use crate::tabs::Tab;
 use crate::tabs::TabType;
-use menu::plugins::PluginsMenu;
+use plugins::PluginsMenu;
 use plugins::PluginManager;
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
