@@ -66,8 +66,8 @@ pub struct Screen {
     pub cells: VecDeque<Line>,
     max_scrollback: usize,
     scrollback_offset: usize,
-    rows: usize,
-    cols: usize,
+    pub rows: usize,
+    pub cols: usize,
 
     scrollback_allowed: bool,
 }
