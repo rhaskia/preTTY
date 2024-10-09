@@ -46,7 +46,9 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         let mut glyph_size = eval(include_str!("../../js/textsizeloader.js"));
 
         glyph_size.send((CONFIG.read().font_size).into()).unwrap();
-        let size = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();
+        let recv = glyph_size.recv().await.unwrap(); 
+        println!("{recv:?}");
+        let size = serde_json::from_value::<CellSize>(recv).unwrap();
         size_style.set(format!(
             "--cell-width: {}px; --cell-height: {}px",
             size.width, size.height
@@ -74,8 +76,38 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         loop {
             if let Ok(a) = rx.recv().await {
                 terminal.write().handle_actions(a.clone());
+                eval(&format!("
+                    document.getElementById('split-{pty}').dispatchEvent(new Event(\"termUpdate\"));
+                "));
             }
         }
+    });
+
+    // Terminal Auto Scroll
+    use_future(move || async move {
+        wait_for_next_render().await;
+
+        eval(&format!("
+            function scrollToBottom() {{
+                const termWindow = document.getElementById('split-{pty}'); 
+                termWindow.scrollTop = termWindow.scrollHeight;
+                termWindow.autoScrolled = true;
+            }}
+
+            scrollToBottom();
+
+            const termWindow = document.getElementById('split-{pty}'); 
+            termWindow.autoScroll = true;
+            termWindow.addEventListener('termUpdate', () => {{
+                if (termWindow.autoScroll) {{ scrollToBottom(); }}
+                termWindow.autoScrolled = true;
+            }});
+            
+            termWindow.addEventListener('scroll', () => {{
+                termWindow.autoScroll = Math.abs(termWindow.scrollHeight - termWindow.scrollTop - termWindow.clientHeight) < 10;
+                console.log(termWindow.scrollTop);
+            }})
+        "))
     });
 
     rsx! {

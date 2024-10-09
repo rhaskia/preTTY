@@ -31,19 +31,22 @@ impl Tab {
 #[component] 
 pub fn TabButton(tab: Tab, n: usize) -> Element {
     rsx!{
-        span { 
-            class: "tab",
-            onmousedown: move |e| {
-                match e.trigger_button().unwrap() {
-                    MouseButton::Primary => *CURRENT_TAB.write() = n,
-                    MouseButton::Auxiliary => handle_action(TerminalAction::CloseTabSpecific(n)),
-                    _ => {}
+        div {
+            class: "tabbutton",
+            span { 
+                class: "tab",
+                onmousedown: move |e| {
+                    match e.trigger_button().unwrap() {
+                        MouseButton::Primary => *CURRENT_TAB.write() = n,
+                        MouseButton::Auxiliary => handle_action(TerminalAction::CloseTabSpecific(n)),
+                        _ => {}
+                    }
+                },
+                style: if n == CURRENT_TAB() { "--tab-colour: var(--bg1)" },
+                div {
+                    class: "tabtext",
+                    " {tab.name} "
                 }
-            },
-            style: if n == CURRENT_TAB() { "--tab-colour: var(--bg1)" },
-            div {
-                class: "tabtext",
-                " {tab.name} "
             }
         }
     }
@@ -70,6 +73,7 @@ pub fn Tabs() -> Element {
             }
             button {
                 class: "barbutton",
+                            tabindex: -1,
                 onclick: move |_| handle_action(TerminalAction::NewTab),
                 ""
             } 
@@ -77,6 +81,7 @@ pub fn Tabs() -> Element {
                 class: "dropdown",
                 button {
                     class: "barbutton",
+                            tabindex: -1,
                     onclick: move |_| { 
                         eval(r#"document.getElementById("bardropdown").classList.toggle("show");"#);
                     },
@@ -90,14 +95,17 @@ pub fn Tabs() -> Element {
                         // More shells (generated likely)
                         hr {}
                         button { 
+                            tabindex: -1,
                             onclick: move |_| handle_action(TerminalAction::OpenSettings),  
                             "Settings" 
                         }
                         button { 
+                            tabindex: -1,
                             onclick: move |_| *crate::COMMAND_PALETTE.write() = true,
                             "Command Palette"
                         }
                         button {
+                            tabindex: -1,
                             onclick: move |_| handle_action(TerminalAction::OpenPluginMenu),
                             "Plugins Menu"
                         }
