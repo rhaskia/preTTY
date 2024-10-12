@@ -26,6 +26,14 @@ impl Line {
         }
     }
 
+    pub fn repeat(cell: Cell, amount: usize) -> Self {
+        Line {
+            cells: vec![cell; amount],
+            width: false,
+            height: false,
+        }
+    }
+
     pub fn set(&mut self, cells: Vec<Cell>) { self.cells = cells; }
 
     pub fn set_width(&mut self, double: bool) { self.width = double }

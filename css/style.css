@@ -3,6 +3,7 @@
     overflow-x: hidden;
     --fg: var(--fg0);
     --bg: var(--bg0);
+    tab-index: -1;
 }
 
 a {
@@ -352,6 +353,11 @@ input {
     display: block !important;
 }
 
+.dropdown {
+margin-right: 5px;
+    overflow-x: visible;
+}
+
 .bardropdown button {
     background: none;
     color: var(--fg0);
@@ -368,6 +374,7 @@ input {
     --padding: 4px;
     flex-grow: 1;
     position: relative;
+    scroll-behavior: smooth;
 }
 
 .terminal-split:focus {
@@ -377,8 +384,13 @@ input {
 .tabs {
     border-bottom: 1px solid var(--bg2);
     min-height: 20px;
+    height: 20px;
     --tab-colour: var(--bg0);
     overflow-x: visible;
+}
+
+.tabbutton {
+    height: 20px;
 }
 
 .tab:hover {
@@ -397,6 +409,9 @@ input {
     border-radius: 4px 4px 0 0;
     position: relative;
     overflow-x: visible;
+    display: flex;
+    flex: 1 1 0;
+    height: 20px;
 }
 
 .tab::before {
@@ -520,7 +535,7 @@ body {
     /* BAD */
     background: white;
     left: calc(var(--column) * var(--cell-width) + var(--padding));
-    top: calc(var(--line-height) - var(--cell-height) * 1.5);
+    top: calc(var(--line-height) - var(--cell-height));
     height: var(--cell-height);
     width: var(--cell-width);
 }

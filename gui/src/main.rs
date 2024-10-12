@@ -115,10 +115,13 @@ pub fn App() -> Element {
 
             onkeydown: move |e| if !COMMAND_PALETTE() {
                 handle_action(INPUT.read().handle_keypress(&e)); 
+                e.stop_propagation();
             },
+            onkeyup: |e| e.stop_propagation(),
 
             script { src: "/js/textsize.js" }
             script { src: "/js/waitfor.js" }
+            script { src: "/js/autoscroll.js" }
 
             if CONFIG.read().show_tabs { Tabs { } }
             CommandPalette {}
@@ -174,7 +177,10 @@ fn main() {
         .with_window(window)
         .with_disable_context_menu(true)
         .with_background_color((0, 0, 0, 0))
+        .with_resource_directory(config::dir())
         .with_menu(None);
+
+    println!("{:?}", config::dir());
 
     LaunchBuilder::new().with_cfg(cfg).launch(App);
 }
