@@ -96,9 +96,9 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
                 const termWindow = document.getElementById('split-{pty}'); 
                 let n = termWindow.children.length;
                 // Do not scroll if there is no scroll, as it bugs out
-                if (termWindow.scrollHeight == termWindow.offsetHeight) {
+                if (termWindow.scrollHeight == termWindow.offsetHeight) {{
                     return;
-                }
+                }}
                 termWindow.children[n - 1].scrollIntoView(false);
                 termWindow.autoScrolled = true;
             }}
