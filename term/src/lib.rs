@@ -18,7 +18,6 @@ use state::TerminalState;
 use termwiz::escape::csi::{CsiParam, Cursor, Device, Edit, EraseInDisplay, EraseInLine, Unspecified, CSI};
 use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
 use termwiz::escape::{Action, ControlCode, Esc, KittyImage, OperatingSystemCommand, Sixel};
-use termwiz::terminal;
 use window::WindowHandler;
 
 use self::command::CommandSlicer;

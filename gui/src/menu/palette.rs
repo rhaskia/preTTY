@@ -1,6 +1,8 @@
 use config::TerminalAction;
 use dioxus::prelude::*;
 use crate::{handle_action, COMMAND_PALETTE};
+use dioxus_document::{Eval, Evaluator, eval};
+use pretty_hooks::wait_for_next_render;
 
 #[component]
 pub fn CommandPalette() -> Element {
@@ -32,14 +34,14 @@ pub fn CommandPalette() -> Element {
             document.addEventListener('click', function(event) {
                 const divElement = document.getElementById('commandpalette');
                 if (!divElement.hidden && !divElement.contains(event.target)) {
-                    dioxus.send({});
+                    dioxus.send(0);
                 }
             });
         "#,
         );
 
         loop {
-            clickoff.recv().await.ok();
+            clickoff.recv::<i32>().await.ok();
             if COMMAND_PALETTE() { handle_action(TerminalAction::ToggleCommandPalette); }
         }
     });

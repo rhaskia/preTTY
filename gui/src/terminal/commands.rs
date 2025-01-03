@@ -31,19 +31,19 @@ pub fn Command(
     terminal: Signal<Terminal>,
 ) -> Element {
     let mut hovering = use_signal(|| false);
+    let status_class = match command.get_status() {
+        CommandStatus::Success => "command-success",
+        CommandStatus::Error => "command-error",
+        CommandStatus::ShellCommandMisuse => "command-misuse",
+        CommandStatus::CannotExecute => "command-no-exec",
+        CommandStatus::NotFound => "command-not-found",
+        CommandStatus::FatalError(_) => "command-fatal",
+        CommandStatus::None => "",
+    };
 
     rsx! {
         div {
-            class: "command",
-            class: match command.get_status() {
-                CommandStatus::Success => "command-success",
-                CommandStatus::Error => "command-error",
-                CommandStatus::ShellCommandMisuse => "command-misuse",
-                CommandStatus::CannotExecute => "command-no-exec",
-                CommandStatus::NotFound => "command-not-found",
-                CommandStatus::FatalError(_) => "command-fatal",
-                CommandStatus::None => "",
-            },
+            class: "command {status_class}",
             onmouseover: move |_| hovering.set(true),
             onmouseleave: move  |_| hovering.set(false),
 

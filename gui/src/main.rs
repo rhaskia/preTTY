@@ -1,37 +1,41 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
+#![feature(is_none_or)]
 mod header;
 mod input;
 mod menu;
+mod plugins;
 mod tabs;
 mod terminal;
-mod plugins;
 
 use std::collections::HashMap;
+use std::rc::Rc;
+
+use config::colour_pal::Palette;
 use config::keybindings::Keybinding;
-use config::{Config, TerminalAction, colour_pal::Palette};
-use dioxus::desktop::{use_window, WindowBuilder};
+use config::{default_pal, to_css, Config, TerminalAction};
+use dioxus::desktop::{use_window, WindowBuilder, DesktopService};
 use dioxus::prelude::*;
 use input::InputManager;
+use menu::palette::CommandPalette;
 use menu::Menu;
+use plugins::{PluginManager, PluginsMenu};
 use pretty_term::pty::PseudoTerminalSystem;
 use tabs::Tabs;
-use menu::palette::CommandPalette;
 use terminal::TerminalApp;
-use config::{to_css, default_pal};
-use crate::tabs::Tab;
-use crate::tabs::TabType;
-use plugins::PluginsMenu;
-use plugins::PluginManager;
+use crate::tabs::{Tab, TabType};
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
 pub static CURRENT_TAB: GlobalSignal<usize> = Signal::global(|| 0);
 pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_new())]);
-pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> = Signal::global(|| PseudoTerminalSystem::setup());
+pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> =
+    Signal::global(|| PseudoTerminalSystem::setup());
 pub static COMMAND_PALETTE: GlobalSignal<bool> = Signal::global(|| false);
-pub static PALETTES: GlobalSignal<HashMap<String, Palette>> = Signal::global(|| config::load_palettes());
+pub static PALETTES: GlobalSignal<HashMap<String, Palette>> =
+    Signal::global(|| config::load_palettes());
 pub static INPUT: GlobalSignal<InputManager> = Signal::global(InputManager::new);
+pub static WINDOW: GlobalSignal<Rc<DesktopService>> = Signal::global(|| use_window());
 
 pub fn spawn_new() -> String {
     let mut command = None;
@@ -45,7 +49,9 @@ pub fn handle_action(action: TerminalAction) {
     match action {
         TerminalAction::Write(s) => {
             let tab = &TABS()[*CURRENT_TAB.read()];
-            if tab.tab_type != TabType::Terminal { return }
+            if tab.tab_type != TabType::Terminal {
+                return;
+            }
             PTY_SYSTEM.write().get(&tab.pty).write(s);
         }
         TerminalAction::NewTab => {
@@ -56,23 +62,39 @@ pub fn handle_action(action: TerminalAction) {
         // TODO pty removal
         TerminalAction::CloseTab => {
             TABS.write().remove(*CURRENT_TAB.read());
-            if CURRENT_TAB() != 0 { *CURRENT_TAB.write() -= 1; }
-            if TABS.read().len() == 0 { use_window().close(); }
+            if CURRENT_TAB() != 0 {
+                *CURRENT_TAB.write() -= 1;
+            }
+            if TABS.read().len() == 0 {
+                WINDOW.write().close();
+            }
         }
         TerminalAction::CloseTabSpecific(n) => {
             TABS.write().remove(n);
-            if n <= CURRENT_TAB() { *CURRENT_TAB.write() -= 1; }
-            if TABS.read().len() == 0 { use_window().close(); }
+            if n <= CURRENT_TAB() {
+                *CURRENT_TAB.write() -= 1;
+            }
+            if TABS.read().len() == 0 {
+                WINDOW.write().close();
+            }
         }
-        TerminalAction::Quit => use_window().close(),
+        TerminalAction::Quit => WINDOW.write().close(),
         TerminalAction::OpenSettings => {
             let index = TABS.len();
-            TABS.write().push(Tab { name: "Settings".to_string(), tab_type: tabs::TabType::Menu, pty: String::new() });
+            TABS.write().push(Tab {
+                name: "Settings".to_string(),
+                tab_type: tabs::TabType::Menu,
+                pty: String::new(),
+            });
             *CURRENT_TAB.write() = index;
         }
         TerminalAction::OpenPluginMenu => {
             let index = TABS.len();
-            TABS.write().push(Tab { name: "Plugins".to_string(), tab_type: tabs::TabType::PluginMenu, pty: String::new() });
+            TABS.write().push(Tab {
+                name: "Plugins".to_string(),
+                tab_type: tabs::TabType::PluginMenu,
+                pty: String::new(),
+            });
             *CURRENT_TAB.write() = index;
         }
         TerminalAction::ToggleCommandPalette => {
@@ -81,7 +103,7 @@ pub fn handle_action(action: TerminalAction) {
             //     document.getElementById("commandsearch").focus();
             // "#);
         }
-        TerminalAction::OpenDevTools => use_window().devtool(),
+        TerminalAction::OpenDevTools => WINDOW.write().devtool(),
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
