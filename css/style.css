@@ -272,7 +272,6 @@ input[type=checkbox]:checked {
     flex-direction: "column";
     color: var(--fg0);
     backdrop-filter: blur(7px);
-    display: flex;
 }
 
 .savebar {
@@ -520,7 +519,7 @@ body {
     /* BAD */
     background: white;
     left: calc(var(--column) * var(--cell-width) + var(--padding));
-    top: calc(var(--line-height) - var(--cell-height) * 1.5);
+    top: calc(var(--line-height) - var(--cell-height) * 1.1);
     height: var(--cell-height);
     width: var(--cell-width);
 }

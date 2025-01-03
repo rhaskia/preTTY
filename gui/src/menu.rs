@@ -15,13 +15,14 @@ pub fn Menu(active: bool) -> Element {
     // Temporary config
     let mut config = use_signal(|| CONFIG.cloned());
     let keybinds = use_signal(|| KEYBINDS().clone());
+    println!("{active}");
 
     rsx! {
         div {
             class: "menu",
             display: if active { "flex" } else { "none" },
+            hidden: if active { "" } else { "true" },
             width: "100%",
-            display: "flex",
             flex_direction: "column",
             id: "menu",
             div {

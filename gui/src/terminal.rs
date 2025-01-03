@@ -13,7 +13,7 @@ use serde::Deserialize;
 use crate::CONFIG;
 use pretty_term::Terminal;
 use log::info;
-use std::thread;
+use std::{thread, time::Duration};
 use crate::{TABS, PTY_SYSTEM, INPUT};
 use dioxus_document::{Eval, Evaluator, eval};
 use pretty_hooks::wait_for_next_render;
@@ -43,17 +43,23 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
     // Cell Size Reader
     let mut size_style = use_signal(|| String::new());
     let cell_size = use_resource(move || async move {
-        wait_for_next_render().await;
+        //wait_for_next_render().await;
+        //println!("cell size got again");
+        tokio::time::sleep(Duration::from_secs(1));
 
         let mut glyph_size = eval(include_str!("../../js/textsizeloader.js"));
 
         glyph_size.send((CONFIG.read().font_size)).unwrap();
-        let size = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();
-        size_style.set(format!(
-            "--cell-width: {}px; --cell-height: {}px",
-            size.width, size.height
-        ));
-        size
+        if let Ok(glyph_size) = glyph_size.recv().await {
+            let size = serde_json::from_value::<CellSize>(glyph_size).unwrap();
+            size_style.set(format!(
+                "--cell-width: {}px; --cell-height: {}px",
+                size.width, size.height
+            ));
+            size
+        } else {
+            CellSize { width: 8.0, height: 14.0 }
+        }
     });
 
     // Window Resize Event
