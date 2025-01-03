@@ -27,8 +27,9 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: String) -> Element {
                 let { y, index} = await dioxus.recv();
                 let line = document.getElementById("line_" + y);
                 let cursor = document.getElementById("cursor-" + index);
+
                 if (line) {
-                    let top = line.getBoundingClientRect().top;
+                    let top = line.getBoundingClientRect().top + cursor.parentElement.scrollTop;
                     await dioxus.send(top);
                 }
                 "#,
