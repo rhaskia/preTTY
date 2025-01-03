@@ -2,6 +2,8 @@ use std::fmt::Debug;
 use dioxus::prelude::*;
 use serde::Deserialize;
 use log::info;
+use dioxus_document::{Eval, Evaluator, eval};
+use crate::wait_for_next_render;
 
 pub struct DomRectSignal {
     inner: Signal<Option<ResizeObserverEntry>>,
@@ -42,7 +44,7 @@ pub struct DOMRectReadOnly {
     pub left: f32,
 }
 
-pub fn resize_observer() -> UseEval {
+pub fn resize_observer() -> Eval {
     eval(
         r#"
         let id = await dioxus.recv();
@@ -92,7 +94,7 @@ pub fn on_resize(id: String, callback: impl FnMut(ResizeObserverEntry) + 'static
 
         let mut js = resize_observer();
 
-        js.send(id.read().clone().into()).unwrap();
+        js.send(id()).unwrap();
 
         loop {
             let div_info = js.recv().await.unwrap();
@@ -112,7 +114,7 @@ pub fn use_div_size(id: String) -> DomRectSignal {
 
         let mut js = resize_observer();
 
-        js.send(id.read().clone().into()).unwrap();
+        js.send(id()).unwrap();
 
         loop {
             let div_info = js.recv().await.unwrap();

@@ -31,7 +31,7 @@ pub fn Menu(active: bool) -> Element {
                   class: "menuheader",
                   h2 { "Settings" },
                 }
-                Form { value: config  }
+                Form { value: config }
                 Keybinds { keybinds }
                 ColourPalette { }
             }

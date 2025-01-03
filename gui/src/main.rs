@@ -1,5 +1,6 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
+#![feature(is_none_or)]
 mod header;
 mod input;
 mod menu;

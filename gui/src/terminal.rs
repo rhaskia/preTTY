@@ -15,6 +15,8 @@ use pretty_term::Terminal;
 use log::info;
 use std::thread;
 use crate::{TABS, PTY_SYSTEM, INPUT};
+use dioxus_document::{Eval, Evaluator, eval};
+use pretty_hooks::wait_for_next_render;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -45,7 +47,7 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
 
         let mut glyph_size = eval(include_str!("../../js/textsizeloader.js"));
 
-        glyph_size.send((CONFIG.read().font_size).into()).unwrap();
+        glyph_size.send((CONFIG.read().font_size)).unwrap();
         let size = serde_json::from_value::<CellSize>(glyph_size.recv().await.unwrap()).unwrap();
         size_style.set(format!(
             "--cell-width: {}px; --cell-height: {}px",

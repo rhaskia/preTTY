@@ -1,6 +1,7 @@
 use config::colour_pal::pal_groups;
 use dioxus::prelude::*;
 use crate::PALETTES;
+use dioxus_document::{Eval, Evaluator, eval};
 
 #[component]
 pub fn ColourPalette() -> Element {

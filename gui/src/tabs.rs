@@ -3,6 +3,7 @@ use crate::{CURRENT_TAB, TABS};
 use config::TerminalAction;
 use crate::handle_action;
 use crate::dioxus_elements::input_data::MouseButton;
+use dioxus_document::{Eval, Evaluator, eval};
 
 #[derive(Clone, PartialEq)]
 pub struct Tab {
