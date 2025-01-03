@@ -81,9 +81,48 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         });
         loop {
             if let Ok(a) = rx.recv().await {
+                eval(&format!("
+                    document.getElementById('split-{pty}').dispatchEvent(new Event(\"scrollCheck\"));
+                "));
                 terminal.write().handle_actions(a.clone());
+                wait_for_next_render().await;
+                eval(&format!("
+                    document.getElementById('split-{pty}').dispatchEvent(new Event(\"termUpdate\"));
+                "));
             }
         }
+    });
+
+    // Terminal Auto Scroll
+    use_future(move || async move {
+        wait_for_next_render().await;
+
+        eval(&format!("
+            function scrollToBottom() {{
+                const termWindow = document.getElementById('split-{pty}'); 
+                let n = termWindow.children.length;
+                // Do not scroll if there is no scroll, as it bugs out
+                if (termWindow.scrollHeight == termWindow.offsetHeight) {{
+                    return;
+                }}
+                termWindow.children[n - 1].scrollIntoView(false);
+                termWindow.autoScrolled = true;
+            }}
+
+            scrollToBottom();
+
+            const termWindow = document.getElementById('split-{pty}'); 
+            termWindow.autoScroll = true;
+            termWindow.addEventListener('termUpdate', () => {{
+                if (termWindow.autoScroll) {{ scrollToBottom(); }}
+                termWindow.autoScrolled = true;
+            }});
+            
+            termWindow.addEventListener('scrollCheck', () => {{
+                termWindow.autoScroll = Math.abs(termWindow.scrollHeight - termWindow.scrollTop - termWindow.clientHeight) < 50;
+                console.log(termWindow.scrollTop);
+            }})
+        "))
     });
 
     rsx! {

@@ -5,11 +5,7 @@ PreTTY is a fully customizable terminal emulator running off web technologies wi
 |![Default Styling](./example.png)|![Styled Example](./image.png)|
 
 # Installation 
-The following command will work for any OS once I upload the project to crates.io:
-`cargo install --locked pretty-term`
-on Linux you may also need the webkitgtk package for PreTTY to function.
-For now you will just have to run cargo run --release in the directory and move the executable into somewhere where the system will find it.
-Plans are to put this on major package managers in the future to make the installation process simpler.
+`cargo run --release` builds and runs the project, but does not install to the system. You can copy ./target/release/prettyterm_gui into /usr/bin on Linux if you wish to be able to run it from the shell.
 
 ## Dependencies 
 The main dependency is just a web view to render the app, which is usually these:

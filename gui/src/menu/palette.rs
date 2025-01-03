@@ -22,6 +22,7 @@ pub fn CommandPalette() -> Element {
     let mut raw_selected = use_signal(|| 0.0f64);
     let selected = use_memo(move || raw_selected() as usize);
     use_effect(move || if raw_selected() >= matches.read().len() as f64 {
+        if matches.read().len() == 0 { return; }
         *raw_selected.write() = (matches.read().len() - 1) as f64;
     });
 

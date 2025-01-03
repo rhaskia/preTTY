@@ -352,13 +352,22 @@ impl Terminal {
 
 // Erase functions
 impl Terminal {
+    fn empty_cell(&self) -> Cell {
+        Cell { text: ' ', attr: self.renderer.attr.clone() }
+    }
+
     fn erase_in_display(&mut self, edit: EraseInDisplay) {
+        let empty = self.empty_cell();
         let screen = self.renderer.mut_screen(self.state.alt_screen);
 
         match edit {
             EraseInDisplay::EraseDisplay => {
-                screen.erase_all();
-                self.cursor.set(0, 0);
+                //screen.ensure_lines(self.rows as usize);
+                for i in 0..screen.len() {
+                    let cols = self.cols as usize; 
+                    let line = screen.mut_line(i);
+                    *line = Line::repeat(empty.clone(), cols);
+                }
             }
             _ => info!("Erase {edit:?}"),
         }
@@ -368,20 +377,21 @@ impl Terminal {
         let screen = self.renderer.mut_screen(self.state.alt_screen);
         let start = self.cursor.x;
         let y = self.cursor.y;
+        let empty = self.empty_cell();
 
         match edit {
             EraseInLine::EraseToEndOfLine => {
                 let line = self.mut_screen().mut_line(y);
 
                 for x in start..line.len() {
-                    line[x] = Cell::default();
+                    line[x] = empty.clone();
                 }
             }
             EraseInLine::EraseToStartOfLine => {
                 let line = self.mut_screen().mut_line(y);
 
                 for x in start..line.len() {
-                    line[x] = Cell::default();
+                    line[x] = empty.clone();
                 }
             }
             EraseInLine::EraseLine => {
