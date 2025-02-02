@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use log::info;
 use num_traits::cast::ToPrimitive;
-use termwiz::escape::csi::{
-    DecPrivateMode, DecPrivateModeCode, Keyboard, KittyKeyboardMode, Mode, TerminalMode, XtermKeyModifierResource
+use escape::csi::{
+    DecPrivateMode, Keyboard, KittyKeyboardMode, Mode, TerminalMode, XtermKeyModifierResource
 };
-use termwiz::escape::DeviceControlMode;
+use escape::DeviceControlMode;
 
 // TODO: bitfield? may not be nessecary
 #[derive(Debug, Default)]
@@ -24,15 +24,6 @@ pub struct TerminalState {
     pub kitty_state: u16,
 }
 
-macro_rules! inner_mode {
-    ($mode: ident) => {
-        match $mode {
-            DecPrivateMode::Code(c) => c,
-            DecPrivateMode::Unspecified(_) => return,
-        }
-    };
-}
-
 impl TerminalState {
     pub fn new() -> TerminalState {
         TerminalState {
@@ -40,17 +31,17 @@ impl TerminalState {
         }
     }
 
-    pub fn dec_mode(&self, code: DecPrivateModeCode) -> bool {
+    pub fn dec_mode(&self, code: u16) -> bool {
         *self
             .dec_modes
-            .get(&(code.to_u16().unwrap()))
+            .get(&code)
             .unwrap_or(&false)
     }
 
-    pub fn dec_save(&self, code: DecPrivateModeCode) -> bool {
+    pub fn dec_save(&self, code: u16) -> bool {
         *self
             .dec_saves
-            .get(&(code.to_u16().unwrap()))
+            .get(&code)
             .unwrap_or(&false)
     }
 
@@ -66,7 +57,7 @@ impl TerminalState {
     }
 
     pub fn handle_state(&mut self, mode: Mode) {
-        use termwiz::escape::csi::Mode::*;
+        use escape::csi::Mode::*;
         match mode {
             SetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, true),
             ResetDecPrivateMode(pmode) => self.set_dec_private_mode(pmode, false),
@@ -83,34 +74,27 @@ impl TerminalState {
 
     /// Switches dec private modes on or off
     /// Useful stuff like alt_screen, bracketed_paste etc
-    pub fn set_dec_private_mode(&mut self, mode: DecPrivateMode, active: bool) {
-        //info!("Set Dec Mode {mode:?} {active}");
-        let code = inner_mode!(mode);
-
-        use termwiz::escape::csi::DecPrivateModeCode::*;
-        match code {
-            BracketedPaste => self.bracketed_paste = active,
-            EnableAlternateScreen => self.alt_screen = active,
-            ClearAndEnableAlternateScreen => self.alt_screen = active,
-            ShowCursor => self.show_cursor = active,
+    pub fn set_dec_private_mode(&mut self, mode: u16, active: bool) {
+        // https://docs.rs/termwiz/latest/termwiz/escape/csi/enum.DecPrivateModeCode.html
+        match mode {
+            2004 => self.bracketed_paste = active,
+            47 => self.alt_screen = active,
+            1049 => self.alt_screen = active,
+            25 => self.show_cursor = active,
             _ => {
-                self.dec_modes.insert(code.to_u16().unwrap(), active);
+                self.dec_modes.insert(mode, active);
             }
         }
     }
 
-    pub fn save_dec_private_mode(&mut self, mode: DecPrivateMode) {
-        //info!("Save Dec Mode {mode:?}");
-        let code = inner_mode!(mode);
+    pub fn save_dec_private_mode(&mut self, mode: u16) {
         self.dec_saves
-            .insert(code.to_u16().unwrap(), self.dec_mode(code));
+            .insert(mode, self.dec_mode(mode));
     }
 
-    pub fn restore_dec_private_mode(&mut self, mode: DecPrivateMode) {
-        //info!("Restore Dec Mode {mode:?}");
-        let code = inner_mode!(mode);
+    pub fn restore_dec_private_mode(&mut self, mode: u16) {
         self.dec_modes
-            .insert(code.to_u16().unwrap(), self.dec_save(code));
+            .insert(mode, self.dec_save(mode));
     }
 
     /// Handles Terminal Modes
@@ -127,11 +111,11 @@ impl TerminalState {
         info!("Kitty Keyboard Mode set {command:?}");
         match command {
             Keyboard::SetKittyState { flags, mode } => match mode {
-                KittyKeyboardMode::AssignAll => self.kitty_state = flags.bits(),
-                KittyKeyboardMode::SetSpecified => self.kitty_state |= flags.bits(), // bitwise or over the bits to set
-                KittyKeyboardMode::ClearSpecified => self.kitty_state &= !flags.bits(), //bitwise and over a mask of the bits to keep
+                KittyKeyboardMode::AssignAll => self.kitty_state = flags,
+                KittyKeyboardMode::SetSpecified => self.kitty_state |= flags, // bitwise or over the bits to set
+                KittyKeyboardMode::ClearSpecified => self.kitty_state &= !flags, //bitwise and over a mask of the bits to keep
             },
-            Keyboard::PushKittyState { flags, mode } => self.kitty_state = flags.bits(),
+            Keyboard::PushKittyState { flags, mode } => self.kitty_state = flags,
             Keyboard::PopKittyState(state) => self.kitty_state = 0,
             Keyboard::QueryKittySupport => {} // TODO write CSI ? 0 u (increase as support),
             Keyboard::ReportKittyState(state) => info!("Pseudoterminal reported kitty state {state:?}"),

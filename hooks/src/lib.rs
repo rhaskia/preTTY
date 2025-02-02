@@ -3,6 +3,3 @@
 
 pub mod size;
 pub use size::*;
-
-pub mod nextrender;
-pub use nextrender::*;

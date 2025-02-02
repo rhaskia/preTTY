@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use pretty_term::cell::{CellAttributes};
 use pretty_term::Terminal;
-use termwiz::color::ColorSpec;
+use escape::sgr::ColorSpec;
 
 #[component]
 pub fn CellGrid(terminal: Signal<Terminal>) -> Element {
@@ -63,20 +63,6 @@ pub fn CellLine(terminal: Signal<Terminal>, y: usize) -> Element {
             font_size: "14px",
             id: "line_{y}",
             dangerous_inner_html: rendered,
-        }
-    }
-}
-
-pub trait ToHex {
-    fn to_hex(&self, def: String) -> String;
-}
-
-impl ToHex for ColorSpec {
-    fn to_hex(&self, def: String) -> String {
-        match self {
-            ColorSpec::TrueColor(c) => c.to_string(),
-            ColorSpec::Default => def,
-            ColorSpec::PaletteIndex(i) => format!("var(--palette-{i})"),
         }
     }
 }

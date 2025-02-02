@@ -4,7 +4,6 @@ use dioxus::prelude::*;
 use dioxus_document::{Eval, Evaluator, eval};
 use serde::Serialize;
 use serde_json::to_value;
-use pretty_hooks::wait_for_next_render;
 
 #[derive(Serialize)]
 pub struct CursorInfo {

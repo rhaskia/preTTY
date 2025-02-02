@@ -1,8 +1,6 @@
-use termwiz::cell::{Blink, Intensity, Underline, VerticalAlign};
-use termwiz::color::{ColorSpec, SrgbaTuple};
-use termwiz::escape::csi::Font;
-use termwiz::escape::osc::FinalTermPromptKind;
-use termwiz::hyperlink::Hyperlink;
+use escape::sgr::{Blink, Intensity, Underline, VerticalAlign, ColorSpec, SrgbaTuple, Font};
+use escape::osc::FinalTermPromptKind;
+use escape::hyperlink::Hyperlink;
 
 /// A Node system for dealing with terminal output
 /// Unsure if it should be a syntax tree or just have splitter members in it

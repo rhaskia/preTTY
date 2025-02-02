@@ -1,7 +1,7 @@
 #![feature(if_let_guard)]
 #![feature(fn_traits)]
 #![feature(is_none_or)]
-mod header;
+//mod header;
 mod input;
 mod menu;
 mod plugins;
@@ -14,28 +14,36 @@ use std::rc::Rc;
 use config::colour_pal::Palette;
 use config::keybindings::Keybinding;
 use config::{default_pal, to_css, Config, TerminalAction};
-use dioxus::desktop::{use_window, WindowBuilder, DesktopService};
 use dioxus::prelude::*;
 use input::InputManager;
 use menu::palette::CommandPalette;
 use menu::Menu;
 use plugins::{PluginManager, PluginsMenu};
-use pretty_term::pty::PseudoTerminalSystem;
+use pretty_term::pty::{setup_pseudoterminal, PseudoTerminalSystem, custom::CustomPtySystem};
+#[cfg(not(target_family="wasm"))]
+use pretty_term::pty::desktop::PtySystemDesktop;
 use tabs::Tabs;
 use terminal::TerminalApp;
 use crate::tabs::{Tab, TabType};
+use pretty_term::pty::{PseudoTerminalSystemInner, PseudoTerminal};
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
 pub static CURRENT_TAB: GlobalSignal<usize> = Signal::global(|| 0);
 pub static TABS: GlobalSignal<Vec<Tab>> = Signal::global(|| vec![Tab::new(spawn_new())]);
-pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem> =
-    Signal::global(|| PseudoTerminalSystem::setup());
 pub static COMMAND_PALETTE: GlobalSignal<bool> = Signal::global(|| false);
 pub static PALETTES: GlobalSignal<HashMap<String, Palette>> =
     Signal::global(|| config::load_palettes());
 pub static INPUT: GlobalSignal<InputManager> = Signal::global(InputManager::new);
-pub static WINDOW: GlobalSignal<Rc<DesktopService>> = Signal::global(|| use_window());
+
+// #[cfg(not(target_family="wasm"))]
+// pub static WINDOW: GlobalSignal<Rc<DesktopService>> = Signal::global(|| use_window());
+#[cfg(not(target_family="wasm"))]
+pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem<PtySystemDesktop>> =
+    Signal::global(|| setup_pseudoterminal());
+#[cfg(target_family="wasm")]
+pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem<CustomPtySystem>> =
+    Signal::global(|| setup_pseudoterminal());
 
 pub fn spawn_new() -> String {
     let mut command = None;
@@ -66,7 +74,7 @@ pub fn handle_action(action: TerminalAction) {
                 *CURRENT_TAB.write() -= 1;
             }
             if TABS.read().len() == 0 {
-                WINDOW.write().close();
+                //WINDOW.write().close();
             }
         }
         TerminalAction::CloseTabSpecific(n) => {
@@ -75,10 +83,10 @@ pub fn handle_action(action: TerminalAction) {
                 *CURRENT_TAB.write() -= 1;
             }
             if TABS.read().len() == 0 {
-                WINDOW.write().close();
+                //WINDOW.write().close();
             }
         }
-        TerminalAction::Quit => WINDOW.write().close(),
+        TerminalAction::Quit => {},//WINDOW.write().close(),
         TerminalAction::OpenSettings => {
             let index = TABS.len();
             TABS.write().push(Tab {
@@ -103,7 +111,7 @@ pub fn handle_action(action: TerminalAction) {
             //     document.getElementById("commandsearch").focus();
             // "#);
         }
-        TerminalAction::OpenDevTools => WINDOW.write().devtool(),
+        TerminalAction::OpenDevTools => {},//WINDOW.write().devtool(),
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
@@ -189,7 +197,16 @@ fn setup_logger() -> Result<(), fern::InitError> {
     Ok(())
 }
 
+#[cfg(target_family = "wasm")]
 fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
+    launch(App);
+}
+
+#[cfg(not(target_family = "wasm"))]
+fn main() {
+    use dioxus::desktop::WindowBuilder;
+
     setup_logger().unwrap();
     let window = WindowBuilder::new()
         .with_title("PreTTY")

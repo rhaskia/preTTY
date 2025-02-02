@@ -2,7 +2,6 @@ use config::TerminalAction;
 use dioxus::prelude::*;
 use crate::{handle_action, COMMAND_PALETTE};
 use dioxus_document::{Eval, Evaluator, eval};
-use pretty_hooks::wait_for_next_render;
 
 #[component]
 pub fn CommandPalette() -> Element {
@@ -27,7 +26,7 @@ pub fn CommandPalette() -> Element {
     });
 
     use_future(move || async move {
-        wait_for_next_render().await;
+        //wait_for_next_render().await;
 
         let mut clickoff = eval(
             r#"

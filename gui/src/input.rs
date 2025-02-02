@@ -4,7 +4,6 @@ use dioxus::events::{Key, Modifiers, ModifiersInteraction, PointerInteraction};
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::{Event, KeyboardData, MouseData, Readable};
 use log::*;
-use termwiz::escape::csi::KittyKeyboardFlags;
 
 use crate::KEYBINDS;
 
@@ -126,13 +125,13 @@ impl InputManager {
         let ctrl = modifiers.ctrl();
         let alt = modifiers.alt();
         
-        let kitty_state = KittyKeyboardFlags::from_bits(self.kitty_state).unwrap();
-        if kitty_state.contains(KittyKeyboardFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES) {
-            if let Some(key) = self.kitty_key(keyboard_data) {
-                println!("{key:?}");
-                return key
-            }
-        }
+        // let kitty_state = KittyKeyboardFlags::from_bits(self.kitty_state).unwrap();
+        // if kitty_state.contains(KittyKeyboardFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES) {
+        //     if let Some(key) = self.kitty_key(keyboard_data) {
+        //         println!("{key:?}");
+        //         return key
+        //     }
+        // }
 
         use dioxus::events::Key::*;
         match keyboard_data.key() {

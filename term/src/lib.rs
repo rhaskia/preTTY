@@ -2,10 +2,10 @@ pub mod cell;
 pub mod command;
 pub mod cursor;
 pub mod line;
-pub mod pty;
 pub mod screen;
 pub mod state;
 pub mod window;
+pub mod pty;
 
 use std::collections::HashMap;
 
@@ -15,9 +15,9 @@ use line::Line;
 use log::info;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
-use termwiz::escape::csi::{CsiParam, Cursor, Device, Edit, EraseInDisplay, EraseInLine, Unspecified, CSI};
-use termwiz::escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
-use termwiz::escape::{Action, ControlCode, Esc, KittyImage, OperatingSystemCommand, Sixel};
+use escape::csi::{CsiParam, Cursor, Device, Edit, EraseInDisplay, EraseInLine, Unspecified, CSI};
+use escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
+use escape::{Action, ControlCode, Esc, KittyImage, OSC, Sixel};
 use window::WindowHandler;
 
 use self::command::CommandSlicer;
@@ -70,7 +70,7 @@ impl Terminal {
             Action::PrintString(s) => self.print_str(s),
             Action::Control(control) => self.handle_control(control),
             Action::CSI(csi) => self.handle_csi(csi),
-            Action::OperatingSystemCommand(command) => self.handle_os_command(command),
+            Action::OSC(command) => self.handle_os_command(command),
             Action::DeviceControl(control) => self.state.device_control(control),
             Action::Esc(code) => self.handle_esc(code),
             Action::Sixel(sixel) => self.handle_sixel(sixel),
@@ -131,7 +131,7 @@ impl Terminal {
             CSI::Edit(edit) => self.handle_edit(edit),
             CSI::Device(device) => self.handle_device(device),
             CSI::Keyboard(keyboard) => self.state.handle_kitty_keyboard(keyboard),
-            CSI::Mouse(_) => {} // These are input only
+            CSI::Mouse => {} // These are input only
             CSI::Window(command) => self.window.csi_window(command),
             // ECMA-48 SCP (not secure contain protect)
             // pretty sure this is RTL / LTR text, which the webview should implement
@@ -164,7 +164,7 @@ impl Terminal {
 
     /// Handles any Esc codes
     fn handle_esc(&mut self, esc: Esc) {
-        use termwiz::escape::Esc::Code;
+        use escape::Esc::Code;
 
         let code = match esc {
             Code(c) => c,
@@ -177,7 +177,7 @@ impl Terminal {
             }
         };
 
-        use termwiz::escape::EscCode::*;
+        use escape::EscCode::*;
         match code {
             DecDoubleWidthLine => self.current_line().set_width(true),
             DecDoubleHeightTopHalfLine => self.current_line().set_double(true),
@@ -205,7 +205,7 @@ impl Terminal {
             Up(amount) | PrecedingLine(amount) => self.cursor.shift_right(amount),
             Position { line, col } => self
                 .cursor
-                .set(col.as_one_based() - 1, line.as_one_based() - 1),
+                .set(col - 1, line - 1),
             CursorStyle(style) => self.cursor.set_style(style),
             _ => info!("Cursor {cursor:?}"),
         }
@@ -257,8 +257,8 @@ impl Terminal {
     // Operating System Commands
     // Usually for things like notifications and window control
     // TODO: config to toggle these as they may be unwanted
-    fn handle_os_command(&mut self, command: Box<OperatingSystemCommand>) {
-        use OperatingSystemCommand::*;
+    fn handle_os_command(&mut self, command: Box<OSC>) {
+        use OSC::*;
         match *command {
             SetWindowTitle(title) => self.title = title,
             SetIconNameAndWindowTitle(title) => self.title = title,
@@ -311,12 +311,11 @@ impl Terminal {
                 .renderer
                 .attr
                 .set_sem_type(SemanticType::Prompt(PromptKind::from(prompt_kind))),
-            // why are these so long :sob:
-            MarkEndOfPromptAndStartOfInputUntilNextMarker => {
+            EndOfPromptUntilMarker => {
                 self.start_input(Until::SemanticMarker)
             }
-            MarkEndOfPromptAndStartOfInputUntilEndOfLine => self.start_input(Until::LineEnd),
-            MarkEndOfInputAndStartOfOutput { aid: _ } => {
+            EndOfPromptUntilEndOfLine => self.start_input(Until::LineEnd),
+            EndOfInput { aid: _ } => {
                 self.renderer.attr.set_sem_type(SemanticType::Output);
                 self.commands
                     .start_output(self.cursor.x, self.screen().phys_line(self.cursor.y));
@@ -380,14 +379,14 @@ impl Terminal {
         let empty = self.empty_cell();
 
         match edit {
-            EraseInLine::EraseToEndOfLine => {
+            EraseInLine::EraseToEnd => {
                 let line = self.mut_screen().mut_line(y);
 
                 for x in start..line.len() {
                     line[x] = empty.clone();
                 }
             }
-            EraseInLine::EraseToStartOfLine => {
+            EraseInLine::EraseToStart => {
                 let line = self.mut_screen().mut_line(y);
 
                 for x in start..line.len() {
@@ -421,8 +420,8 @@ impl Terminal {
 
 #[cfg(test)]
 mod tests {
-    use termwiz::escape::csi::DecPrivateModeCode::EnableAlternateScreen;
-    use termwiz::escape::csi::{DecPrivateMode, Mode};
+    use escape::csi::DecPrivateModeCode::EnableAlternateScreen;
+    use escape::csi::{DecPrivateMode, Mode};
 
     use super::*;
 

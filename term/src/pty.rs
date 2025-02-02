@@ -1,100 +1,82 @@
-use std::collections::HashMap;
-use std::io::{Read, Write};
-use std::ops::Deref;
-
+use std::ops::{DerefMut, Deref};
+use escape::Action;
 use async_channel::Sender;
-use portable_pty::{
-    native_pty_system, Child, CommandBuilder, MasterPty, PtyPair, PtySize, PtySystem,
-};
+use std::io::Read;
+use tokio::{runtime::Runtime, task};
 use rand::Rng;
-use termwiz::escape::Action;
-use tokio::runtime::Runtime;
 
-pub struct PseudoTerminalSystem {
-    pub pty_system: Box<dyn PtySystem + Send>,
-    pub ptys: HashMap<String, PseudoTerminal>, // Hashmap?
+#[cfg(not(target_family = "wasm"))]
+pub mod desktop;
+pub mod custom;
+
+pub struct PseudoTerminalSystem<T: PseudoTerminalSystemInner> {
+    inner: T
 }
 
-pub struct PseudoTerminal {
-    pub pair: PtyPair,
-    pub child: Box<dyn Child + Sync + Send>,
-    pub writer: Box<dyn Write + Send>,
-}
+impl<T: PseudoTerminalSystemInner> Deref for PseudoTerminalSystem<T> {
+    type Target = T;
 
-impl PseudoTerminalSystem {
-    /// Creates a new PseudoTerminal object.
-    pub fn setup() -> PseudoTerminalSystem {
-        PseudoTerminalSystem {
-            pty_system: native_pty_system(),
-            ptys: HashMap::new(),
-        }
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
+}
 
-    pub fn len(&self) -> usize { self.ptys.len() }
+impl<T: PseudoTerminalSystemInner> DerefMut for PseudoTerminalSystem<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
 
-    /// Requires a sender to pull data out of it
-    pub fn spawn_new(&mut self, mut startup_command: Option<String>) -> anyhow::Result<String> {
-        // Create a new pty
-        let pair = self.pty_system.openpty(PtySize {
-            rows: 24,
-            cols: 80,
-            pixel_width: 0,
-            pixel_height: 0,
-        })?;
+pub trait PseudoTerminalSystemInner {
+    fn setup() -> Self;
+    fn len(&self) -> usize { 0 }
+    fn spawn_new(&mut self, command: Option<String>) -> anyhow::Result<String>;
+    fn get(&mut self, id: &str) -> &mut impl PseudoTerminal;
+}
 
-        // Spawn a shell into the pty
-        if let Some(ref c) = startup_command {
-            if c.is_empty() {
-                startup_command = None;
+pub trait PseudoTerminal {
+    fn resize(&mut self, screen_width: f32,
+        screen_height: f32,
+        cell_width: f32,
+        cell_height: f32) -> (u16, u16) { (1, 1) }
+    fn write(&mut self, input: String) {}
+    fn reader(&mut self) -> Box<dyn Read + Send>;
+}
+
+#[cfg(not(target_family = "wasm"))]
+pub fn setup_pseudoterminal() -> PseudoTerminalSystem<desktop::PtySystemDesktop> {
+    PseudoTerminalSystem { inner: desktop::PtySystemDesktop::setup() }
+}
+
+#[cfg(target_family = "wasm")]
+pub fn setup_pseudoterminal() -> PseudoTerminalSystem<custom::CustomPtySystem> {
+    PseudoTerminalSystem { inner: custom::CustomPtySystem::setup() }
+}
+
+pub async fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {
+    let mut buffer = [0u8; 1024]; // Buffer to hold a single character
+
+    let mut parser = escape::parser::Parser::new();
+
+    task::spawn_blocking(move || {
+        loop {
+            match reader.read(&mut buffer) {
+                Ok(0) => {}
+                Ok(n) => {
+                    let res = parser.parse_as_vec(&buffer[..n]);
+                    log::info!("{res:?}");
+                    tx.send(res);
+                }
+                Err(err) => {
+                    eprintln!("Error reading from Read object: {}", err);
+                    break;
+                }
             }
         }
-
-        let shell = startup_command.unwrap_or(Self::default_shell());
-        log::info!("Opening shell {:?}", shell);
-
-        let cmd = CommandBuilder::new(shell);
-        let child = pair.slave.spawn_command(cmd)?;
-
-        // Read and parse output from the pty with reader
-        let master = &pair.master;
-        let writer = master.take_writer().unwrap();
-
-        // Pretty much everything needs to be kept in the struct,
-        // else drop gets called on the terminal, causing the
-        // program to hang on windows
-        let id = generate_id();
-        self.ptys.insert(
-            id.clone(),
-            PseudoTerminal {
-                pair,
-                child,
-                writer,
-            },
-        );
-
-        Ok(id)
-    }
-
-    /// Default shell as per ENV vars or whatever is default for the platform
-    pub fn default_shell() -> String {
-        if cfg!(windows) {
-            String::from("powershell.exe") // TODO: proper windows implementation
-        } else {
-            match std::env::var("SHELL") {
-                Ok(shell) => shell,
-                Err(_) => String::from("bash"), /* apple should implement SHELL but if they don't too bad */
-            }
-        }
-    }
-
-    pub fn sleep_pty() {}
-
-    pub fn kill_pty(index: usize) {}
-
-    pub fn get(&mut self, pty: &String) -> &mut PseudoTerminal { self.ptys.get_mut(pty).unwrap() }
+    }).await;
 }
 
-fn generate_id() -> String {
+pub fn generate_id() -> String {
     let mut rng = rand::thread_rng();
     let mut id_bytes: [u8; 16] = [0; 16];
     rng.fill(&mut id_bytes);
@@ -103,59 +85,4 @@ fn generate_id() -> String {
         .map(|b| format!("{:x?}", b))
         .collect::<Vec<String>>()
         .join("");
-}
-
-impl Deref for PseudoTerminalSystem {
-    type Target = HashMap<String, PseudoTerminal>;
-
-    fn deref(&self) -> &Self::Target { &self.ptys }
-}
-
-impl PseudoTerminal {
-    // Resizes how big the terminal thinks it is
-    pub fn resize(
-        &mut self,
-        screen_width: f32,
-        screen_height: f32,
-        cell_width: f32,
-        cell_height: f32,
-    ) -> (u16, u16) {
-        let (rows, cols) = (
-            (screen_height / cell_height) as u16,
-            (screen_width / cell_width) as u16,
-        );
-        self.pair
-            .master
-            .resize(PtySize {
-                rows,
-                cols,
-                pixel_width: cell_width.round() as u16,
-                pixel_height: cell_height.round() as u16,
-            })
-            .unwrap();
-        (rows, cols)
-    }
-
-    /// Writes input directly into the pty
-    pub fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
-}
-
-pub fn parse_terminal_output(tx: Sender<Vec<Action>>, mut reader: Box<dyn Read + Send>) {
-    let mut buffer = [0u8; 1024]; // Buffer to hold a single character
-
-    let mut parser = termwiz::escape::parser::Parser::new();
-    let rt = Runtime::new().unwrap();
-
-    loop {
-        match reader.read(&mut buffer) {
-            Ok(0) => {}
-            Ok(n) => rt.block_on(async {
-                tx.send(parser.parse_as_vec(&buffer[..n])).await;
-            }),
-            Err(err) => {
-                eprintln!("Error reading from Read object: {}", err);
-                break;
-            }
-        }
-    }
 }

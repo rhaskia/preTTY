@@ -37,5 +37,5 @@ impl Default for Config {
 }
 
 pub fn dir() -> PathBuf {
-    dirs::config_dir().unwrap().join("prettyterm")
+    dirs::config_dir().unwrap_or_default().join("prettyterm")
 }

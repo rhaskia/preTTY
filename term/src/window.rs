@@ -1,4 +1,4 @@
-use termwiz::escape::csi::Window;
+use escape::csi::Window;
 
 /// Trait for handling "window" specific ANSI commands
 /// Nothing here is needed at all, but allows for it to

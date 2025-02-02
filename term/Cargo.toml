@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-portable-pty = "0.8.1"
 tokio = "1.36.0"
 async-channel = "2.2.0"
 num-traits = "0.2.18"
-termwiz = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
+escape = { workspace = true } 
 rand = "0.8.5"
+
+[target.'cfg(not(target_family="wasm"))'.dependencies]
+portable-pty = "0.8.1"
