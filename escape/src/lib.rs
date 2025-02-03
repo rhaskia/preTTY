@@ -3,9 +3,10 @@ pub mod csi;
 pub mod parser;
 pub mod hyperlink;
 pub mod sgr;
+pub mod esc;
 
-use csi::CSI;
-
+pub use csi::CSI;
+pub use esc::{Esc, EscCode};
 pub use osc::OSC;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -34,17 +35,6 @@ pub enum ControlCode {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Esc {
-    Code(EscCode),
-    Unspecified { intermediate: String, control: String },
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum EscCode {
-
-}
-
-#[derive(Debug, PartialEq, Clone)]
 pub struct KittyImage {
 
 }
@@ -58,7 +48,15 @@ pub struct Sixel {
 pub enum DeviceControlMode {
     TmuxEvents(u32),
     ShortDeviceControl(u32),
-    Data(u32),
+    Data(u8),
     Exit,
-    Enter(u32),
+    Enter(Box<EnterDeviceControlMode>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct EnterDeviceControlMode {
+    byte: u8,
+    params: Vec<i64>,
+    intermediates: Vec<u8>,
+    ignore_excess_intermediates: bool
 }

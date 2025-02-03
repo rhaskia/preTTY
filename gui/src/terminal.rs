@@ -92,9 +92,32 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         }
     });
 
+    // Terminal reading and parsing
+    // Need to move to another file
     use_future(move || async move {
-        let reader = PTY_SYSTEM.write().get(&pty()).reader();
-        pretty_term::pty::parse_terminal_output(tx(), reader).await;
+        let mut reader = PTY_SYSTEM.write().get(&pty()).reader();
+        let mut buffer = [0u8; 1024]; // Buffer to hold a single character
+        let mut parser = escape::parser::Parser::new();
+        let mut tx = tx();
+        let mut res = Ok(0);
+
+        loop {
+            (reader, buffer, parser, res) = tokio::task::spawn_blocking(move || {
+                let res = reader.read(&mut buffer);
+                (reader, buffer, parser, res)
+            }).await.unwrap();
+
+            match res {
+                Ok(0) => {}
+                Ok(n) => {
+                    let res = parser.parse_as_vec(&buffer[..n]);
+                    tx.send(res).await;
+                }
+                Err(err) => {
+                    eprintln!("Error reading from Read object: {}", err);
+                }
+            };
+        }
     });
 
     // Terminal Auto Scroll
