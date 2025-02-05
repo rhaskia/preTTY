@@ -82,7 +82,10 @@ impl<F: FnMut(Action)> VTActor for Actor<'_, F> {
     }
 
     fn csi_dispatch(&mut self, params: &[CsiParam], parameters_truncated: bool, byte: u8) {
-        
+        let csi = CSI::parse(params, parameters_truncated, byte);
+        for action in csi {
+            self.callback(Action::CSI(action))
+        }
     }
 
     fn osc_dispatch(&mut self, osc: &[&[u8]]) {

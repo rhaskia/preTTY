@@ -8,6 +8,7 @@ pub mod esc;
 pub use csi::CSI;
 pub use esc::{Esc, EscCode};
 pub use osc::OSC;
+pub use vtparse::CsiParam;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Action {

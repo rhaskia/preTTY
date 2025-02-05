@@ -212,7 +212,7 @@ impl Terminal {
     }
 
     /// Backspaces at the terminal cursor position
-    fn backspace(&mut self) { self.cursor.x -= 1; }
+    fn backspace(&mut self) { if self.cursor.x == 0 { return }; self.cursor.x -= 1; }
 
     // Performs a new line at the terminal cursor position
     fn new_line(&mut self) {

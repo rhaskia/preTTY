@@ -1,4 +1,5 @@
 use crate::sgr::Sgr;
+pub use vtparse::CsiParam;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum CSI {
@@ -14,11 +15,40 @@ pub enum CSI {
     Unspecified(Box<Unspecified>),
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum CsiParam {
-    Integer(u32),
+impl CSI {
+    pub fn parse(params: &[CsiParam], parameters_truncated: bool, control: u8) -> Vec<Self> {
+        match control {
+            b'm' => Sgr::parse(params, parameters_truncated).into_iter().map(|sgr| CSI::Sgr(sgr)).collect(),
+            b'A'..=b'H' => {
+                let param = if params.len() == 0 { 1 } else { params[0].as_integer().unwrap_or(1) as u32 };
+
+                let cursor = match control {
+                    b'A' => Cursor::Up(param),
+                    b'B' => Cursor::Down(param),
+                    b'C' => Cursor::Right(param),
+                    b'D' => Cursor::Left(param),
+                    b'E' => Cursor::NextLine(param),
+                    b'F' => Cursor::PrecedingLine(param),
+                    b'G' => Cursor::HorizontalPosition(param),
+                    b'H' => Cursor::Position { line: param, col: params[2].as_integer().unwrap_or(1) as u32 },
+                    _ => unreachable!(),
+                };
+                vec![CSI::Cursor(cursor)]
+            }
+            _ => vec![CSI::Unspecified(Box::new(Unspecified { 
+                params: params.to_vec(),
+                parameters_truncated,
+                control: control as char
+            }))]
+        }
+    } 
 }
 
+// #[derive(Debug, PartialEq, Clone)]
+// pub enum CsiParam {
+//     Integer(u32),
+// }
+//
 #[derive(Debug, PartialEq, Clone)]
 pub enum Cursor {
     Left(u32),
@@ -28,6 +58,7 @@ pub enum Cursor {
     PrecedingLine(u32),
     NextLine(u32),
     Position { line: u32, col: u32 },
+    HorizontalPosition(u32),
     CursorStyle(CursorStyle),
 } 
 
