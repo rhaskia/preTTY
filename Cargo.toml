@@ -18,7 +18,7 @@ fern = "0.7"
 log = "0.4.22"
 async-channel = "2.2.0"
 async-option = "0.1.1"
-tokio = { version = "1.42", features = ["time", "rt"]}
+tokio = { version = "1.42", features = ["time", "rt", "sync", "io-util"]}
 futures = "0.3.31"
 keyboard-types = { version = "0.7", features = ["serde"] }
 

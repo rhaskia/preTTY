@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = "1.36.0"
+tokio = "1.43.0"
 async-channel = "2.2.0"
 num-traits = "0.2.18"
 log = { workspace = true }

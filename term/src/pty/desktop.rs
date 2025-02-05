@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::ops::Deref;
 use super::generate_id;
+use std::task::Poll;
 
 use async_channel::Sender;
 use portable_pty::{
@@ -9,7 +10,9 @@ use portable_pty::{
 };
 use escape::Action;
 use tokio::runtime::Runtime;
+use tokio::task::{JoinHandle, spawn_blocking};
 use super::{PseudoTerminalSystemInner, PseudoTerminal, PseudoTerminalSystem};
+use tokio::io::AsyncRead;
 
 pub struct PtySystemDesktop {
     pub pty_system: Box<dyn PtySystem + Send>,
@@ -131,10 +134,42 @@ impl PseudoTerminal for PtyDesktop {
     }
 
     /// Writes input directly into the pty
-    fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
+    async fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
 
-    fn reader(&mut self) -> Box<dyn Read + Send> {
-        self.pair.master.try_clone_reader().unwrap()
+    fn reader(&mut self) -> Box<dyn AsyncRead + Send> {
+        let inner = self.pair.master.try_clone_reader().unwrap();
+        Box::new(Reader { inner, handle: None })
     }
 }
 
+struct Reader {
+    handle: Option<JoinHandle<&[u8]>>,
+    inner: Box<dyn Read + Send>,
+}
+
+impl AsyncRead for Reader {
+    fn poll_read(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        if self.handle == None {
+            self.handle = Some(spawn_blocking({
+                let buffer = [0; 1024];
+                self.inner.read(buffer);
+                buffer
+            }));
+        }
+
+        match self.handle.unwrap().poll(cx) {
+            Poll::Ready(res) => {
+                self.handle = None;
+                buf.take(res);
+                Poll::Ready(Ok(()))
+            },
+            Poll::Pending => {
+                Poll::Pending
+            }
+        }
+    }
+}

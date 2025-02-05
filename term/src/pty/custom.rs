@@ -1,6 +1,11 @@
 use super::{PseudoTerminalSystemInner, PseudoTerminal};
 use std::collections::HashMap;
-use std::io::Read;
+use std::io::{Read, Error};
+use async_channel::{Sender, Receiver, unbounded};
+use std::task::Poll;
+use tokio::io::AsyncRead;
+use std::pin::pin;
+use std::future::Future;
 
 pub struct CustomPtySystem {
     ptys: HashMap<String, CustomPty>,
@@ -25,12 +30,12 @@ impl PseudoTerminalSystemInner for CustomPtySystem {
 }
 
 pub struct CustomPty {
-
+    writers: Vec<Sender<String>>
 }
 
 impl CustomPty {
     pub fn new() -> Self {
-        Self {}
+        Self { writers: Vec::new() }
     }
 }
 
@@ -42,21 +47,43 @@ impl PseudoTerminal for CustomPty {
         (1, 1)
     }
 
-    fn reader(&mut self) -> Box<dyn Read + Send> {
-        Box::new(Reader { h: true})
+    fn reader(&mut self) -> Box<dyn AsyncRead + Send> {
+        let (tx, rx) = unbounded();
+        self.writers.push(tx);
+        Box::new(Reader { reader: rx, excess: Vec::new() })
     } 
+
+    async fn write(&mut self, input: String) {
+        for tx in self.writers.iter() {
+            tx.send(input.clone()).await;
+        }
+    }
 }
 
 pub struct Reader {
-    h: bool,
+    reader: Receiver<String>,
+    excess: Vec<u8>
 }
 
-impl Read for Reader {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        if self.h { self.h = false; return Ok(0); }
-        for i in 0..10 {
-            buf[i] = 65;
+impl AsyncRead for Reader {
+    fn poll_read(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        log::info!("why isnt this fucking called");
+        match pin!(self.reader.recv()).poll(cx) {
+            Poll::Ready(res) => {
+                log::info!("woah {res:?}");
+                match res {
+                    Ok(input) => {
+                        buf.put_slice(input.as_bytes());
+                        Poll::Ready(Ok(()))
+                    }
+                    Err(err) => Poll::Ready(Err(Error::new(std::io::ErrorKind::Other, err))),
+                }
+            },
+            Poll::Pending => Poll::Pending,
         }
-        Ok(9)
     }
 }

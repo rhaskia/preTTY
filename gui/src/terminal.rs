@@ -13,12 +13,14 @@ use serde::Deserialize;
 use crate::CONFIG;
 use pretty_term::Terminal;
 use log::info;
-use std::thread;
+use std::{thread, pin::Pin};
 use crate::{TABS, PTY_SYSTEM, INPUT};
 use dioxus_document::{Eval, Evaluator, eval};
 use pretty_term::pty::{PseudoTerminalSystemInner, PseudoTerminal};
 use tokio::time;
 use escape::Action;
+use tokio::io::AsyncReadExt;
+use std::pin::pin;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -74,7 +76,6 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
     // ANSI code handler
     use_future(move || async move {
         loop {
-            log::info!("hai!!");
             match rx.write().recv().await {
                 Ok(a) => {
                     eval(&format!("
@@ -99,23 +100,19 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         let mut buffer = [0u8; 1024]; // Buffer to hold a single character
         let mut parser = escape::parser::Parser::new();
         let mut tx = tx();
-        let mut res = Ok(0);
+        let mut reader = Box::into_pin(reader);
 
         loop {
-            (reader, buffer, parser, res) = tokio::task::spawn_blocking(move || {
-                let res = reader.read(&mut buffer);
-                (reader, buffer, parser, res)
-            }).await.unwrap();
-
+            let res = reader.read(&mut buffer).await;
+            log::info!("help");
             match res {
-                Ok(0) => {}
+                Ok(0) => {},
                 Ok(n) => {
+                    log::info!("{:?}", &buffer[..n]);
                     let res = parser.parse_as_vec(&buffer[..n]);
                     tx.send(res).await;
-                }
-                Err(err) => {
-                    eprintln!("Error reading from Read object: {}", err);
-                }
+                },
+                Err(err) => log::error!("{err}"),
             };
         }
     });

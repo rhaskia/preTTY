@@ -30,8 +30,11 @@ impl CSI {
                     b'E' => Cursor::NextLine(param),
                     b'F' => Cursor::PrecedingLine(param),
                     b'G' => Cursor::HorizontalPosition(param),
-                    b'H' => Cursor::Position { line: param, col: params[2].as_integer().unwrap_or(1) as u32 },
-                    _ => unreachable!(),
+                    b'H' => Cursor::Position { 
+                        line: param, 
+                        col: params.get(2).unwrap_or(&CsiParam::Integer(1)).as_integer().unwrap_or(1) as u32
+                    },
+                    _ => Cursor::Up(0),
                 };
                 vec![CSI::Cursor(cursor)]
             }

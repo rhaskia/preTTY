@@ -53,14 +53,14 @@ pub fn spawn_new() -> String {
     PTY_SYSTEM.write().spawn_new(command).unwrap()
 }
 
-pub fn handle_action(action: TerminalAction) {
+pub async fn handle_action(action: TerminalAction) {
     match action {
         TerminalAction::Write(s) => {
             let tab = &TABS()[*CURRENT_TAB.read()];
             if tab.tab_type != TabType::Terminal {
                 return;
             }
-            PTY_SYSTEM.write().get(&tab.pty).write(s);
+            PTY_SYSTEM.write().get(&tab.pty).write(s).await;
         }
         TerminalAction::NewTab => {
             let id = spawn_new();
@@ -143,8 +143,8 @@ pub fn App() -> Element {
             autofocus: true,
             tabindex: 0,
 
-            onkeydown: move |e| if !COMMAND_PALETTE() {
-                handle_action(INPUT.read().handle_keypress(&e)); 
+            onkeydown: async move |e| if !COMMAND_PALETTE() {
+                handle_action(INPUT.read().handle_keypress(&e)).await; 
                 e.stop_propagation();
             },
             onkeyup: |e| e.stop_propagation(),
@@ -200,6 +200,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 #[cfg(target_family = "wasm")]
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
+    log::info!("started up");
     launch(App);
 }
 

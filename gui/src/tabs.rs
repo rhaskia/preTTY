@@ -36,10 +36,10 @@ pub fn TabButton(tab: Tab, n: usize) -> Element {
             class: "tabbutton",
             span { 
                 class: "tab",
-                onmousedown: move |e| {
+                onmousedown: move |e: Event<MouseData>| async move {
                     match e.trigger_button().unwrap() {
                         MouseButton::Primary => *CURRENT_TAB.write() = n,
-                        MouseButton::Auxiliary => handle_action(TerminalAction::CloseTabSpecific(n)),
+                        MouseButton::Auxiliary => handle_action(TerminalAction::CloseTabSpecific(n)).await,
                         _ => {}
                     }
                 },

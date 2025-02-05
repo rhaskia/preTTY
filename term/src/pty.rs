@@ -4,6 +4,7 @@ use async_channel::Sender;
 use std::io::Read;
 use tokio::{runtime::Runtime, task};
 use rand::Rng;
+use tokio::io::AsyncRead;
 
 #[cfg(not(target_family = "wasm"))]
 pub mod desktop;
@@ -39,8 +40,8 @@ pub trait PseudoTerminal {
         screen_height: f32,
         cell_width: f32,
         cell_height: f32) -> (u16, u16) { (1, 1) }
-    fn write(&mut self, input: String) {}
-    fn reader(&mut self) -> Box<dyn Read + Send>;
+    async fn write(&mut self, input: String) {}
+    fn reader(&mut self) -> Box<dyn AsyncRead + Send>;
 }
 
 #[cfg(not(target_family = "wasm"))]
