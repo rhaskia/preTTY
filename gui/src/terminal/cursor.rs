@@ -4,7 +4,6 @@ use dioxus::prelude::*;
 use dioxus_document::{Eval, Evaluator, eval};
 use serde::Serialize;
 use serde_json::to_value;
-use pretty_hooks::wait_for_next_render;
 
 #[derive(Serialize)]
 pub struct CursorInfo {
@@ -20,7 +19,7 @@ pub fn Cursor(cursor_pos: Memo<(usize, usize)>, index: String) -> Element {
     use_future(move || async move {
         loop {
             //wait_for_next_render().await;
-            tokio::time::sleep(Duration::from_secs_f64(0.1));
+            tokio::time::sleep(Duration::from_secs_f64(0.1)).await;
 
             let mut line_eval = eval(
                 r#"

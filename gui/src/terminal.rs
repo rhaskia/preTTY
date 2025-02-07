@@ -13,10 +13,14 @@ use serde::Deserialize;
 use crate::CONFIG;
 use pretty_term::Terminal;
 use log::info;
-use std::{thread, time::Duration};
+use std::{thread, pin::Pin};
 use crate::{TABS, PTY_SYSTEM, INPUT};
 use dioxus_document::{Eval, Evaluator, eval};
-use pretty_hooks::wait_for_next_render;
+use pretty_term::pty::{PseudoTerminalSystemInner, PseudoTerminal, AsyncReader};
+use tokio::time;
+use escape::Action;
+use tokio::io::AsyncReadExt;
+use std::pin::pin;
 
 #[derive(Default, Deserialize, Clone)]
 pub struct CellSize {
@@ -31,6 +35,7 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
     let debug = use_signal(|| false);
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
     let pty = use_signal(|| pty);
+    let mut cell_size = use_signal(|| CellSize { width: 8.0, height: 14.0 });
 
     use_effect(move || {
         INPUT.write().set_kitty_state(terminal.read().kitty_state());
@@ -42,11 +47,7 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
 
     // Cell Size Reader
     let mut size_style = use_signal(|| String::new());
-    let cell_size = use_resource(move || async move {
-        //wait_for_next_render().await;
-        //println!("cell size got again");
-        tokio::time::sleep(Duration::from_secs(1));
-
+    use_future(move || async move {
         let mut glyph_size = eval(include_str!("../../js/textsizeloader.js"));
 
         glyph_size.send((CONFIG.read().font_size)).unwrap();
@@ -56,46 +57,47 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
                 "--cell-width: {}px; --cell-height: {}px",
                 size.width, size.height
             ));
-            size
-        } else {
-            CellSize { width: 8.0, height: 14.0 }
+            cell_size.set(size);
         }
     });
 
     // Window Resize Event
     on_resize(format!("split-{}", pty), move |size| {
         let DOMRectReadOnly { width, height, .. } = size.content_rect;
-        if let Some(cell) = &*cell_size.read() {
-            let (rows, cols) = PTY_SYSTEM.write().get(&pty()).resize(width, height, cell.width, cell.height);
-            info!("Resize Event, {rows}:{cols}");
-            terminal.write().resize(rows, cols);
-        }
+        let (rows, cols) = PTY_SYSTEM.write().get(&pty()).resize(width, height, cell_size.read().width, cell_size.read().height);
+        info!("Resize Event, {rows}:{cols}");
+        terminal.write().resize(rows, cols);
     });
 
-    // ANSI code handler
+    // Terminal reading and parsing
+    // Need to move to another file
     use_future(move || async move {
-        let reader = PTY_SYSTEM.write().get(&pty()).pair.master.try_clone_reader().unwrap();
-        let (tx, rx) = async_channel::unbounded();
-        let _reader_thread = thread::spawn(move || {
-            pretty_term::pty::parse_terminal_output(tx, reader);
-        });
+        let mut reader = PTY_SYSTEM.write().get(&pty()).reader();
+        let mut buffer = [0u8; 1024]; // Buffer to hold a single character
+        let mut parser = escape::parser::Parser::new();
+
         loop {
-            if let Ok(a) = rx.recv().await {
-                eval(&format!("
-                    document.getElementById('split-{pty}').dispatchEvent(new Event(\"scrollCheck\"));
-                "));
-                terminal.write().handle_actions(a.clone());
-                wait_for_next_render().await;
-                eval(&format!("
-                    document.getElementById('split-{pty}').dispatchEvent(new Event(\"termUpdate\"));
-                "));
-            }
+            let res = reader.read(&mut buffer).await;
+            match res {
+                Ok(0) => {},
+                Ok(n) => {
+                    let actions = parser.parse_as_vec(&buffer[..n]);
+                    eval(&format!("
+                        document.getElementById('split-{pty}').dispatchEvent(new Event(\"scrollCheck\"));
+                    "));
+                    terminal.write().handle_actions(actions.clone());
+                    eval(&format!("
+                        document.getElementById('split-{pty}').dispatchEvent(new Event(\"termUpdate\"));
+                    "));
+                },
+                Err(err) => log::error!("{err}"),
+            };
         }
     });
 
     // Terminal Auto Scroll
     use_future(move || async move {
-        wait_for_next_render().await;
+        //wait_for_next_render().await;
 
         eval(&format!("
             function scrollToBottom() {{

@@ -1,5 +1,5 @@
 [workspace]
-members = ["gui", "term", "hooks", "config"]
+members = ["gui", "term", "hooks", "config", "escape"]
 exclude = ["test-programs/kitty-key"]
 resolver = "2"
 
@@ -7,8 +7,9 @@ resolver = "2"
 config = { path = "./config" }
 pretty_hooks = { path = "./hooks" }
 pretty_term = { path = "./term" }
+escape = { path = "./escape" }
 prettyterm_gui = { path = "./gui" }
-dioxus = { version = "0.6", features = ["desktop", "html", "hooks", "web"] }
+dioxus = { version = "0.6", features = ["html", "hooks"] }
 dioxus-document = "0.6"
 dioxus-form = "0.1.3"
 serde = "1.0"
@@ -17,7 +18,18 @@ fern = "0.7"
 log = "0.4.22"
 async-channel = "2.2.0"
 async-option = "0.1.1"
-tokio = "1.42"
-termwiz = "0.22.0"
+tokio = { version = "1.42", features = ["time", "rt", "sync", "io-util"]}
 futures = "0.3.31"
-tokio = "1.36.0"
+keyboard-types = { version = "0.7", features = ["serde"] }
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

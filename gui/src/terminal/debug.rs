@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use num_traits::cast::FromPrimitive;
 use pretty_term::Terminal;
-use termwiz::escape::csi::DecPrivateModeCode;
 
 #[component]
 pub fn TerminalDebug(terminal: Signal<Terminal>) -> Element {
@@ -32,7 +31,7 @@ pub fn TerminalDebug(terminal: Signal<Terminal>) -> Element {
                 }
                 for (key, value) in &terminal.read().state.dec_modes {
                     tr {
-                        td { "{as_dec(key):?}", }
+                        td { "{key}", }
                         td { "{value}" }
                     }
                 }
@@ -47,5 +46,3 @@ pub fn TerminalDebug(terminal: Signal<Terminal>) -> Element {
         }
     }
 }
-
-fn as_dec(n: &u16) -> DecPrivateModeCode { DecPrivateModeCode::from_u16(*n).unwrap() }

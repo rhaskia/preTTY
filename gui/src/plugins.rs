@@ -4,7 +4,6 @@ use std::path::Path;
 use config::{uninstall_plugin, Plugin};
 use dioxus::prelude::*;
 use dioxus_document::{Eval, Evaluator, eval};
-use pretty_hooks::wait_for_next_render;
 use crate::menu::confirm::Confirm;
 
 pub const PLUGIN_CONFIG: GlobalSignal<config::PluginConfig> = Signal::global(config::plugin_config);
@@ -14,7 +13,7 @@ pub fn PluginManager() -> Element {
     let installed_plugins = config::installed_plugins();
 
     use_future(move || async {
-        wait_for_next_render().await;
+        //wait_for_next_render().await;
         let installed_plugins = config::installed_plugins();
         for (name, plugin) in &installed_plugins {
             if PLUGIN_CONFIG.read().disabled_plugins.contains(name) {

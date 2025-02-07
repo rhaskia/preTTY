@@ -3,7 +3,6 @@ use dioxus::prelude::*;
 use serde::Deserialize;
 use log::info;
 use dioxus_document::{Eval, Evaluator, eval};
-use crate::wait_for_next_render;
 
 pub struct DomRectSignal {
     inner: Signal<Option<ResizeObserverEntry>>,
@@ -90,8 +89,6 @@ pub fn on_resize(id: String, callback: impl FnMut(ResizeObserverEntry) + 'static
     let mut callback = use_signal(|| callback);
 
     use_future(move || async move {
-        wait_for_next_render().await;
-
         let mut js = resize_observer();
 
         js.send(id()).unwrap();
@@ -99,8 +96,10 @@ pub fn on_resize(id: String, callback: impl FnMut(ResizeObserverEntry) + 'static
         loop {
             let div_info = js.recv().await.unwrap();
             info!("Recieved json {div_info:?}");
-            let parsed = serde_json::from_value::<ResizeObserverEntry>(div_info).unwrap();
-            callback.write().call_mut((parsed,));
+            let parsed = serde_json::from_value::<ResizeObserverEntry>(div_info);
+            if let Ok(p) = parsed {
+                callback.write().call_mut((p,));
+            }
         }
     })
 }
@@ -110,8 +109,6 @@ pub fn use_div_size(id: String) -> DomRectSignal {
     let mut signal = use_signal(|| None);
 
     let _collector = use_future(move || async move {
-        wait_for_next_render().await;
-
         let mut js = resize_observer();
 
         js.send(id()).unwrap();

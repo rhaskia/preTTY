@@ -52,7 +52,9 @@ pub fn plugin_config() -> PluginConfig {
 pub fn installed_plugins() -> HashMap<String, Plugin> {
     let mut plugins = HashMap::new();
     let dir = crate::dir().join("plugins");
-    let mut read_dir = std::fs::read_dir(dir.clone()).unwrap();
+    let mut read_dir = if let Ok(dir) = std::fs::read_dir(dir.clone()) {
+        dir
+    } else { return HashMap::new() };
     
     while let Some(Ok(entry)) = read_dir.next() {
         if entry.file_type().unwrap().is_dir() {
@@ -102,9 +104,15 @@ pub fn get_user_css() -> String {
     std::fs::read_to_string(path).unwrap_or_default()
 }
 
+#[cfg(not(target_family = "wasm"))]
 pub fn download_plugin(plugin: &Plugin) {
     let dir = crate::dir().join("plugins").join(plugin.name.clone());
     let url = gix::prepare_clone(plugin.git_repo.clone(), dir).unwrap();
+}
+
+#[cfg(target_family = "wasm")]
+pub fn download_plugin(plugin: &Plugin) {
+
 }
 
 pub fn is_plugin_installed(plugin: String) -> bool {

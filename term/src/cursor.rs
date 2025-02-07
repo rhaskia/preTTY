@@ -1,4 +1,4 @@
-use termwiz::escape::csi::CursorStyle;
+use escape::csi::CursorStyle;
 
 /// Cursor object to store cursor position and style
 /// Allows for storing, restoring etc with positions as well

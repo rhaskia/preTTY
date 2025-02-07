@@ -2,7 +2,6 @@ use config::TerminalAction;
 use dioxus::prelude::*;
 use crate::{handle_action, COMMAND_PALETTE};
 use dioxus_document::{Eval, Evaluator, eval};
-use pretty_hooks::wait_for_next_render;
 
 #[component]
 pub fn CommandPalette() -> Element {
@@ -27,7 +26,7 @@ pub fn CommandPalette() -> Element {
     });
 
     use_future(move || async move {
-        wait_for_next_render().await;
+        //wait_for_next_render().await;
 
         let mut clickoff = eval(
             r#"
@@ -42,7 +41,7 @@ pub fn CommandPalette() -> Element {
 
         loop {
             clickoff.recv::<i32>().await.ok();
-            if COMMAND_PALETTE() { handle_action(TerminalAction::ToggleCommandPalette); }
+            if COMMAND_PALETTE() { handle_action(TerminalAction::ToggleCommandPalette).await; }
         }
     });
 
@@ -56,16 +55,17 @@ pub fn CommandPalette() -> Element {
                 oninput: move |event| search.set(event.value()),
                 onmounted: |_| { eval("document.getElementById('commandsearch').focus();"); },
                 tabindex: 0,
-                onkeydown: move |e| match e.key() {
+                onkeydown: move |e| async move { match e.key() {
                     Key::ArrowUp if selected() != 0 => raw_selected -= 1.0,
                     Key::ArrowUp => *raw_selected.write() = matches.read().len() as f64 - 1.0,
                     Key::ArrowDown if selected() != matches.read().len() - 1 => raw_selected += 1.0,
                     Key::ArrowDown => *raw_selected.write() = 0.0,
                     Key::Enter => {
-                        handle_action(matches.read()[selected()].clone());
+                        handle_action(matches.read()[selected()].clone()).await;
                         *COMMAND_PALETTE.write() = false;
                     }
                     _ => {}
+                } 
                 }
             }
             select {
@@ -78,8 +78,8 @@ pub fn CommandPalette() -> Element {
                     option {
                         class: "searchresult",
                         value: i as f64,
-                        onclick: move |_| {
-                            handle_action(matches.read()[i].clone());
+                        onclick: move |_| async move {
+                            handle_action(matches.read()[i].clone()).await;
                             *COMMAND_PALETTE.write() = false;
                         },
                         "{result}"

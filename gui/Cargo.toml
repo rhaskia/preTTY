@@ -7,9 +7,7 @@ edition = "2021"
 
 [dependencies]
 serde-wasm-bindgen = "0.6.4"
-serde = { version = "1.0.217", features = ["serde_derive"] }
 serde_json = "1.0.114"
-notify-rust = "4.10.0"
 manganis = "0.6"
 num-traits = "0.2.18"
 strum = "0.26.3"
@@ -20,7 +18,6 @@ futures = { workspace = true }
 serde = { workspace = true }
 config = { workspace = true }
 fern = { workspace = true }
-termwiz = { workspace = true }
 log = { workspace = true }
 pretty_term = { workspace = true }
 pretty_hooks = { workspace = true }
@@ -29,4 +26,19 @@ dioxus = { workspace = true }
 dioxus-document = { workspace = true }
 async-channel = { workspace = true }
 dioxus-form = { workspace = true }
+escape = { workspace = true }
+wasm-logger = "0.2.0"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+notify-rust = "4.10.0"
+
+[features]
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
+
 #dioxus-native = { git="https://github.com/DioxusLabs/blitz.git" }

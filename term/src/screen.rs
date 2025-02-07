@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::ops::Range;
 
-use termwiz::escape::csi::Sgr;
+use escape::sgr::Sgr;
 
 use super::cell::{Cell, CellAttributes, Color};
 use super::line::Line;

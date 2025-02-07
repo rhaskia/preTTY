@@ -25,7 +25,7 @@ pub struct RawKeybinds {
 
 pub fn load_config() -> Config {
     // will only fail on platforms that aren't supported anyway
-    let path = dirs::config_dir().unwrap().join("prettyterm/config");
+    let path = dirs::config_dir().unwrap_or_default().join("prettyterm/config");
     let config_file = match std::fs::read_to_string(path.join("config.toml")) {
         Ok(s) => s,
         Err(err) => {
@@ -39,7 +39,7 @@ pub fn load_config() -> Config {
 }
 
 pub fn load_keybinds() -> Vec<Keybinding> {
-    let path = dirs::config_dir().unwrap().join("prettyterm/config");
+    let path = dirs::config_dir().unwrap_or_default().join("prettyterm/config");
     let keybind_file = match std::fs::read_to_string(path.join("keybinds.toml")) {
         Ok(s) => s,
         Err(_) => return Vec::new(),
@@ -78,13 +78,22 @@ pub fn load_palette(name: &str) -> Palette {
     toml::from_str(&pal_file).unwrap_or_default()
 }
 
-pub fn load_palettes() -> HashMap<String, Palette> {
-    let path = dirs::config_dir().unwrap().join("prettyterm/palettes");
-    std::fs::create_dir_all(&path).ok();
-    let read = std::fs::read_dir(path);
+pub fn default_palettes() -> HashMap<String, Palette> {
     let mut palettes = HashMap::new();
     palettes.insert("default".to_string(), default_pal());
     palettes.insert("highcontrast".to_string(), default_pal_hc());
+    palettes
+}
+
+pub fn load_palettes() -> HashMap<String, Palette> {
+    let mut palettes = default_palettes();
+
+    let path = if let Some(dir) = dirs::config_dir() {
+        dir.join("prettyterm/palettes") 
+    } else { return palettes; };
+
+    std::fs::create_dir_all(&path).ok();
+    let read = std::fs::read_dir(path);
 
     for file_maybe in read.unwrap() {
         if let Ok(file) = file_maybe {
