@@ -16,7 +16,7 @@ use log::info;
 use std::{thread, pin::Pin};
 use crate::{TABS, PTY_SYSTEM, INPUT};
 use dioxus_document::{Eval, Evaluator, eval};
-use pretty_term::pty::{PseudoTerminalSystemInner, PseudoTerminal};
+use pretty_term::pty::{PseudoTerminalSystemInner, PseudoTerminal, AsyncReader};
 use tokio::time;
 use escape::Action;
 use tokio::io::AsyncReadExt;
@@ -36,9 +36,6 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
     let cursor_pos = use_memo(move || terminal.read().cursor_pos());
     let pty = use_signal(|| pty);
     let mut cell_size = use_signal(|| CellSize { width: 8.0, height: 14.0 });
-    let (tx, rx) = async_channel::unbounded::<Vec<Action>>();
-    let tx = use_signal(|| tx);
-    let mut rx = use_signal(|| rx);
 
     use_effect(move || {
         INPUT.write().set_kitty_state(terminal.read().kitty_state());
@@ -72,45 +69,28 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         terminal.write().resize(rows, cols);
     });
 
-
-    // ANSI code handler
-    use_future(move || async move {
-        loop {
-            match rx.write().recv().await {
-                Ok(a) => {
-                    eval(&format!("
-                        document.getElementById('split-{pty}').dispatchEvent(new Event(\"scrollCheck\"));
-                    "));
-                    log::info!("woa {a:?}");
-                    terminal.write().handle_actions(a.clone());
-                    tokio::time::sleep(tokio::time::Duration::from_secs(1));
-                    eval(&format!("
-                        document.getElementById('split-{pty}').dispatchEvent(new Event(\"termUpdate\"));
-                    "));
-                }, 
-                Err(err) => eprintln!("{err:?}"),
-            }
-        }
-    });
-
     // Terminal reading and parsing
     // Need to move to another file
     use_future(move || async move {
-        let mut reader = PTY_SYSTEM.write().get(&pty()).reader();
+        let mut binding = PTY_SYSTEM.write();
+        let mut reader = binding.get(&pty()).reader();
         let mut buffer = [0u8; 1024]; // Buffer to hold a single character
         let mut parser = escape::parser::Parser::new();
-        let mut tx = tx();
-        let mut reader = Box::into_pin(reader);
 
         loop {
             let res = reader.read(&mut buffer).await;
-            log::info!("help");
             match res {
                 Ok(0) => {},
                 Ok(n) => {
-                    log::info!("{:?}", &buffer[..n]);
-                    let res = parser.parse_as_vec(&buffer[..n]);
-                    tx.send(res).await;
+                    log::info!("terminal output {:?}", &buffer[..n]);
+                    let actions = parser.parse_as_vec(&buffer[..n]);
+                    eval(&format!("
+                        document.getElementById('split-{pty}').dispatchEvent(new Event(\"scrollCheck\"));
+                    "));
+                    terminal.write().handle_actions(actions.clone());
+                    eval(&format!("
+                        document.getElementById('split-{pty}').dispatchEvent(new Event(\"termUpdate\"));
+                    "));
                 },
                 Err(err) => log::error!("{err}"),
             };

@@ -3,15 +3,16 @@ use std::io::{Read, Write};
 use std::ops::Deref;
 use super::generate_id;
 use std::task::Poll;
-
-use async_channel::Sender;
+use std::pin::{pin, Pin};
+use std::future::Future;
+use async_channel::{Sender, Receiver, Recv, RecvError};
 use portable_pty::{
     native_pty_system, Child, CommandBuilder, MasterPty, PtyPair, PtySize, PtySystem,
 };
 use escape::Action;
 use tokio::runtime::Runtime;
 use tokio::task::{JoinHandle, spawn_blocking};
-use super::{PseudoTerminalSystemInner, PseudoTerminal, PseudoTerminalSystem};
+use super::{PseudoTerminalSystemInner, PseudoTerminal, PseudoTerminalSystem, AsyncReader};
 use tokio::io::AsyncRead;
 
 pub struct PtySystemDesktop {
@@ -134,42 +135,38 @@ impl PseudoTerminal for PtyDesktop {
     }
 
     /// Writes input directly into the pty
-    async fn write(&mut self, input: String) { self.writer.write_all(input.as_bytes()).unwrap() }
+    async fn write(&mut self, input: String) { 
+        log::info!("writing {input}");
+        self.writer.write_all(input.as_bytes()).unwrap() 
+    }
 
-    fn reader(&mut self) -> Box<dyn AsyncRead + Send> {
-        let inner = self.pair.master.try_clone_reader().unwrap();
-        Box::new(Reader { inner, handle: None })
+    fn reader(&mut self) -> Box<impl AsyncReader + Send> {
+        let mut inner = self.pair.master.try_clone_reader().unwrap();
+        let (tx, rx) = async_channel::unbounded();
+        let mut handle = spawn_blocking(move || { 
+            let mut buffer = [0; 1024];
+            loop {
+                let n = inner.read(&mut buffer).unwrap();
+                tx.send_blocking(buffer[..n].to_vec());
+            }
+        });
+
+        Box::new(Reader { handle, rx })
     }
 }
 
 struct Reader {
-    handle: Option<JoinHandle<&[u8]>>,
-    inner: Box<dyn Read + Send>,
+    handle: JoinHandle<()>,
+    rx: Receiver<Vec<u8>>,
 }
 
-impl AsyncRead for Reader {
-    fn poll_read(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        buf: &mut tokio::io::ReadBuf<'_>,
-    ) -> std::task::Poll<std::io::Result<()>> {
-        if self.handle == None {
-            self.handle = Some(spawn_blocking({
-                let buffer = [0; 1024];
-                self.inner.read(buffer);
-                buffer
-            }));
+impl AsyncReader for Reader {
+    async fn read(&mut self, buf: &mut [u8]) -> Result<usize, RecvError> {
+        let res = self.rx.recv().await?;
+        let len = res.len();
+        for i in 0..len {
+            buf[i] = res[i];
         }
-
-        match self.handle.unwrap().poll(cx) {
-            Poll::Ready(res) => {
-                self.handle = None;
-                buf.take(res);
-                Poll::Ready(Ok(()))
-            },
-            Poll::Pending => {
-                Poll::Pending
-            }
-        }
+        Ok(len)
     }
 }

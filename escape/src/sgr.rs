@@ -27,8 +27,29 @@ impl Sgr {
         if parameters.len() == 0 {
             return vec![Sgr::Reset];
         }
-    
+
         let mut i = 0;
+
+        let mut match_color = |i: &mut usize| {
+            *i += 2;
+            match parameters[*i].as_integer().unwrap() {
+                5 => {
+                    *i += 2;
+                    let n = parameters[*i].as_integer().unwrap() as u8;
+                    ColorSpec::PaletteIndex(n)
+                }
+                2 => {
+                    *i += 2;
+                    let r = parameters[*i].as_integer().unwrap() as u8;
+                    let g = parameters[*i + 2].as_integer().unwrap() as u8;
+                    let b = parameters[*i + 4].as_integer().unwrap() as u8;
+                    *i += 4;
+                    ColorSpec::TrueColor(SrgbaTuple{r, g ,b})
+                }
+                _ => ColorSpec::Default,
+            } 
+        };
+    
         while i < parameters.len() {
             match parameters[i] {
                 CsiParam::Integer(n) => match n {
@@ -37,42 +58,15 @@ impl Sgr {
                     2 => attributes.push(Sgr::Intensity(Intensity::Half)),
                     3 => attributes.push(Sgr::Italic(true)),
                     4 => attributes.push(Sgr::Underline(Underline::Single)),
+                    5 => attributes.push(Sgr::Blink(Blink::Slow)),
+                    6 => attributes.push(Sgr::Blink(Blink::Rapid)),
+                    7 => attributes.push(Sgr::Inverse(true)),
+                    8 => attributes.push(Sgr::Invisible(true)),
+                    9 => attributes.push(Sgr::StrikeThrough(true)),
                     30..=37 => attributes.push(Sgr::Foreground(ColorSpec::PaletteIndex(n as u8 - 30))),
-                    38 => {
-                        i += 2;
-                        match parameters[i].as_integer().unwrap() {
-                            5 => {
-                                i += 2;
-                            }
-                            2 => {
-                                i += 2;
-                                let r = parameters[i].as_integer().unwrap() as u8;
-                                let g = parameters[i + 2].as_integer().unwrap() as u8;
-                                let b = parameters[i + 4].as_integer().unwrap() as u8;
-                                attributes.push(Sgr::Foreground(ColorSpec::TrueColor(SrgbaTuple{r, g ,b})));
-                                i += 4;
-                            }
-                            _ => {}
-                        } 
-                    }
+                    38 => attributes.push(Sgr::Foreground(match_color(&mut i))),
                     40..=47 => attributes.push(Sgr::Background(ColorSpec::PaletteIndex(n as u8 - 30))),
-                    48 => {
-                        i += 2;
-                        match parameters[i].as_integer().unwrap() {
-                            5 => {
-                                i += 2;
-                            }
-                            2 => {
-                                i += 2;
-                                let r = parameters[i].as_integer().unwrap() as u8;
-                                let g = parameters[i + 2].as_integer().unwrap() as u8;
-                                let b = parameters[i + 4].as_integer().unwrap() as u8;
-                                attributes.push(Sgr::Background(ColorSpec::TrueColor(SrgbaTuple{r, g ,b})));
-                                i += 4;
-                            }
-                            _ => {}
-                        } 
-                    }
+                    48 => attributes.push(Sgr::Background(match_color(&mut i))),
                     _ => {}
                 }
                 _ => {}

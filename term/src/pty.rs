@@ -1,6 +1,6 @@
 use std::ops::{DerefMut, Deref};
 use escape::Action;
-use async_channel::Sender;
+use async_channel::{Sender, RecvError};
 use std::io::Read;
 use tokio::{runtime::Runtime, task};
 use rand::Rng;
@@ -41,7 +41,11 @@ pub trait PseudoTerminal {
         cell_width: f32,
         cell_height: f32) -> (u16, u16) { (1, 1) }
     async fn write(&mut self, input: String) {}
-    fn reader(&mut self) -> Box<dyn AsyncRead + Send>;
+    fn reader(&mut self) -> Box<impl AsyncReader + Send>;
+}
+
+pub trait AsyncReader {
+    async fn read(&mut self, _: &mut [u8]) -> Result<usize, RecvError>;
 }
 
 #[cfg(not(target_family = "wasm"))]

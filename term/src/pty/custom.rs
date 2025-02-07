@@ -1,7 +1,7 @@
-use super::{PseudoTerminalSystemInner, PseudoTerminal};
+use super::{PseudoTerminalSystemInner, PseudoTerminal, AsyncReader};
 use std::collections::HashMap;
 use std::io::{Read, Error};
-use async_channel::{Sender, Receiver, unbounded};
+use async_channel::{Sender, Receiver, unbounded, RecvError};
 use std::task::Poll;
 use tokio::io::AsyncRead;
 use std::pin::pin;
@@ -47,10 +47,10 @@ impl PseudoTerminal for CustomPty {
         (1, 1)
     }
 
-    fn reader(&mut self) -> Box<dyn AsyncRead + Send> {
+    fn reader(&mut self) -> Box<impl AsyncReader + Send> {
         let (tx, rx) = unbounded();
         self.writers.push(tx);
-        Box::new(Reader { reader: rx, excess: Vec::new() })
+        Box::new(Reader { rx, excess: Vec::new() })
     } 
 
     async fn write(&mut self, input: String) {
@@ -61,29 +61,15 @@ impl PseudoTerminal for CustomPty {
 }
 
 pub struct Reader {
-    reader: Receiver<String>,
+    rx: Receiver<String>,
     excess: Vec<u8>
 }
 
-impl AsyncRead for Reader {
-    fn poll_read(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        buf: &mut tokio::io::ReadBuf<'_>,
-    ) -> std::task::Poll<std::io::Result<()>> {
-        log::info!("why isnt this fucking called");
-        match pin!(self.reader.recv()).poll(cx) {
-            Poll::Ready(res) => {
-                log::info!("woah {res:?}");
-                match res {
-                    Ok(input) => {
-                        buf.put_slice(input.as_bytes());
-                        Poll::Ready(Ok(()))
-                    }
-                    Err(err) => Poll::Ready(Err(Error::new(std::io::ErrorKind::Other, err))),
-                }
-            },
-            Poll::Pending => Poll::Pending,
-        }
+impl AsyncReader for Reader {
+    async fn read(&mut self, buf: &mut [u8]) -> Result<usize, RecvError> {
+        let res = self.rx.recv().await?;
+        let len = res.len();
+        buf.copy_from_slice(res.as_bytes());
+        Ok(len)
     }
 }
