@@ -136,7 +136,6 @@ impl PseudoTerminal for PtyDesktop {
 
     /// Writes input directly into the pty
     async fn write(&mut self, input: String) { 
-        log::info!("writing {input}");
         self.writer.write_all(input.as_bytes()).unwrap() 
     }
 

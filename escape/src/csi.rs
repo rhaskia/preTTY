@@ -38,6 +38,33 @@ impl CSI {
                 };
                 vec![CSI::Cursor(cursor)]
             }
+            b'J' => {
+                let param = if params.len() == 0 { 0 } else { params[0].as_integer().unwrap_or(0) as u32 };
+
+                match param {
+                    1 => vec![CSI::Edit(Edit::EraseInDisplay(EraseInDisplay::EraseToStart))],
+                    2 => vec![CSI::Edit(Edit::EraseInDisplay(EraseInDisplay::EraseDisplay))],
+                    3 => vec![CSI::Edit(Edit::EraseInDisplay(EraseInDisplay::EraseAll))],
+                    _ => vec![CSI::Edit(Edit::EraseInDisplay(EraseInDisplay::EraseToEnd))],
+                }
+            }
+            b'K' => {
+                let param = if params.len() == 0 { 0 } else { params[0].as_integer().unwrap_or(0) as u32 };
+
+                match param {
+                    1 => vec![CSI::Edit(Edit::EraseInLine(EraseInLine::EraseToStart))],
+                    2 => vec![CSI::Edit(Edit::EraseInLine(EraseInLine::EraseLine))],
+                    _ => vec![CSI::Edit(Edit::EraseInLine(EraseInLine::EraseToEnd))],
+                }
+            }
+            b'h' => {
+                let param = if params.len() < 2 { 0 } else { params[1].as_integer().unwrap_or(0) as u16 };
+                vec![CSI::Mode(Mode::SetDecPrivateMode(param))]
+            }
+            b'l' => {
+                let param = if params.len() < 2 { 0 } else { params[1].as_integer().unwrap_or(0) as u16 };
+                vec![CSI::Mode(Mode::ResetDecPrivateMode(param))]
+            }
             _ => vec![CSI::Unspecified(Box::new(Unspecified { 
                 params: params.to_vec(),
                 parameters_truncated,
@@ -47,11 +74,6 @@ impl CSI {
     } 
 }
 
-// #[derive(Debug, PartialEq, Clone)]
-// pub enum CsiParam {
-//     Integer(u32),
-// }
-//
 #[derive(Debug, PartialEq, Clone)]
 pub enum Cursor {
     Left(u32),
@@ -79,7 +101,10 @@ pub enum Edit {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum EraseInDisplay {
+    EraseToEnd,
+    EraseToStart,
     EraseDisplay,
+    EraseAll
 } 
 
 #[derive(Debug, PartialEq, Clone)]

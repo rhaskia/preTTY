@@ -77,13 +77,10 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
         let mut parser = escape::parser::Parser::new();
 
         loop {
-            log::info!("Hi before");
             let res = reader.read(&mut buffer).await;
-            log::info!("Hi");
             match res {
                 Ok(0) => {},
                 Ok(n) => {
-                    log::info!("terminal output {:?}", &buffer[..n]);
                     let actions = parser.parse_as_vec(&buffer[..n]);
                     eval(&format!("
                         document.getElementById('split-{pty}').dispatchEvent(new Event(\"scrollCheck\"));

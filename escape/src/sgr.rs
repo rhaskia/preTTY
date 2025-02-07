@@ -22,8 +22,6 @@ impl Sgr {
     pub fn parse(parameters: &[CsiParam], parameters_truncated: bool) -> Vec<Self> {
         let mut attributes = Vec::new();
 
-        log::info!("{parameters:?}");
-
         if parameters.len() == 0 {
             return vec![Sgr::Reset];
         }
@@ -63,11 +61,36 @@ impl Sgr {
                     7 => attributes.push(Sgr::Inverse(true)),
                     8 => attributes.push(Sgr::Invisible(true)),
                     9 => attributes.push(Sgr::StrikeThrough(true)),
+
+                    21 | 22 => attributes.push(Sgr::Intensity(Intensity::Normal)),
+                    23 => attributes.push(Sgr::Italic(false)),
+                    24 => attributes.push(Sgr::Underline(Underline::None)),
+                    25 => attributes.push(Sgr::Blink(Blink::None)),
+                    27 => attributes.push(Sgr::Inverse(false)),
+                    28 => attributes.push(Sgr::Invisible(false)),
+                    29 => attributes.push(Sgr::StrikeThrough(false)),
+
                     30..=37 => attributes.push(Sgr::Foreground(ColorSpec::PaletteIndex(n as u8 - 30))),
                     38 => attributes.push(Sgr::Foreground(match_color(&mut i))),
+                    39 => attributes.push(Sgr::Foreground(ColorSpec::Default)),
+
                     40..=47 => attributes.push(Sgr::Background(ColorSpec::PaletteIndex(n as u8 - 40))),
                     48 => attributes.push(Sgr::Background(match_color(&mut i))),
-                    _ => {}
+                    49 => attributes.push(Sgr::Background(ColorSpec::Default)),
+
+                    53 => attributes.push(Sgr::Overline(true)),
+                    55 => attributes.push(Sgr::Overline(false)),
+
+                    58 => attributes.push(Sgr::UnderlineColor(match_color(&mut i))),
+                    59 => attributes.push(Sgr::UnderlineColor(ColorSpec::Default)),
+
+                    73 => attributes.push(Sgr::VerticalAlign(VerticalAlign::SuperScript)),
+                    74 => attributes.push(Sgr::VerticalAlign(VerticalAlign::SubScript)),
+                    75 => attributes.push(Sgr::VerticalAlign(VerticalAlign::BaseLine)),
+
+                    90..=97 => attributes.push(Sgr::Foreground(ColorSpec::PaletteIndex(n as u8 - 90 + 8))),
+                    100..=107 => attributes.push(Sgr::Background(ColorSpec::PaletteIndex(n as u8 - 100 + 8))),
+                    _ => log::info!("Unknown sgr: {parameters:?}"),
                 }
                 _ => {}
             }

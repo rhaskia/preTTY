@@ -20,12 +20,15 @@ use menu::palette::CommandPalette;
 use menu::Menu;
 use plugins::{PluginManager, PluginsMenu};
 use pretty_term::pty::{setup_pseudoterminal, PseudoTerminalSystem, custom::CustomPtySystem};
-#[cfg(not(target_family="wasm"))]
-use pretty_term::pty::desktop::PtySystemDesktop;
 use tabs::Tabs;
 use terminal::TerminalApp;
 use crate::tabs::{Tab, TabType};
 use pretty_term::pty::{PseudoTerminalSystemInner, PseudoTerminal};
+
+#[cfg(not(target_family="wasm"))]
+use pretty_term::pty::desktop::PtySystemDesktop;
+#[cfg(not(target_family="wasm"))]
+use dioxus::desktop::{DesktopService, use_window};
 
 pub static CONFIG: GlobalSignal<Config> = Signal::global(|| config::load_config());
 pub static KEYBINDS: GlobalSignal<Vec<Keybinding>> = Signal::global(|| config::load_keybinds());
@@ -36,8 +39,8 @@ pub static PALETTES: GlobalSignal<HashMap<String, Palette>> =
     Signal::global(|| config::load_palettes());
 pub static INPUT: GlobalSignal<InputManager> = Signal::global(InputManager::new);
 
-// #[cfg(not(target_family="wasm"))]
-// pub static WINDOW: GlobalSignal<Rc<DesktopService>> = Signal::global(|| use_window());
+#[cfg(not(target_family="wasm"))]
+pub static WINDOW: GlobalSignal<Rc<DesktopService>> = Signal::global(|| use_window());
 #[cfg(not(target_family="wasm"))]
 pub static PTY_SYSTEM: GlobalSignal<PseudoTerminalSystem<PtySystemDesktop>> =
     Signal::global(|| setup_pseudoterminal());
@@ -111,7 +114,10 @@ pub async fn handle_action(action: TerminalAction) {
             //     document.getElementById("commandsearch").focus();
             // "#);
         }
-        TerminalAction::OpenDevTools => {},//WINDOW.write().devtool(),
+        #[cfg(not(target_family="wasm"))]
+        TerminalAction::OpenDevTools => WINDOW.write().devtool(),
+        #[cfg(target_family="wasm")]
+        TerminalAction::OpenDevTools => {},
         TerminalAction::PasteText => todo!(),
         TerminalAction::CopyText => todo!(),
         TerminalAction::ClearBuffer => *CURRENT_TAB.write() -= 1,
