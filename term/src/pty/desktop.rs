@@ -140,7 +140,7 @@ impl PseudoTerminal for PtyDesktop {
         self.writer.write_all(input.as_bytes()).unwrap() 
     }
 
-    fn reader(&mut self) -> Box<impl AsyncReader + Send> {
+    fn reader(&mut self) -> Reader {
         let mut inner = self.pair.master.try_clone_reader().unwrap();
         let (tx, rx) = async_channel::unbounded();
         let mut handle = spawn_blocking(move || { 
@@ -151,11 +151,11 @@ impl PseudoTerminal for PtyDesktop {
             }
         });
 
-        Box::new(Reader { handle, rx })
+        Reader { handle, rx }
     }
 }
 
-struct Reader {
+pub struct Reader {
     handle: JoinHandle<()>,
     rx: Receiver<Vec<u8>>,
 }

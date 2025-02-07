@@ -65,7 +65,7 @@ impl Sgr {
                     9 => attributes.push(Sgr::StrikeThrough(true)),
                     30..=37 => attributes.push(Sgr::Foreground(ColorSpec::PaletteIndex(n as u8 - 30))),
                     38 => attributes.push(Sgr::Foreground(match_color(&mut i))),
-                    40..=47 => attributes.push(Sgr::Background(ColorSpec::PaletteIndex(n as u8 - 30))),
+                    40..=47 => attributes.push(Sgr::Background(ColorSpec::PaletteIndex(n as u8 - 40))),
                     48 => attributes.push(Sgr::Background(match_color(&mut i))),
                     _ => {}
                 }
@@ -118,7 +118,19 @@ impl ColorSpec {
         match self {
             ColorSpec::TrueColor(c) => c.to_string(),
             ColorSpec::Default => def,
-            ColorSpec::PaletteIndex(i) => format!("var(--palette-{i})"),
+            ColorSpec::PaletteIndex(i) => {
+                match i {
+                    0..16 => format!("var(--palette-{i})"),
+                    16..232 => {
+                        let n = i - 16;
+                        let r = ((n / 36) % 6) * 42;
+                        let g = ((n / 6) % 6) * 42;
+                        let b = (n % 6) * 42;
+                        format!("rgb({r} {g} {b})")
+                    }
+                    232..=255 => format!("rgb({0}% {0}% {0}%)", ((i - 231) as f32 / 16.0) * 100.0)
+                }
+            }
         }
     }
 }

@@ -72,13 +72,14 @@ pub fn TerminalApp(pty: String, hidden: bool, index: usize) -> Element {
     // Terminal reading and parsing
     // Need to move to another file
     use_future(move || async move {
-        let mut binding = PTY_SYSTEM.write();
-        let mut reader = binding.get(&pty()).reader();
+        let mut reader = PTY_SYSTEM.write().get(&pty()).reader();
         let mut buffer = [0u8; 1024]; // Buffer to hold a single character
         let mut parser = escape::parser::Parser::new();
 
         loop {
+            log::info!("Hi before");
             let res = reader.read(&mut buffer).await;
+            log::info!("Hi");
             match res {
                 Ok(0) => {},
                 Ok(n) => {

@@ -41,7 +41,7 @@ pub trait PseudoTerminal {
         cell_width: f32,
         cell_height: f32) -> (u16, u16) { (1, 1) }
     async fn write(&mut self, input: String) {}
-    fn reader(&mut self) -> Box<impl AsyncReader + Send>;
+    fn reader(&mut self) -> impl AsyncReader + Sized;
 }
 
 pub trait AsyncReader {
