@@ -1,5 +1,5 @@
 use escape::sgr::{Blink, Intensity, Underline, VerticalAlign, ColorSpec, SrgbaTuple, Font};
-use escape::osc::FinalTermPromptKind;
+use escape::osc::{FinalTermPromptKind, TextSize};
 use escape::hyperlink::Hyperlink;
 
 /// A Node system for dealing with terminal output
@@ -81,11 +81,12 @@ pub struct CellAttributes {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ExtraAttributes {
-    font: Font,
-    fg: Option<SrgbaTuple>,
-    bg: Option<SrgbaTuple>,
-    underline_fg: Option<ColorSpec>,
-    hyperlink: Option<Hyperlink>,
+    pub font: Font,
+    pub fg: Option<SrgbaTuple>,
+    pub bg: Option<SrgbaTuple>,
+    pub underline_fg: Option<ColorSpec>,
+    pub hyperlink: Option<Hyperlink>,
+    pub text_size: Option<TextSize>,
 }
 
 impl ExtraAttributes {
@@ -96,6 +97,7 @@ impl ExtraAttributes {
             bg: None,
             underline_fg: None,
             hyperlink: None,
+            text_size: None,
         }
     }
 }
@@ -246,11 +248,11 @@ impl CellAttributes {
     set_colour!(bg, get_bg, set_bg);
 
     pub fn set_underline_colour(&mut self, colour: ColorSpec) { 
-            self.get_extra().underline_fg = Some(colour);
+        self.get_extra().underline_fg = Some(colour);
     }
 
     pub fn set_hyperlink(&mut self, link: Option<Hyperlink>) { 
-            self.get_extra().hyperlink = link;
+        self.get_extra().hyperlink = link;
     }
 
     pub fn get_extra(&mut self) -> &mut Box<ExtraAttributes> {

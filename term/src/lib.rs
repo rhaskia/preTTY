@@ -16,7 +16,7 @@ use log::info;
 use screen::{Screen, TerminalRenderer};
 use state::TerminalState;
 use escape::csi::{CsiParam, Cursor, Device, Edit, EraseInDisplay, EraseInLine, Unspecified, CSI};
-use escape::osc::{FinalTermSemanticPrompt, ITermProprietary};
+use escape::osc::{FinalTermSemanticPrompt, ITermProprietary, TextSize};
 use escape::{Action, ControlCode, Esc, KittyImage, OSC, Sixel};
 use window::WindowHandler;
 
@@ -266,8 +266,22 @@ impl Terminal {
             ITermProprietary(iterm_command) => self.handle_iterm(iterm_command),
             SystemNotification(notif) => self.window.send_notification(notif),
             CurrentWorkingDirectory(cwd) => self.state.cwd = cwd,
+            TextSize(text, textsize) => self.handle_text_size(text, textsize),
             _ => info!("OperatingSystemCommand({:?})", command),
         };
+    }
+
+    /// Handle kitty protocol text size 
+    fn handle_text_size(&mut self, text: String, data: TextSize) {
+        {
+            let extra = self.renderer.attr.get_extra();
+            extra.text_size = Some(data);
+        }
+        self.print_str(text);
+        {
+            let extra = self.renderer.attr.get_extra();
+            extra.text_size = None;
+        }
     }
 
     /// Handling of all Iterm-based commands

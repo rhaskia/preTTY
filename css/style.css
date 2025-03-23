@@ -23,6 +23,14 @@ h1, h2, h3 {
     margin: 8px;
 }
 
+size {
+    display: inline-block;
+    font-size: calc(14px * var(--s)* var(--f));
+    width: calc(9px * var(--w) * var(--s));
+    height: calc(18px * var(--s));
+    overflow: hidden;
+}
+
 .confirmselect {
     max-width: 210px;
     position: absolute;

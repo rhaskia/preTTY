@@ -89,7 +89,8 @@ impl<F: FnMut(Action)> VTActor for Actor<'_, F> {
     }
 
     fn osc_dispatch(&mut self, osc: &[&[u8]]) {
-        
+        let osc = OSC::parse(osc);
+        self.callback(Action::OSC(Box::new(osc)));
     }
 
     fn apc_dispatch(&mut self, data: Vec<u8>) {

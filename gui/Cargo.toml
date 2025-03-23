@@ -36,7 +36,7 @@ getrandom = { version = "0.2", features = ["js"] }
 notify-rust = "4.10.0"
 
 [features]
-default = ["web"]
+default = ["desktop"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
